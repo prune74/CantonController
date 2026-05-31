@@ -6,10 +6,14 @@
   "password": "53DA477752646293F62EEEDD9F21D2",
 
   "discovery_on": true,
-  "booster_on": true,
 
-  "seuilLibre": 0,
-  "seuilOccupe": 0,
+  "booster_on": true,
+  "booster_seuilLibre": 50,
+  "booster_seuilOccupe": 200,
+  "booster_hysteresis": 20,
+
+  "seuilLibre": 50,
+  "seuilOccupe": 200,
 
   "comptAig": 0,
   "masqueAig": 0,
@@ -17,6 +21,11 @@
   "sensMarche": 0,
 
   "role": 0,
+
+  "SP1_idx": 0,
+  "SM1_idx": 0,
+  "SP2_acces": true,
+  "SM2_acces": true,
 
   "p00": "null",
   "p01": "null",
