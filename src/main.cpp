@@ -28,15 +28,15 @@
 // 🔥 Supervision EXSA (PING/PONG)
 #include "SatEXSA_Link.h"
 
+// Watchdog Master (heartbeat + arrêt en cas de blocage)
+#include "SAWatchdog.h"
+
 // Logs Discovery 2026
 #include "debug_sa.h"
 
 //--- Instances globales ------------------------------------------------------
 // Le SA gère un seul canton principal
 Node* node = new Node();
-
-// Décodeur Railcom (lecture adresse loco)
-Railcom railcom(RAILCOM_RX, RAILCOM_TX);
 
 // Gestion WiFi + interface Web
 Fl_Wifi wifi;
@@ -112,18 +112,17 @@ void setup()
     }
 
     // Railcom + logique ferroviaire
-    railcom.begin();
+    Railcom::begin();
     GestionReseau::setup(node);
   }
 
   //--- WiFi + Interface Web --------------------------------------------------
-  if (Settings::wifiOn())
+  wifiOn = Settings::wifiOn();
+  if (wifiOn)
   {
     wifi.start();
     webHandler.init(node, 80);
   }
-
-  wifiOn = Settings::wifiOn();
 
   Serial.printf(Settings::discoveryOn() ? "[Discovery] : on\n" : "[Discovery] : off\n");
   Serial.printf(Settings::wifiOn() ? "[Wifi] : on\n" : "Wifi : off\n");
@@ -134,10 +133,12 @@ void setup()
   //--- 🔥 Supervision EXSA (PING/PONG) --------------------------------------
   SatEXSA_Link::begin();
 
+  //--- 🔥 Watchdog Discovery 2026 : Heartbeat + STOP -------------------------
+  SAWatchdog_begin();
+
   // En mode release, on coupe le port série après 1 seconde
   vTaskDelay(pdMS_TO_TICKS(1000));
   Serial.end();
-  // Ce log ne doit effectivement jamais s'afficher en production
   SA_LOG_INFO("Ne doit pas s'afficher !\n");
 }
 
@@ -156,12 +157,12 @@ void loop()
   //--- Railcom : mise à jour adresse loco -----------------------------------
   if (!Settings::discoveryOn())
   {
-    if (railcom.address() && node->busy())
+    if (Railcom::address() && node->busy())
     {
       Loco* loco = node->getLoco();
       if (loco)
       {
-        loco->address(railcom.address());
+        loco->address(Railcom::address());
       }
     }
   }

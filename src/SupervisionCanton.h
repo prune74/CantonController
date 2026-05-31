@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include "Node.h"
 #include "SensEnum.h"
-#include "SA_EXSA_Protocol.h"   // pour ExsaAspect
+#include "Discovery_Protocol.h" // pour ExsaAspect
 
 /*************************************************************************************
  * Supervision cantonale
@@ -24,4 +24,4 @@
  * Retour :
  * - ExsaAspect : aspect SNCF à afficher
  *************************************************************************************/
-ExsaAspect mettreAJourAspectCanton(Node* node, uint8_t i);
+ExsaAspect mettreAJourAspectCanton(Node *node, uint8_t i);

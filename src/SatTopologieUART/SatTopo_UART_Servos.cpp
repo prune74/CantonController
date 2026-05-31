@@ -20,7 +20,7 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "SA_EXSA_Protocol.h"
+#include "Discovery_Protocol.h"
 #include "debug_sa.h"
 
 #include "Settings.h"
@@ -79,7 +79,7 @@ void envoyerConfigurationServosDepuisSettings()
 
   for (uint8_t servo = 0; servo < 6; ++servo)
   {
-    Aig* aig = Settings::node->getAig(servo);
+    Aig *aig = Settings::node->getAig(servo);
     if (!aig)
       continue;
 
@@ -92,7 +92,7 @@ void envoyerConfigurationServosDepuisSettings()
 
     snprintf(keyPosDroit, sizeof(keyPosDroit), "aig%uposDroit", servo);
     snprintf(keyPosDevie, sizeof(keyPosDevie), "aig%uposDevie", servo);
-    snprintf(keySpeed,    sizeof(keySpeed),    "aig%uspeed",    servo);
+    snprintf(keySpeed, sizeof(keySpeed), "aig%uspeed", servo);
 
     // Lecture JSON (source de vérité)
     uint16_t posDroit = doc[keyPosDroit] | aig->posDroit();

@@ -41,38 +41,38 @@
 #include "CommandeDCC.h"        // Envoi commandes DCC++
 #include "AspectSignal.h"       // Envoi aspects dynamiques aux signaux (UART → EXSA)
 #include "SensEnum.h"           // Enumération des sens (horaire / anti-horaire)
-#include "SA_EXSA_Protocol.h"   // ExsaAspect (enum 1 octet)
+#include "Discovery_Protocol.h" // ExsaAspect (enum 1 octet)
 
 class GestionReseau
 {
 public:
-    // Classe statique → pas de constructeur
-    GestionReseau() = delete;
+  // Classe statique → pas de constructeur
+  GestionReseau() = delete;
 
-    /*************************************************************************************
-     * setup()
-     *************************************************************************************/
-    static void setup(Node* node);
+  /*************************************************************************************
+   * setup()
+   *************************************************************************************/
+  static void setup(Node *node);
 
-    /*************************************************************************************
-     * loopTask()
-     * ------------------------------------------------------------
-     * Boucle principale du satellite (SA)
-     * Exécutée toutes les 100 ms.
-     *************************************************************************************/
-    static void IRAM_ATTR loopTask(void* pvParameters);
+  /*************************************************************************************
+   * loopTask()
+   * ------------------------------------------------------------
+   * Boucle principale du satellite (SA)
+   * Exécutée toutes les 100 ms.
+   *************************************************************************************/
+  static void IRAM_ATTR loopTask(void *pvParameters);
 
-    /*************************************************************************************
-     * signalValue[2]
-     * ------------------------------------------------------------
-     * Buffer contenant les aspects à transmettre aux signaux :
-     *   - signalValue[0] : aspect horaire
-     *   - signalValue[1] : aspect anti-horaire
-     *
-     * Typé en ExsaAspect (1 octet) pour cohérence avec :
-     *   - SupervisionCanton (calcul des aspects)
-     *   - AspectSignal (envoi UART vers EXSA)
-     *   - SA_EXSA_Protocol.h (protocole commun)
-     *************************************************************************************/
-    static ExsaAspect signalValue[2];
+  /*************************************************************************************
+   * signalValue[2]
+   * ------------------------------------------------------------
+   * Buffer contenant les aspects à transmettre aux signaux :
+   *   - signalValue[0] : aspect horaire
+   *   - signalValue[1] : aspect anti-horaire
+   *
+   * Typé en ExsaAspect (1 octet) pour cohérence avec :
+   *   - SupervisionCanton (calcul des aspects)
+   *   - AspectSignal (envoi UART vers EXSA)
+   *   - Discovery_Protocol.h (protocole commun)
+   *************************************************************************************/
+  static ExsaAspect signalValue[2];
 };

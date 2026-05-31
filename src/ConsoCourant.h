@@ -1,33 +1,16 @@
 #pragma once
 
-#include <driver/gpio.h>   // pour gpio_num_t
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <stdint.h>
 
 class Node;
 
 /*
- * ============================================================
- *  ConsoCourant.h — SA 2026
- * ------------------------------------------------------------
- *  Rôle :
- *    - Représenter le "capteur de courant" d’un canton côté SA.
- *    - En 2026, ce capteur n’est plus physique : 
- *      l’info vient à 100% d’EXSA via UART.
- *
- *    - ConsoCourant reçoit les trames :
- *          [AA][04][30] → OCCUPÉ  (PROTO_OCC_ACTIVE)
- *          [AA][04][31] → LIBRE   (PROTO_OCC_LIBRE)
- *
- *    - Il fusionne cette présence physique avec le compteur
- *      global d’essieux (H + AH) maintenu par CompteurEssieuxUart.
- *
- *    - Il met ensuite à jour l’état logique du canton via :
- *          m_node->busy(bool occupeLogique)
- *
- *  Ce module est donc le "point d’entrée" officiel de
- *  l’occupation dans le SA.
- * ============================================================
+ * ConsoCourant — SA 2026
+ * ----------------------
+ * - Représente l’occupation physique d’un canton.
+ * - L’info vient d’EXSA via PROTO_04.
+ * - Fusionne occupation physique + compteur essieux.
+ * - Met à jour node->busy().
  */
 
 class ConsoCourant
@@ -36,23 +19,18 @@ public:
     ConsoCourant();
     ~ConsoCourant();
 
-    // Initialisation du capteur de courant virtuel pour un canton
-    void setup(Node* node); //void setup(Node* node, const gpio_num_t pinIn);
+    // Singleton : instance unique du SA
+    static ConsoCourant* s_instance;
+    
+    // Associe ce capteur virtuel à un canton
+    void setup(Node* node);
 
-    // Démarrage de la tâche FreeRTOS qui lit l’UART EXSA → SA
-    void startReceptionUART();
+    // Appelé par SA_UartRx (PROTO_04)
+    static void onOccupation(uint8_t index_exsa, uint8_t code);
 
-    // Mise à jour de l’état à partir d’une info physique reçue
-    // (appelée par la tâche UART lorsqu’une trame 0x04 arrive)
+    // Mise à jour interne
     void updateEtat(bool occupePhysique);
 
 private:
-    // Tâche FreeRTOS pour la réception UART (fonction statique C-style)
-    static void tacheReceptionUART(void* pvParameters);
-
-    // Pointeur vers le canton concerné
     Node* m_node = nullptr;
-
-    // Anciennement utilisé pour un GPIO physique, conservé pour compat
-    gpio_num_t m_pinIn = GPIO_NUM_NC;
 };

@@ -17,10 +17,10 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "SA_EXSA_Protocol.h"
+#include "Discovery_Protocol.h"
 #include "debug_sa.h"
 
-#include "Settings.h"     // pour Settings::node
+#include "Settings.h" // pour Settings::node
 #include "FeuxDirection.h"
 #include "Node.h"
 
@@ -37,7 +37,7 @@ void envoyerFeuxDepuisEtatCourant()
   Settings::node->updateFeuDirection(SensAntiHoraire);
 
   // Lecture du résultat (0..4)
-  uint8_t codeH  = Settings::node->getFeuDirection(SensHoraire);
+  uint8_t codeH = Settings::node->getFeuDirection(SensHoraire);
   uint8_t codeAH = Settings::node->getFeuDirection(SensAntiHoraire);
 
   // Envoi EXSA

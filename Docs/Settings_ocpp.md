@@ -62,7 +62,7 @@ void Settings::setup(Node *nd)
 /*-------------------------------------------------------------
                            begin()
    Dialogue CAN avec la carte Main :
-   - Attente de la réponse 0xB3
+   - Attente de la réponse CMD_SAT_TEST_BUS_REPLY
    - Demande d’ID (0xB4)
 --------------------------------------------------------------*/
 bool Settings::begin()

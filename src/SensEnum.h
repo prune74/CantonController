@@ -1,5 +1,4 @@
-#ifndef SENSENUM_H
-#define SENSENUM_H
+#pragma once
 
 /*
  * SensEnum.h — Version Discovery 2026
@@ -12,6 +11,3 @@ enum SensDeMarche : uint8_t {
     SensHoraire = 1,
     SensAntiHoraire = 2
 };
-
-#endif
-// SENSENUM_H

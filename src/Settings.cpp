@@ -19,19 +19,20 @@
 #include "Settings.h"
 #include "settings/Settings_Internal.h"
 #include "debug_sa.h"
+#include "SA_UartRx.h"
 
 /* ============================================================================
  *  Déclarations statiques
  * ==========================================================================*/
 
-bool Settings::WIFI_ON        = true;
-bool Settings::DISCOVERY_ON   = true;
-String Settings::ssid_str      = "";
-String Settings::password_str  = "";
-char Settings::ssid[30]        = {};
-char Settings::password[30]    = {};
-bool Settings::isMainReady     = false;
-Node* Settings::node           = nullptr;
+bool Settings::WIFI_ON = true;
+bool Settings::DISCOVERY_ON = true;
+String Settings::ssid_str = "";
+String Settings::password_str = "";
+char Settings::ssid[30] = {};
+char Settings::password[30] = {};
+bool Settings::isMainReady = false;
+Node *Settings::node = nullptr;
 
 /* ============================================================================
  *  Paramètres globaux : WiFi / Discovery
@@ -70,7 +71,7 @@ void Settings::discoveryOn(bool val)
  * Remarque :
  *   Le dialogue CAN avec la carte Main est effectué dans begin().
  * ==========================================================================*/
-void Settings::setup(Node* nd)
+void Settings::setup(Node *nd)
 {
     node = nd;
 
@@ -79,8 +80,16 @@ void Settings::setup(Node* nd)
     // ------------------------------------------------------------------------
     // 1) UART RS485 (EXSA)
     // ------------------------------------------------------------------------
+
     SA_LOG_TRACE("[Settings] Initialisation UART RS485...\n");
     setupUART();
+
+    // ------------------------------------------------------------------------
+    // 1) UART RS485 (EXSA) - Lancement de la tâche de réception
+    // ------------------------------------------------------------------------
+
+    SA_LOG_TRACE("[Settings] Lancement de la tâche de réception UART...\n");
+    SA_UartRx::begin();
 
     // ------------------------------------------------------------------------
     // 2) Montage SPIFFS
@@ -97,7 +106,7 @@ void Settings::setup(Node* nd)
     // 3) Lecture settings.json
     // ------------------------------------------------------------------------
     SA_LOG_TRACE("[Settings] Lecture settings.json...\n");
-    loadFile(node);   // ← NOUVELLE API 2026
+    loadFile(node); // ← NOUVELLE API 2026
 
     SA_LOG_INFO("[Settings] ✔ setup() terminé\n\n");
 }

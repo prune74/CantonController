@@ -1,4 +1,4 @@
-#pragma once
+
 /**
  * ------------------------------------------------------------
  * FeuxDirection.h
@@ -30,6 +30,8 @@
  *
  * ------------------------------------------------------------
  */
+
+#pragma once
 
 #include <string>
 #include "FeuxDirection/FeuxDirection_Types.h"

@@ -9,7 +9,7 @@
  *    - la réception CAN (tâche FreeRTOS dédiée)
  *    - le décodage des trames Discovery 2026
  *    - le dispatch vers les handlers :
- *          * System (0xB3–0xBF)
+ *          * System (0xB3–CMD_SAVE_ALL)
  *          * Discovery (0xC0–0xC1)
  *          * Exploitation ferroviaire (0xE0–0xE9)
  *
@@ -44,7 +44,6 @@
 #include "Settings.h"
 #include "Discovery.h"
 
-
 /*
  * ============================================================================
  *  Classe CanMsg
@@ -72,7 +71,6 @@
 class CanMsg
 {
 public:
-
   // -------------------------------------------------------------------------
   // setup(node)
   // -------------------------------------------------------------------------
@@ -84,7 +82,6 @@ public:
   // -------------------------------------------------------------------------
   static void setup(Node *node);
 
-
   // -------------------------------------------------------------------------
   // sendMsg(CANMessage&)
   // -------------------------------------------------------------------------
@@ -92,7 +89,6 @@ public:
   // Utilisé par toutes les surcharges ci‑dessous.
   // -------------------------------------------------------------------------
   static void sendMsg(CANMessage &frame);
-
 
   // -------------------------------------------------------------------------
   // API simplifiée d’envoi CAN
@@ -115,7 +111,6 @@ public:
   static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6);
   static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6, byte data7);
 
-
 #ifdef TEST_MEMORY_TASK
   // -------------------------------------------------------------------------
   // testMemory()
@@ -128,9 +123,7 @@ public:
   static void testMemory(void *pvParameters);
 #endif
 
-
 private:
-
   // -------------------------------------------------------------------------
   // canReceiveMsg()
   // -------------------------------------------------------------------------

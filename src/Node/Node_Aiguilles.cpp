@@ -37,6 +37,13 @@
  */
 void Node::aigRun(byte idx)
 {
+    // 🔥 STOP global Discovery 2026 : aucune commande d’aiguille autorisée
+    if (isStopActive())
+    {
+        SA_LOG_WARN("[Node %u] aigRun() BLOQUEE : STOP actif\n", m_id);
+        return;
+    }
+
     if (idx >= aigSize)
     {
         SA_LOG_WARN("[Node %u] aigRun() : index %u hors limites\n", m_id, idx);
@@ -63,11 +70,11 @@ void Node::aigRun(byte idx)
     if (aig[idx]->nodePdroitIdx() == m_SP1_idx ||
         aig[idx]->nodePdevieIdx() == m_SP1_idx)
     {
-        exsaAdresse = 0;   // côté horaire
+        exsaAdresse = 0; // côté horaire
     }
     else
     {
-        exsaAdresse = 1;   // côté anti‑horaire
+        exsaAdresse = 1; // côté anti‑horaire
     }
 
     SA_LOG_INFO("[Node %u] aigRun() → EXSA=%u, aiguille=%u\n",
@@ -94,7 +101,7 @@ void Node::aigRun(byte idx)
  */
 uint8_t Node::getAiguillePosition(uint8_t idx) const
 {
-    Aig* a = const_cast<Node*>(this)->getAig(idx);
+    Aig *a = const_cast<Node *>(this)->getAig(idx);
     if (!a)
         return 0;
 

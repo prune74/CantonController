@@ -1,9 +1,16 @@
 {
   "idNode": 255,
+
   "wifi_on": true,
   "ssid": "Bbox-E51CC95D",
   "password": "53DA477752646293F62EEEDD9F21D2",
+
   "discovery_on": true,
+  "booster_on": true,
+
+  "seuilLibre": 0,
+  "seuilOccupe": 0,
+
   "comptAig": 0,
   "masqueAig": 0,
   "maxSpeed": 128,

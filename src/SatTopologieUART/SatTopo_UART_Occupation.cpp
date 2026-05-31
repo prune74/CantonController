@@ -23,7 +23,7 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "SA_EXSA_Protocol.h"
+#include "Discovery_Protocol.h"
 #include "debug_sa.h"
 
 #include "Settings.h"
@@ -40,11 +40,13 @@ void envoyerOccupationDepuisEtatCourant()
   uint8_t occSP1 = 0;
   uint8_t occSM1 = 0;
 
-  NodePeriph* sp1 = Settings::node->getNodeP(Settings::node->SP1_idx());
-  NodePeriph* sm1 = Settings::node->getNodeP(Settings::node->SM1_idx());
+  NodePeriph *sp1 = Settings::node->getNodeP(Settings::node->SP1_idx());
+  NodePeriph *sm1 = Settings::node->getNodeP(Settings::node->SM1_idx());
 
-  if (sp1 && sp1->busy()) occSP1 = 1;
-  if (sm1 && sm1->busy()) occSM1 = 1;
+  if (sp1 && sp1->busy())
+    occSP1 = 1;
+  if (sm1 && sm1->busy())
+    occSM1 = 1;
 
   uint8_t valeur = (occSP1 << 1) | occSM1;
 

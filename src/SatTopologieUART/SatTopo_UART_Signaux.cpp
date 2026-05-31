@@ -14,7 +14,7 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "SA_EXSA_Protocol.h"
+#include "Discovery_Protocol.h"
 #include "debug_sa.h"
 
 #include <SPIFFS.h>
@@ -56,8 +56,8 @@ void envoyerConfigurationSignauxDepuisSettings()
 
   uint8_t type0 = doc["sign0type"] | 0;
   uint8_t type1 = doc["sign1type"] | 0;
-  uint8_t pos0  = doc["sign0position"] | 0;
-  uint8_t pos1  = doc["sign1position"] | 0;
+  uint8_t pos0 = doc["sign0position"] | 0;
+  uint8_t pos1 = doc["sign1position"] | 0;
 
   SA_LOG_TRACE("[TopoUART] signaux : T0=%u T1=%u P0=%u P1=%u\n",
                type0, type1, pos0, pos1);

@@ -1,5 +1,5 @@
 /*
-  CanMsg_System.cpp — Commandes système (0xB3 à 0xBF)
+  CanMsg_System.cpp — Commandes système (CMD_SAT_TEST_BUS_REPLY à CMD_SAVE_ALL)
   --------------------------------------------------------------------------
   Ces commandes ne concernent PAS l’exploitation ferroviaire.
   Elles servent à :
@@ -15,7 +15,7 @@
 /**
  * handleSystemCommand()
  * --------------------------------------------------------------------------
- * @param commande         → code CAN (0xB3 à 0xBF)
+ * @param commande         → code CAN (CMD_SAT_TEST_BUS_REPLY à CMD_SAVE_ALL)
  * @param frameIn          → trame CAN reçue
  * @param node             → canton local
  * @param idSatExpediteur  → ID du satellite expéditeur
@@ -29,9 +29,9 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
 
   switch (commande)
   {
-  case 0xB3:
+  case CMD_SAT_TEST_BUS_REPLY:
     /**************************************************************************
-     * 0xB3 — Réponse au test du bus CAN
+     * CMD_SAT_TEST_BUS_REPLY — Réponse au test du bus CAN
      * ------------------------------------------------------------------------
      * frameIn.data[0] = 1 → le SA répond correctement
      * Le Main peut alors considérer le SA comme "READY".
@@ -40,9 +40,9 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
       Settings::sMainReady(true);
     break;
 
-  case 0xB5:
+  case CMD_SAT_REQUEST_ID_REPLY:
     /**************************************************************************
-     * 0xB5 — Attribution d’ID
+     * CMD_SAT_REQUEST_ID_REPLY — Attribution d’ID
      * ------------------------------------------------------------------------
      * Lorsqu’un SA démarre sans ID (UNUSED_ID), il demande un ID au Main.
      * Le Main répond avec cette commande.
@@ -51,18 +51,18 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
       node->ID(frameIn.data[0]);
     break;
 
-  case 0xBC:
+  case CMD_RESTART_ALL:
     /**************************************************************************
-     * 0xBC — Reset ESP32
+     * CMD_RESTART_ALL — Reset ESP32
      * ------------------------------------------------------------------------
      * Commande critique : permet au Main de redémarrer un SA à distance.
      **************************************************************************/
     ESP.restart();
     break;
 
-  case 0xBD:
+  case CMD_WIFI_ON_OFF:
     /**************************************************************************
-     * 0xBD — Activation / désactivation du WiFi
+     * CMD_WIFI_ON_OFF — Activation / désactivation du WiFi
      * ------------------------------------------------------------------------
      * frameIn.data[0] = 0 → WiFi OFF
      * frameIn.data[0] = 1 → WiFi ON
@@ -75,9 +75,9 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
     ESP.restart();
     break;
 
-  case 0xBE:
+  case CMD_DISCOVERY_ON_OFF:
     /**************************************************************************
-     * 0xBE — Activation / désactivation du mode Discovery
+     * CMD_DISCOVERY_ON_OFF — Activation / désactivation du mode Discovery
      * ------------------------------------------------------------------------
      * Discovery = apprentissage automatique de la topologie SP/SM.
      *
@@ -99,9 +99,9 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
     }
     break;
 
-  case 0xBF:
+  case CMD_SAVE_ALL:
     /**************************************************************************
-     * 0xBF — Sauvegarde settings.json
+     * CMD_SAVE_ALL — Sauvegarde settings.json
      * ------------------------------------------------------------------------
      * Permet au Main d’imposer une sauvegarde immédiate.
      **************************************************************************/

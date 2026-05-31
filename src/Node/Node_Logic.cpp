@@ -12,7 +12,16 @@
 
 bool Node::estAccesAutorise(SensDeMarche sens)
 {
-    NodePeriph* v = nullptr;
+    // 🔥 STOP global Discovery 2026 : aucun accès autorisé
+    if (isStopActive())
+    {
+        SA_LOG_WARN("[Node %u] Accès %s BLOQUE (STOP actif)\n",
+                    m_id,
+                    (sens == SensHoraire ? "H" : "AH"));
+        return false;
+    }
+
+    NodePeriph *v = nullptr;
     byte masque = 0;
 
     if (sens == SensHoraire)
@@ -26,7 +35,7 @@ bool Node::estAccesAutorise(SensDeMarche sens)
         masque = m_masqueAig;
     }
 
-    const char* sensStr = (sens == SensHoraire) ? "H" : "AH";
+    const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
     // 1) Le rôle doit autoriser l’accès
     if (!roleAutoriseAcces(sens))
@@ -78,7 +87,7 @@ bool Node::aiguillesConformes(byte masque)
         if (!(masque & (1 << i)))
             continue; // aiguille non concernée
 
-        Aig* a = getAig(i);
+        Aig *a = getAig(i);
         if (!a)
             continue; // aiguille non configurée
 
@@ -97,7 +106,7 @@ bool Node::aiguillesConformes(byte masque)
  * ============================================================================
  */
 
-NodePeriph* Node::prochainVoisin(SensDeMarche sens)
+NodePeriph *Node::prochainVoisin(SensDeMarche sens)
 {
     if (sens == SensHoraire)
         return voisinSP1();
@@ -112,10 +121,19 @@ NodePeriph* Node::prochainVoisin(SensDeMarche sens)
 
 bool Node::peutEntrerDansVoisin(SensDeMarche sens)
 {
+    // 🔥 STOP global Discovery 2026 : aucune entrée autorisée
+    if (m_stopActive)
+    {
+        SA_LOG_WARN("[Node %u] Entrée %s BLOQUEE (STOP actif)\n",
+                    m_id,
+                    (sens == SensHoraire ? "H" : "AH"));
+        return false;
+    }
+
     if (!estAccesAutorise(sens))
         return false;
 
-    NodePeriph* v = prochainVoisin(sens);
+    NodePeriph *v = prochainVoisin(sens);
     if (!v)
         return false;
 
@@ -132,6 +150,15 @@ bool Node::peutEntrerDansVoisin(SensDeMarche sens)
 
 bool Node::estSortiePossible(SensDeMarche sens)
 {
+    // 🔥 STOP global Discovery 2026 : aucune sortie autorisée
+    if (m_stopActive)
+    {
+        SA_LOG_WARN("[Node %u] Sortie %s BLOQUEE (STOP actif)\n",
+                    m_id,
+                    (sens == SensHoraire ? "H" : "AH"));
+        return false;
+    }
+
     if (!m_busy)
         return false;
 

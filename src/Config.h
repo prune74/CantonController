@@ -21,7 +21,7 @@
 
 #pragma once
 #include <Arduino.h>
-#include "SA_EXSA_Protocol.h" // 🔥 Protocole commun SA ↔ EXSA (E4..EA, F0..F2)
+#include "Discovery_Protocol.h" // 🔥 Protocole commun SA ↔ EXSA (E4..EA, F0..F2)
 
 // ============================================================
 //  Niveaux de logs
@@ -47,7 +47,7 @@
  *  OPTIONS GÉNÉRALES
  *  --------------------------------------------------------------------------
  *  SAUV_BY_MAIN :
- *      La sauvegarde settings.json est déclenchée par le Main (commande 0xBF)
+ *      La sauvegarde settings.json est déclenchée par le Main (commande CMD_SAVE_ALL)
  *
  *  CHIP_INFO :
  *      Affiche les infos ESP32 au démarrage (RAM, flash, révision)
@@ -61,27 +61,28 @@
 #define RAILCOM
 // #define TEST_MEMORY_TASK
 
-    /* ============================================================================
-     *  INDEX DES SATELLITES (topologie SP/SM)
-     *  --------------------------------------------------------------------------
-     *  Ces index sont utilisés dans :
-     *      - node->nodeP[]
-     *      - Discovery
-     *      - GestionReseau
-     *
-     *  Ils représentent les positions SP/SM dans la matrice topologique.
-     * ============================================================================
-     */
-    enum : uint8_t {
-      p00,
-      p01,
-      p10,
-      p11, // Voisins sens horaire (SP)
-      m00,
-      m01,
-      m10,
-      m11 // Voisins sens anti-horaire (SM)
-    };
+/* ============================================================================
+ *  INDEX DES SATELLITES (topologie SP/SM)
+ *  --------------------------------------------------------------------------
+ *  Ces index sont utilisés dans :
+ *      - node->nodeP[]
+ *      - Discovery
+ *      - GestionReseau
+ *
+ *  Ils représentent les positions SP/SM dans la matrice topologique.
+ * ============================================================================
+ */
+enum : uint8_t
+{
+  p00,
+  p01,
+  p10,
+  p11, // Voisins sens horaire (SP)
+  m00,
+  m01,
+  m10,
+  m11 // Voisins sens anti-horaire (SM)
+};
 
 /* ============================================================================
  *  IDENTIFIANTS CAN
@@ -112,12 +113,12 @@
  *      Broches du transceiver CAN (SN65HVD230 ou équivalent)
  *
  *  CAN_BITRATE :
- *      Débit du bus CAN → 1 Mb/s (standard Discovery)
+ *      Débit du bus CAN → 250 kb/s (standard Discovery)
  * ============================================================================
  */
-#define CAN_RX GPIO_NUM_22
-#define CAN_TX GPIO_NUM_23
-#define CAN_BITRATE 1000000UL // 1 Mb/s
+#define CAN_RX GPIO_NUM_4
+#define CAN_TX GPIO_NUM_5
+#define CAN_BITRATE 250000UL
 
 /* ============================================================================
  *  DIMENSIONS DES TABLEAUX NODE
@@ -151,8 +152,8 @@ static constexpr uint8_t signalSize = 2;
  * ============================================================================
  */
 #define NB_ADDRESS_TO_COMPARE 100
-#define RAILCOM_RX GPIO_NUM_0
-#define RAILCOM_TX GPIO_NUM_17
+#define RAILCOM_RX GPIO_NUM_32
+#define RAILCOM_TX GPIO_NUM_33
 
 /* ============================================================================
  *  UART → EXSA (signaux + servos)
@@ -173,6 +174,12 @@ static constexpr uint8_t signalSize = 2;
 #define UART_PORT_NUM 1
 
 #define UART_SYNC_BYTE PROTO_SYNC_BYTE
+
+/* ============================================================================
+ *  RS485 — Direction du transceiver (DE/RE)
+ * ============================================================================
+ */
+#define RS485_DE_RE GPIO_NUM_27
 
 /* ============================================================================
  *  ALIAS LOCAUX → PROTOCOLE COMMUN SA ↔ EXSA
@@ -216,5 +223,4 @@ static constexpr uint8_t signalSize = 2;
 #define INTER_DEV_2 GPIO_NUM_39
 #define BTN_SAT_PLUS GPIO_NUM_36
 #define BTN_SAT_MOINS GPIO_NUM_35
-#define LED_PIN_DISCOV GPIO_NUM_32
-
+#define LED_PIN_DISCOV GPIO_NUM_16

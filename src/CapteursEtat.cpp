@@ -10,8 +10,10 @@ void mettreAJourCapteurs(Node* node)
     if (!node->busy())
     {
         // Capteurs ponctuels remis à zéro
-        node->getSensor(0)->overrideState(false);   // capteur anti‑horaire
-        node->getSensor(1)->overrideState(false);   // capteur horaire
+        // index_exsa = 0 → capteur H
+        // index_exsa = 1 → capteur AH
+        node->getSensor(0)->overrideState(false);   // capteur H
+        node->getSensor(1)->overrideState(false);   // capteur AH
 
         // Reset de la loco
         node->getLoco()->speed(0);

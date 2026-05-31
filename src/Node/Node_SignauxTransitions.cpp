@@ -15,7 +15,7 @@
  * sens = SensHoraire    → aspectRecu[0]
  * sens = SensAntiHoraire → aspectRecu[1]
  */
-static inline uint8_t aspectVoisin(NodePeriph* v, SensDeMarche sens)
+static inline uint8_t aspectVoisin(NodePeriph *v, SensDeMarche sens)
 {
     if (!v)
         return ASPECT_CARRE;
@@ -27,7 +27,7 @@ static inline uint8_t aspectVoisin(NodePeriph* v, SensDeMarche sens)
 /*
  * estOccupeOuReserve() — règle de sécurité
  */
-static inline bool estOccupeOuReserve(NodePeriph* v)
+static inline bool estOccupeOuReserve(NodePeriph *v)
 {
     return v && (v->busy() || v->reserved() != 0);
 }
@@ -39,11 +39,20 @@ static inline bool estOccupeOuReserve(NodePeriph* v)
 
 uint8_t Node::transitionAspect(SensDeMarche sens)
 {
-    NodePeriph* v = (sens == SensHoraire)
-                    ? voisinSP1()
-                    : voisinSM1();
+    // 🔥 STOP global Discovery 2026 : tous les signaux = CARRÉ
+    if (isStopActive())
+    {
+        SA_LOG_WARN("[Node %u] transitionAspect(%s) → CARRÉ (STOP actif)\n",
+                    m_id,
+                    (sens == SensHoraire ? "H" : "AH"));
+        return ASPECT_CARRE;
+    }
 
-    const char* sensStr = (sens == SensHoraire) ? "H" : "AH";
+    NodePeriph *v = (sens == SensHoraire)
+                        ? voisinSP1()
+                        : voisinSM1();
+
+    const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
     /*
      * 1) Sécurité absolue : canton suivant occupé → CARRÉ
@@ -74,33 +83,33 @@ uint8_t Node::transitionAspect(SensDeMarche sens)
      */
     switch (m_role)
     {
-        case ROLE_BAL:
-            SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (BAL)\n",
-                         m_id, sensStr);
-            return ASPECT_VOIE_LIBRE;
+    case ROLE_BAL:
+        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (BAL)\n",
+                     m_id, sensStr);
+        return ASPECT_VOIE_LIBRE;
 
-        case ROLE_ENTREE_GARE:
-            SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Avertissement (entrée gare)\n",
-                         m_id, sensStr);
-            return ASPECT_AVERTISSEMENT;
+    case ROLE_ENTREE_GARE:
+        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Avertissement (entrée gare)\n",
+                     m_id, sensStr);
+        return ASPECT_AVERTISSEMENT;
 
-        case ROLE_SORTIE_GARE:
-            SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (sortie gare)\n",
-                         m_id, sensStr);
-            return ASPECT_VOIE_LIBRE;
+    case ROLE_SORTIE_GARE:
+        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (sortie gare)\n",
+                     m_id, sensStr);
+        return ASPECT_VOIE_LIBRE;
 
-        case ROLE_MANOEUVRE:
-            SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Manoeuvre\n",
-                         m_id, sensStr);
-            return ASPECT_MANOEUVRE;
+    case ROLE_MANOEUVRE:
+        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Manoeuvre\n",
+                     m_id, sensStr);
+        return ASPECT_MANOEUVRE;
 
-        case ROLE_GARE:
-        case ROLE_SERVICE:
-        case ROLE_PLEINE_VOIE:
-        default:
-            SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (défaut)\n",
-                         m_id, sensStr);
-            return ASPECT_VOIE_LIBRE;
+    case ROLE_GARE:
+    case ROLE_SERVICE:
+    case ROLE_PLEINE_VOIE:
+    default:
+        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (défaut)\n",
+                     m_id, sensStr);
+        return ASPECT_VOIE_LIBRE;
     }
 }
 

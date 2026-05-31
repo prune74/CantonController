@@ -1,174 +1,135 @@
-/*
- * SatEXSA_Link.cpp
- * ------------------------------------------------------------
- * Supervision des modules EXSA via PING/PONG.
- *
- * Cette couche est purement "communication" :
- *   - PING SA → EXSA (PROTO_PING)
- *   - PONG EXSA → SA (PROTO_PONG)
- *   - Suivi ONLINE / OFFLINE
- *
- * Elle ne dépend pas de la logique métier des cantons.
- */
-
 #include "SatEXSA_Link.h"
-#include "SA_EXSA_Protocol.h"
-#include "SatTopologieUART.h"   // envoyerTopologieDepuisSettings(), envoyerConfigurationSignauxDepuisSettings(), envoyerConfigurationServosDepuisSettings(), envoyerOccupationDepuisEtatCourant(), envoyerAspectsDepuisEtatCourant()
-#include <Arduino.h>
-#include "Config.h"
+#include "Discovery_Protocol.h"
+#include "SatTopologieUART.h"
+#include "SA_RS485.h"
+#include "Settings.h"
 #include "debug_sa.h"
 
-extern HardwareSerial Serial1;  // UART commun aux EXSA
-
-/* ============================================================
-   Paramètres de supervision
-   ============================================================ */
-
-// Nombre d’EXSA sur le bus (H et AH)
-static constexpr uint8_t kExsaCount = 2;
-
-// Période d’envoi des PING (en ms)
-static constexpr uint32_t kPingPeriodMs = 500;
-
-// Délai avant de considérer un EXSA comme OFFLINE (en ms)
+static constexpr uint8_t  kExsaCount        = 2;
+static constexpr uint32_t kPingPeriodMs     = 500;
 static constexpr uint32_t kOfflineTimeoutMs = 2000;
 
 /* ============================================================
-   État interne par EXSA
+   État interne EXSA
    ============================================================ */
-
-struct ExsaState {
-    bool     online;        // true = on reçoit régulièrement des PONG
-    uint32_t lastPongTime;  // millis() du dernier PONG reçu
+struct ExsaState
+{
+    bool     online;
+    uint32_t lastPongTime;
 };
 
 static ExsaState g_exsa[kExsaCount];
+static int8_t    g_exsaBoosterIndex = -1;
 
 /* ============================================================
    Initialisation
    ============================================================ */
-
 void SatEXSA_Link::begin()
 {
-    SA_LOG_INFO("[SatEXSA_Link] Initialisation de la supervision EXSA...\n");
+    SA_LOG_INFO("[SatEXSA_Link] Initialisation RS485...\n");
 
-    for (uint8_t i = 0; i < kExsaCount; ++i) {
+    SA_RS485::begin();
+
+    for (uint8_t i = 0; i < kExsaCount; ++i)
+    {
         g_exsa[i].online       = false;
         g_exsa[i].lastPongTime = 0;
     }
 
-    SA_LOG_TRACE("[SatEXSA_Link] États EXSA initialisés à OFFLINE\n");
+    g_exsaBoosterIndex = -1;
 }
 
 /* ============================================================
-   Helpers internes : envoi PING
+   PING périodique
    ============================================================ */
-
 static void envoyerPing(uint8_t index)
 {
-    // index = 0 (H) ou 1 (AH)
-    Serial1.write(PROTO_SYNC_BYTE);
-    Serial1.write(PROTO_PING);
-    Serial1.write(index);
+    uint8_t frame[3] = {
+        PROTO_SYNC_BYTE,
+        PROTO_PING,
+        index
+    };
 
-    SA_LOG_TRACE("[SatEXSA_Link] → PING envoyé à EXSA %u\n", index);
+    SA_RS485::sendFrame(frame, sizeof(frame));
+    SA_LOG_TRACE("[SatEXSA_Link] → PING EXSA %u\n", index);
 }
 
-static void envoyerPingPeriodique()
+void SatEXSA_Link::envoyerPingPeriodique()
 {
     static uint32_t lastPing = 0;
-    const uint32_t now = millis();
+    uint32_t now = millis();
 
     if (now - lastPing < kPingPeriodMs)
         return;
 
     lastPing = now;
 
-    // PING pour chaque EXSA (0 = H, 1 = AH)
     for (uint8_t i = 0; i < kExsaCount; ++i)
         envoyerPing(i);
 }
 
 /* ============================================================
-   Helpers internes : lecture PONG
+   PONG reçu
    ============================================================ */
-
-/*
- * Mini-parser 3 octets :
- *   [SYNC][OPCODE][DATA]
- *
- * On ne s’intéresse qu’à :
- *   [0xAA][PROTO_PONG][index]
- *
- * Les autres trames EXSA → SA sont traitées ailleurs.
- */
-static void lireReponsesEXSA()
+void SatEXSA_Link::onPong(uint8_t index)
 {
-    static uint8_t state  = 0;  // 0 = SYNC, 1 = OPCODE, 2 = DATA
-    static uint8_t opcode = 0;
-    static uint8_t data   = 0;
-
-    while (Serial1.available()) {
-        const uint8_t b = Serial1.read();
-
-        switch (state) {
-
-            case 0: // attente SYNC
-                if (b == PROTO_SYNC_BYTE)
-                    state = 1;
-                break;
-
-            case 1: // lecture opcode
-                opcode = b;
-                state  = 2;
-                break;
-
-            case 2: // lecture DATA
-                data = b;
-
-                if (opcode == PROTO_PONG) {
-                    const uint8_t index = data;
-
-                    SA_LOG_TRACE("[SatEXSA_Link] ← PONG reçu de EXSA %u\n", index);
-
-                    if (index < kExsaCount) {
-                        g_exsa[index].lastPongTime = millis();
-
-                        if (!g_exsa[index].online) {
-                            g_exsa[index].online = true;
-                            SatEXSA_Link::onExsaOnline(index);
-                        }
-                    }
-                }
-
-                state = 0;
-                break;
-
-            default:
-                state = 0;
-                break;
-        }
+    if (index >= kExsaCount)
+    {
+        SA_LOG_WARN("[SatEXSA_Link] PONG index invalide : %u\n", index);
+        return;
     }
+
+    uint32_t now = millis();
+    g_exsa[index].lastPongTime = now;
+
+    if (!g_exsa[index].online)
+    {
+        g_exsa[index].online = true;
+        SatEXSA_Link::onExsaOnline(index);
+    }
+
+    SA_LOG_TRACE("[SatEXSA_Link] PONG EXSA %u\n", index);
 }
 
 /* ============================================================
-   Helpers internes : détection OFFLINE
+   BOOSTER (PROTO_07)
    ============================================================ */
+void SatEXSA_Link::onBooster(uint8_t index,
+                             uint8_t etat,
+                             uint8_t courant,
+                             uint8_t tension,
+                             uint8_t present)
+{
+    if (index >= kExsaCount)
+    {
+        SA_LOG_WARN("[SatEXSA_Link] BOOSTER index invalide : %u\n", index);
+        return;
+    }
 
+    if (present == 1)
+    {
+        g_exsaBoosterIndex = index;
+        SA_LOG_INFO("[SatEXSA_Link] Booster présent sur EXSA %u\n", index);
+    }
+
+    SA_LOG_TRACE("[SatEXSA_Link] Booster EXSA %u : etat=%u courant=%u tension=%u present=%u\n",
+                 index, etat, courant, tension, present);
+}
+
+/* ============================================================
+   Détection OFFLINE
+   ============================================================ */
 static void verifierTimeouts()
 {
-    const uint32_t now = millis();
+    uint32_t now = millis();
 
-    for (uint8_t i = 0; i < kExsaCount; ++i) {
-
+    for (uint8_t i = 0; i < kExsaCount; ++i)
+    {
         if (!g_exsa[i].online)
             continue;
 
-        // Si plus de kOfflineTimeoutMs sans PONG → OFFLINE
-        if (now - g_exsa[i].lastPongTime > kOfflineTimeoutMs) {
-
-            SA_LOG_WARN("[SatEXSA_Link] EXSA %u OFFLINE (timeout)\n", i);
-
+        if (now - g_exsa[i].lastPongTime > kOfflineTimeoutMs)
+        {
             g_exsa[i].online = false;
             SatEXSA_Link::onExsaOffline(i);
         }
@@ -176,20 +137,17 @@ static void verifierTimeouts()
 }
 
 /* ============================================================
-   Boucle principale de supervision
+   Boucle principale
    ============================================================ */
-
 void SatEXSA_Link::loop()
 {
     envoyerPingPeriodique();
-    lireReponsesEXSA();
     verifierTimeouts();
 }
 
 /* ============================================================
-   Hooks ONLINE / OFFLINE
+   ONLINE / OFFLINE
    ============================================================ */
-
 bool SatEXSA_Link::isOnline(uint8_t index)
 {
     if (index >= kExsaCount)
@@ -200,41 +158,97 @@ bool SatEXSA_Link::isOnline(uint8_t index)
 
 void SatEXSA_Link::onExsaOnline(uint8_t index)
 {
-    SA_LOG_INFO("[SatEXSA_Link] EXSA %u ONLINE (PONG reçu)\n", index);
+    SA_LOG_INFO("[SatEXSA_Link] EXSA %u ONLINE\n", index);
 
-    /*
-     * Ici, tu peux resynchroniser l’EXSA fraîchement rebooté.
-     *
-     * Idée générale :
-     *   1) Renvoyer la topologie (E4)
-     *   2) Renvoyer la config signaux (E5)
-     *   3) Renvoyer la config servos (F1)
-     *   4) Renvoyer l’occupation des voisins (EA)
-     *   5) Renvoyer les aspects et feux de direction en cours
-     */
-
-    envoyerTopologieDepuisSettings();   
+    /* Envoi des configurations */
+    envoyerTopologieDepuisSettings();
     envoyerConfigurationSignauxDepuisSettings();
-    envoyerConfigurationServosDepuisSettings();  
+    envoyerConfigurationServosDepuisSettings();
     envoyerOccupationDepuisEtatCourant();
     envoyerAspectsDepuisEtatCourant();
     envoyerFeuxDepuisEtatCourant();
 
-    SA_LOG_TRACE("[SatEXSA_Link] Resynchronisation complète envoyée\n");
+    /* Envoi des seuils calibrés (F4) */
+    uint16_t libre  = Settings::boosterSeuilLibre();
+    uint16_t occupe = Settings::boosterSeuilOccupe();
+
+    SatEXSA_Link::envoyerSeuilsBooster(index, libre, occupe);
 }
 
 void SatEXSA_Link::onExsaOffline(uint8_t index)
 {
-    SA_LOG_WARN("[SatEXSA_Link] EXSA %u OFFLINE (timeout PONG)\n", index);
+    SA_LOG_WARN("[SatEXSA_Link] EXSA %u OFFLINE\n", index);
+}
 
-    /*
-     * Ici, tu peux décider de la politique en cas de perte EXSA :
-     *
-     *   - marquer le module comme HS
-     *   - bloquer les commandes d’aiguille
-     *   - forcer un aspect de sécurité
-     *   - afficher un diagnostic
-     *
-     * Pour l’instant, on se contente de logguer l’événement.
-     */
+/* ============================================================
+   Booster ON/OFF (F5)
+   ============================================================ */
+void SatEXSA_Link::envoyerBoosterPower(uint8_t index, bool on)
+{
+    if (index >= kExsaCount)
+        return;
+
+    uint8_t frame[4] = {
+        PROTO_SYNC_BYTE,
+        PROTO_F5_BOOSTER_POWER,
+        index,
+        on ? 1 : 0
+    };
+
+    SA_RS485::sendFrame(frame, sizeof(frame));
+
+    SA_LOG_WARN("[SatEXSA_Link] → Booster EXSA %u = %s\n",
+                index, on ? "ON" : "OFF");
+}
+
+/* ============================================================
+   F3 — Demande recalibration booster
+   ============================================================ */
+void SatEXSA_Link::demanderRecalibration(uint8_t index)
+{
+    if (index >= kExsaCount)
+        return;
+
+    uint8_t frame[3] = {
+        PROTO_SYNC_BYTE,
+        PROTO_F3_RECALIBRER_BOOSTER,
+        index
+    };
+
+    SA_RS485::sendFrame(frame, sizeof(frame));
+
+    SA_LOG_INFO("[SatEXSA_Link] → Demande recalibration EXSA %u (F3)\n", index);
+}
+
+/* ============================================================
+   F4 — Envoi seuils calibrés
+   ============================================================ */
+void SatEXSA_Link::envoyerSeuilsBooster(uint8_t index,
+                                        uint16_t libre,
+                                        uint16_t occupe)
+{
+    if (index >= kExsaCount)
+        return;
+
+    uint8_t frame[6] = {
+        PROTO_SYNC_BYTE,
+        PROTO_F4_SET_SEUILS,
+        uint8_t(libre & 0xFF),
+        uint8_t(libre >> 8),
+        uint8_t(occupe & 0xFF),
+        uint8_t(occupe >> 8)
+    };
+
+    SA_RS485::sendFrame(frame, sizeof(frame));
+
+    SA_LOG_INFO("[SatEXSA_Link] → Seuils EXSA %u : libre=%u occupe=%u (F4)\n",
+                index, libre, occupe);
+}
+
+/* ============================================================
+   Booster porteur
+   ============================================================ */
+int8_t SatEXSA_Link::getBoosterExsaIndex()
+{
+    return g_exsaBoosterIndex;
 }

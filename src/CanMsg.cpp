@@ -8,12 +8,12 @@
 */
 
 #include "CanMsg.h"
-#include "debug_sa.h"   // ← système de logs Discovery 2026
+#include "debug_sa.h" // ← système de logs Discovery 2026
 
 // Handlers déclarés dans les autres fichiers .cpp
-void handleSystemCommand   (uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
+void handleSystemCommand(uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
 void handleDiscoveryCommand(uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
-void handleExploitCommand  (uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
+void handleExploitCommand(uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
 
 // -----------------------------------------------------------------------------
 // setup() : création de la tâche de réception CAN
@@ -74,25 +74,37 @@ void CanMsg::canReceiveMsg(void *pvParameters)
     CANMessage frameIn;
     if (ACAN_ESP32::can.receive(frameIn))
     {
-      const uint8_t  commande        = (uint8_t)((frameIn.id & 0x1FE0000) >> 17);
+      // ---------------------------------------------------------------------
+      // 🔥 STOP global Discovery 2026 (ID = 0x201, 11 bits, DLC = 0)
+      // ---------------------------------------------------------------------
+      if (frameIn.id == DISCOVERY_CAN_ID_EMERGENCY_STOP) {
+        node->setStopActive(true);
+        SA_LOG_ERROR("[Node %u] STOP global reçu depuis Master\n", node->ID());
+        continue; // on ne traite rien d'autre
+      }
+
+      // ---------------------------------------------------------------------
+      // ⚠️ Décodage standard Discovery (29 bits)
+      // ---------------------------------------------------------------------
+      const uint8_t commande = (uint8_t)((frameIn.id & 0x1FE0000) >> 17);
       const uint16_t idSatExpediteur = (uint16_t)(frameIn.id & 0xFFFF);
-      const bool     response        = (frameIn.id & 0x10000) >> 16;
+      const bool response = (frameIn.id & 0x10000) >> 16;
       (void)response;
 
       if (frameIn.rtr)
       {
         switch (commande)
         {
-          case 0x0F:
-            ACAN_ESP32::can.tryToSend(frameIn);
-            break;
-          default:
-            break;
+        case 0x0F:
+          ACAN_ESP32::can.tryToSend(frameIn);
+          break;
+        default:
+          break;
         }
       }
       else
       {
-        if (commande >= 0xB3 && commande <= 0xBF)
+        if (commande >= CMD_SAT_TEST_BUS_REPLY && commande <= CMD_SAVE_ALL)
         {
           handleSystemCommand(commande, frameIn, node, idSatExpediteur);
         }

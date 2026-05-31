@@ -24,7 +24,7 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "SA_EXSA_Protocol.h"
+#include "Discovery_Protocol.h"
 #include "debug_sa.h"
 
 #include "Settings.h"
@@ -45,7 +45,7 @@ void envoyerAiguillesDepuisEtatCourant()
 {
   for (uint8_t idx = 0; idx < 6; ++idx)
   {
-    Aig* aig = Settings::node->getAig(idx);
+    Aig *aig = Settings::node->getAig(idx);
     if (!aig)
       continue;
 

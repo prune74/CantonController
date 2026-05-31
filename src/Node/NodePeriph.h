@@ -1,6 +1,3 @@
-#ifndef NODE_PERIPH_H
-#define NODE_PERIPH_H
-
 /*
  * NodePeriph.h — Interface publique du voisin d’un canton
  * ---------------------------------------------------------------------------
@@ -18,6 +15,7 @@
  *     - aspects reçus depuis EXSA (aspectRecu[2])
  */
 
+#pragma once
 #include <Arduino.h>
 
 class NodePeriph
@@ -65,5 +63,3 @@ private:
     byte     m_masqueAig;
     uint8_t  m_signal;
 };
-
-#endif // NODE_PERIPH_H

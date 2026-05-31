@@ -67,4 +67,17 @@ public:
 
     static void save();   // écrit settings.json
     static void load();   // recharge settings.json
+
+    /* =======================================================================
+     *  Booster — Seuils calibrés (PROTO_09)
+     * =====================================================================*/
+    static void setBoosterSeuilLibre(uint16_t v);
+    static void setBoosterSeuilOccupe(uint16_t v);
+
+    static uint16_t boosterSeuilLibre();
+    static uint16_t boosterSeuilOccupe();
+
+private:
+    static uint16_t s_boosterSeuilLibre;
+    static uint16_t s_boosterSeuilOccupe;
 };

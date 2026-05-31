@@ -42,15 +42,15 @@ enum CantonRole
  * ------------------------------------------------------------------------- */
 struct DirectionConfig
 {
-    bool active = false;                           // sens utilisé ?
-    std::string codeBarre = "";                    // code-barres binaire
-    std::map<uint16_t, uint8_t> voieDuVoisin;      // idVoisin → voie demandée
+    bool active = false;
+    std::string codeBarre = "";
+    std::map<uint16_t, uint8_t> voieDuVoisin;
 };
 
 struct DirectionSettings
 {
-    DirectionConfig H;   // sens horaire
-    DirectionConfig AH;  // sens anti-horaire
+    DirectionConfig H;
+    DirectionConfig AH;
 };
 
 /* ---------------------------------------------------------------------------
@@ -64,6 +64,9 @@ class Node
 public:
     Node();
     ~Node();
+
+    // Singleton SA = un seul Node
+    static Node* s_instance;
 
     /* Identité */
     void ID(uint16_t id);
@@ -98,12 +101,12 @@ public:
     bool SM2_busy();
 
     /* Masques d’aiguilles */
-    void masqueAig(byte v);
-    byte masqueAig();
-    void masqueAigSP2(byte v);
-    byte masqueAigSP2();
-    void masqueAigSM2(byte v);
-    byte masqueAigSM2();
+    void masqueAig(uint8_t v);
+    uint8_t masqueAig();
+    void masqueAigSP2(uint8_t v);
+    uint8_t masqueAigSP2();
+    void masqueAigSM2(uint8_t v);
+    uint8_t masqueAigSM2();
 
     /* Voisins directs */
     NodePeriph* voisinSP1();
@@ -117,9 +120,7 @@ public:
     bool SM2_estAccessible();
 
     /* Aiguilles (LOGIQUES) */
-    void aigRun(byte idx);
-
-    // Position physique réelle (0 = droit, 1 = dévié)
+    void aigRun(uint8_t idx);
     uint8_t getAiguillePosition(uint8_t idx) const;
 
     /* Signaux (H / AH) */
@@ -137,7 +138,7 @@ public:
 
     /* Logique métier ferroviaire */
     bool estAccesAutorise(SensDeMarche sens);
-    bool aiguillesConformes(byte masque);
+    bool aiguillesConformes(uint8_t masque);
     NodePeriph* prochainVoisin(SensDeMarche sens);
     bool peutEntrerDansVoisin(SensDeMarche sens);
     bool estSortiePossible(SensDeMarche sens);
@@ -153,9 +154,7 @@ public:
     uint8_t getFeuDirection(SensDeMarche sens) const;
     void updateFeuDirection(SensDeMarche sens);
 
-    /* -----------------------------------------------------------------------
-     * API FeuxDirection pour Settings_JSON (accès contrôlé)
-     * ----------------------------------------------------------------------- */
+    /* API FeuxDirection pour Settings_JSON */
     DirectionConfig& directionH() { return direction.H; }
     DirectionConfig& directionAH() { return direction.AH; }
 
@@ -180,26 +179,25 @@ public:
         return (idx < 2) ? signal[idx] : nullptr;
     }
 
+    // 🔥 Ajout indispensable pour main.cpp
+    void setSignal(uint8_t idx, Signal* s) {
+        if (idx < 2)
+            signal[idx] = s;
+    }
+
     Sensor* getSensor(uint8_t idx) {
         return (idx < 2) ? &sensor[idx] : nullptr;
     }
+
+    Sensor* getSensorArray() { return sensor; }
 
     Loco* getLoco() {
         return loco;
     }
 
-    /* Setters internes */
-    void setNodeP(uint8_t idx, NodePeriph* p) {
-        if (idx < 8) nodeP[idx] = p;
-    }
-
-    void setAig(uint8_t idx, Aig* a) {
-        if (idx < 6) aig[idx] = a;
-    }
-
-    void setSignal(uint8_t idx, Signal* s) {
-        if (idx < 2) signal[idx] = s;
-    }
+    /* STOP global Discovery 2026 */
+    void setStopActive(bool v);
+    bool isStopActive() const { return m_stopActive; }
 
 private:
     uint16_t m_id;
@@ -207,7 +205,7 @@ private:
     bool m_busy;
     uint16_t m_reserved;
 
-    byte m_masqueAig;
+    uint8_t m_masqueAig;
 
     uint8_t m_SP1_idx;
     uint8_t m_SM1_idx;
@@ -218,8 +216,8 @@ private:
     bool m_SM2_acces;
     bool m_SM2_busy;
 
-    byte m_masqueAigSP2;
-    byte m_masqueAigSM2;
+    uint8_t m_masqueAigSP2;
+    uint8_t m_masqueAigSM2;
 
     uint8_t m_maxSpeed;
     SensDeMarche m_sensMarche;
@@ -228,7 +226,6 @@ private:
 
     uint8_t m_feuDirection[2];
 
-    /* 🔥 Nouveau : configuration FeuxDirection */
     DirectionSettings direction;
 
     NodePeriph* nodeP[8];
@@ -238,9 +235,6 @@ private:
     Loco*       loco;
 
     class ConsoCourant* occupation;
-};
 
-/* ------------------------------------------------------------
-  Fin de Node.h
-  ------------------------------------------------------------
-*/
+    bool m_stopActive = false;
+};

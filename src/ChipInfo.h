@@ -5,8 +5,7 @@
 
 */
 
-#ifndef __CHIP_INFO_H__
-#define __CHIP_INFO_H__
+#pragma once
 
 #include <Arduino.h>
 #include <core_version.h> // For ARDUINO_ESP32_RELEASE
@@ -37,4 +36,3 @@ void ChipInfo::print()
   Serial.printf("-------------------------------------------------\n\n");
 }
 
-#endif

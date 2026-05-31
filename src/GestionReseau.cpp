@@ -6,7 +6,7 @@
 
 #include "GestionReseau.h"
 #include "FeuxDirection.h"      // LED blanches de direction
-#include "SA_EXSA_Protocol.h"   // ExsaAspect + opcodes UART/CAN
+#include "Discovery_Protocol.h" // ExsaAspect + opcodes UART/CAN
 #include "AspectSignal.h"       // pour mettreAJourAspectSignal
 /*
   ------------------------------------------------------------
@@ -33,22 +33,21 @@
 // Valeurs d’aspect envoyées aux signaux (horaire / anti-horaire)
 ExsaAspect GestionReseau::signalValue[2] = {ASPECT_CARRE, ASPECT_CARRE};
 
-void GestionReseau::setup(Node* node)
+void GestionReseau::setup(Node *node)
 {
     xTaskCreatePinnedToCore(
         loopTask,
         "LoopTask",
         8 * 1024,
-        (void*)node,
+        (void *)node,
         10,
         NULL,
-        0
-    );
+        0);
 }
 
-void IRAM_ATTR GestionReseau::loopTask(void* pvParameters)
+void IRAM_ATTR GestionReseau::loopTask(void *pvParameters)
 {
-    Node* node = static_cast<Node*>(pvParameters);
+    Node *node = static_cast<Node *>(pvParameters);
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     for (;;)
@@ -67,7 +66,7 @@ void IRAM_ATTR GestionReseau::loopTask(void* pvParameters)
         node->updateFeuDirection(SensAntiHoraire);
 
         // Lecture des valeurs calculées (0..4)
-        uint8_t feuH  = node->getFeuDirection(SensHoraire);
+        uint8_t feuH = node->getFeuDirection(SensHoraire);
         uint8_t feuAH = node->getFeuDirection(SensAntiHoraire);
 
         // 5) Envoi des états sur le bus CAN
@@ -87,7 +86,7 @@ void IRAM_ATTR GestionReseau::loopTask(void* pvParameters)
 
         // 9) Déduction + envoi des aspects dynamiques aux signaux EXSA
         mettreAJourAspectSignal(node,
-                                reinterpret_cast<uint8_t*>(signalValue));
+                                reinterpret_cast<uint8_t *>(signalValue));
 
         // 10) Temporisation fixe (100 ms)
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));

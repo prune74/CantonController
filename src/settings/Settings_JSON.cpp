@@ -15,6 +15,12 @@
 static StaticJsonDocument<4096> settingsDoc;
 
 /* ============================================================================
+   Booster — Seuils calibrés (PROTO_09)
+   ==========================================================================*/
+uint16_t Settings::s_boosterSeuilLibre  = 0;
+uint16_t Settings::s_boosterSeuilOccupe = 0;
+
+/* ============================================================================
    API JSON (set/get/save/load)
    ==========================================================================*/
 
@@ -33,7 +39,15 @@ void Settings::load()
     if (err)
     {
         SA_LOG_ERROR("[Settings] Erreur JSON (load): %s\n", err.c_str());
+        return;
     }
+
+    // Charger les seuils booster
+    s_boosterSeuilLibre  = settingsDoc["booster_seuil_libre"]  | 0;
+    s_boosterSeuilOccupe = settingsDoc["booster_seuil_occupe"] | 0;
+
+    SA_LOG_INFO("[Settings] Seuils booster chargés → libre=%u occupe=%u\n",
+                s_boosterSeuilLibre, s_boosterSeuilOccupe);
 }
 
 void Settings::save()
@@ -41,12 +55,18 @@ void Settings::save()
     if (!SPIFFS.begin(true))
         return;
 
+    // Sauvegarder les seuils booster
+    settingsDoc["booster_seuil_libre"]  = s_boosterSeuilLibre;
+    settingsDoc["booster_seuil_occupe"] = s_boosterSeuilOccupe;
+
     File file = SPIFFS.open("/settings.json", "w");
     if (!file)
         return;
 
     serializeJsonPretty(settingsDoc, file);
     file.close();
+
+    SA_LOG_INFO("[Settings] settings.json sauvegardé\n");
 }
 
 uint16_t Settings::get(const char* key)
@@ -210,8 +230,12 @@ void Settings::loadFile(Node* node)
     if (doc.containsKey("maxSpeed"))
         node->maxSpeed(doc["maxSpeed"]);
 
-    // 🔥 Charger FeuxDirection
+    // FeuxDirection
     loadDirection(node, doc);
+
+    // Booster
+    s_boosterSeuilLibre  = doc["booster_seuil_libre"]  | 0;
+    s_boosterSeuilOccupe = doc["booster_seuil_occupe"] | 0;
 
     settingsDoc = doc;
 
@@ -235,8 +259,12 @@ void Settings::writeFile(Node* node)
 
     doc["maxSpeed"] = node->maxSpeed();
 
-    // 🔥 Sauvegarder FeuxDirection
+    // FeuxDirection
     saveDirection(node, doc);
+
+    // Booster
+    doc["booster_seuil_libre"]  = s_boosterSeuilLibre;
+    doc["booster_seuil_occupe"] = s_boosterSeuilOccupe;
 
     settingsDoc = doc;
 
@@ -251,6 +279,29 @@ void Settings::writeFile(Node* node)
     file.close();
 
     SA_LOG_INFO("[Settings] settings.json sauvegardé\n");
+}
+
+/* ============================================================================
+   Booster — Getters / Setters
+   ==========================================================================*/
+void Settings::setBoosterSeuilLibre(uint16_t v)
+{
+    s_boosterSeuilLibre = v;
+}
+
+void Settings::setBoosterSeuilOccupe(uint16_t v)
+{
+    s_boosterSeuilOccupe = v;
+}
+
+uint16_t Settings::boosterSeuilLibre()
+{
+    return s_boosterSeuilLibre;
+}
+
+uint16_t Settings::boosterSeuilOccupe()
+{
+    return s_boosterSeuilOccupe;
 }
 
 /* ------------------------------------------------------------

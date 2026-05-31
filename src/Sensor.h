@@ -1,32 +1,26 @@
 #pragma once
+#include <stdint.h>
+#include <driver/gpio.h>
 
 #include <Arduino.h>
 
-/**
- * @brief Classe Sensor utilisée côté Satellite Autonome
- *        pour superviser l’état d’un capteur ponctuel.
- *        Version 2026 : plus de capteur physique → 100% UART.
- */
-class Sensor {
+class Sensor
+{
 public:
-  Sensor();
-  ~Sensor();
+    Sensor();
+    ~Sensor();
 
-  /**
-   * @brief Initialise le capteur
-   *        (paramètres conservés pour compatibilité API,
-   *         mais ignorés en version 2026)
-   */
-  void setup(gpio_num_t pin = GPIO_NUM_NC,
-             uint32_t tempo = 0,
-             byte input = INPUT);
+    // Version 2026 : paramètres conservés mais inutilisés
+    void setup(gpio_num_t pin, uint32_t tempo, uint8_t input);
 
-  bool state();                     // Lecture de l’état actuel
-  void state(bool state);           // Écriture interne
-  void overrideState(bool state);   // Mise à jour via trame UART
+    bool state();
+    void state(bool state);
 
-  static void IRAM_ATTR uartLoop(void* p); // Réception UART (EXSA → SA)
+    void overrideState(bool state);
+
+    // Callback Discovery 2026 (PROTO_03)
+    static void onPonctuel(uint8_t index_exsa, uint8_t code);
 
 private:
-  bool m_state;                     // État logique du capteur
+    bool m_state;
 };

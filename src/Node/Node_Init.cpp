@@ -5,6 +5,12 @@
 
 #include "Node_Internal.h"
 #include "debug_sa.h"   // pour SA_LOG_TRACE / SA_LOG_INFO / SA_LOG_WARN
+#include "Node.h"       // 🔥 indispensable pour la définition du singleton
+
+// ---------------------------------------------------------------------------
+// Définition du singleton Node (un seul canton par SA)
+// ---------------------------------------------------------------------------
+Node* Node::s_instance = nullptr;
 
 Node::Node()
     : m_id(UNUSED_ID),
@@ -29,13 +35,20 @@ Node::Node()
       loco(nullptr),
       occupation(nullptr)
 {
+    // ----------------------------------------------------------------------
+    // 🔥 Initialisation du singleton
+    // ----------------------------------------------------------------------
+    s_instance = this;
+
     SA_LOG_TRACE("[Node] Construction du canton (ID=%u)\n", m_id);
 
     // ----------------------------------------------------------------------
     // Capteurs ponctuels virtuels (EXSA → SA)
     // ----------------------------------------------------------------------
-    sensor[IDX_CAPT_ANTIHORAIRE].setup(GPIO_NUM_NC);
-    sensor[IDX_CAPT_HORAIRE].setup(GPIO_NUM_NC);
+    // ⚠️ En Discovery 2026, les capteurs sont VIRTUELS (PROTO_03)
+    // → Pas d’appel à Sensor::setup()
+    // → Pas de GPIO
+    // → L’état est mis à jour via SA_UartRx
 
     // ----------------------------------------------------------------------
     // Loco interne
@@ -46,10 +59,9 @@ Node::Node()
     // Capteur d’occupation (courant) — EXSA UART
     // ----------------------------------------------------------------------
     occupation = new ConsoCourant;
-    occupation->setup(this); //occupation->setup(this, CONSO_COURANT_PIN);
-    occupation->startReceptionUART();
+    occupation->setup(this);   // OK : initialise la logique interne
 
-    SA_LOG_TRACE("[Node] Capteurs virtuels + Loco + ConsoCourant initialisés\n");
+    SA_LOG_TRACE("[Node] Loco + ConsoCourant initialisés\n");
 }
 
 Node::~Node()
