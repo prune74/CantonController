@@ -6,35 +6,18 @@
   "password": "53DA477752646293F62EEEDD9F21D2",
 
   "discovery_on": true,
-
   "booster_on": true,
-  "booster_seuilLibre": 50,
-  "booster_seuilOccupe": 200,
-  "booster_hysteresis": 20,
 
-  "seuilLibre": 50,
-  "seuilOccupe": 200,
-
-  "comptAig": 0,
-  "masqueAig": 0,
-  "maxSpeed": 128,
-  "sensMarche": 0,
-
-  "role": 0,
-
+  "booster_seuil_libre": 50,
+  "booster_seuil_occupe": 200,
+  
   "SP1_idx": 0,
   "SM1_idx": 0,
   "SP2_acces": true,
   "SM2_acces": true,
 
-  "p00": "null",
-  "p01": "null",
-  "p10": "null",
-  "p11": "null",
-  "m00": "null",
-  "m01": "null",
-  "m10": "null",
-  "m11": "null",
+  "comptAig": 0,
+  "masqueAig": 0,
 
   "aig0posDroit": 0,
   "aig1posDroit": 0,
@@ -56,6 +39,10 @@
   "aig3speed": 0,
   "aig4speed": 0,
   "aig5speed": 0,
+
+  "role": 0,
+  "maxSpeed": 128,
+  "sensMarche": 0,
 
   "sign0": "null",
   "sign1": "null",

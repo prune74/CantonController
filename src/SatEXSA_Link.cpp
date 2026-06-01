@@ -2,11 +2,12 @@
 #include "Discovery_Protocol.h"
 #include "SatTopologieUART.h"
 #include "SA_RS485.h"
+#include "Booster.h"
 #include "Settings.h"
 #include "debug_sa.h"
 
-static constexpr uint8_t  kExsaCount        = 2;
-static constexpr uint32_t kPingPeriodMs     = 500;
+static constexpr uint8_t kExsaCount = 2;
+static constexpr uint32_t kPingPeriodMs = 500;
 static constexpr uint32_t kOfflineTimeoutMs = 2000;
 
 /* ============================================================
@@ -14,12 +15,12 @@ static constexpr uint32_t kOfflineTimeoutMs = 2000;
    ============================================================ */
 struct ExsaState
 {
-    bool     online;
+    bool online;
     uint32_t lastPongTime;
 };
 
 static ExsaState g_exsa[kExsaCount];
-static int8_t    g_exsaBoosterIndex = -1;
+static int8_t g_exsaBoosterIndex = -1;
 
 /* ============================================================
    Initialisation
@@ -32,7 +33,7 @@ void SatEXSA_Link::begin()
 
     for (uint8_t i = 0; i < kExsaCount; ++i)
     {
-        g_exsa[i].online       = false;
+        g_exsa[i].online = false;
         g_exsa[i].lastPongTime = 0;
     }
 
@@ -47,8 +48,7 @@ static void envoyerPing(uint8_t index)
     uint8_t frame[3] = {
         PROTO_SYNC_BYTE,
         PROTO_PING,
-        index
-    };
+        index};
 
     SA_RS485::sendFrame(frame, sizeof(frame));
     SA_LOG_TRACE("[SatEXSA_Link] → PING EXSA %u\n", index);
@@ -105,6 +105,8 @@ void SatEXSA_Link::onBooster(uint8_t index,
         SA_LOG_WARN("[SatEXSA_Link] BOOSTER index invalide : %u\n", index);
         return;
     }
+
+    Booster::onBooster(index, tension, courant, etat, present);
 
     if (present == 1)
     {
@@ -169,7 +171,7 @@ void SatEXSA_Link::onExsaOnline(uint8_t index)
     envoyerFeuxDepuisEtatCourant();
 
     /* Envoi des seuils calibrés (F4) */
-    uint16_t libre  = Settings::boosterSeuilLibre();
+    uint16_t libre = Settings::boosterSeuilLibre();
     uint16_t occupe = Settings::boosterSeuilOccupe();
 
     SatEXSA_Link::envoyerSeuilsBooster(index, libre, occupe);
@@ -188,12 +190,13 @@ void SatEXSA_Link::envoyerBoosterPower(uint8_t index, bool on)
     if (index >= kExsaCount)
         return;
 
+    uint8_t value = on ? 1 : 0;
+
     uint8_t frame[4] = {
         PROTO_SYNC_BYTE,
         PROTO_F5_BOOSTER_POWER,
         index,
-        on ? 1 : 0
-    };
+        value};
 
     SA_RS485::sendFrame(frame, sizeof(frame));
 
@@ -212,8 +215,7 @@ void SatEXSA_Link::demanderRecalibration(uint8_t index)
     uint8_t frame[3] = {
         PROTO_SYNC_BYTE,
         PROTO_F3_RECALIBRER_BOOSTER,
-        index
-    };
+        index};
 
     SA_RS485::sendFrame(frame, sizeof(frame));
 
@@ -236,8 +238,7 @@ void SatEXSA_Link::envoyerSeuilsBooster(uint8_t index,
         uint8_t(libre & 0xFF),
         uint8_t(libre >> 8),
         uint8_t(occupe & 0xFF),
-        uint8_t(occupe >> 8)
-    };
+        uint8_t(occupe >> 8)};
 
     SA_RS485::sendFrame(frame, sizeof(frame));
 

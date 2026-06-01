@@ -1,9 +1,5 @@
 /*
-   WebHandler_Settings.cpp — Version corrigée Discovery 2026
-   ------------------------------------------------------------
-   - Sauvegarde settings.json correctement
-   - Met à jour les valeurs servo dans le JSON
-   - Ne touche plus à Settings::node (Node*)
+   WebHandler_Settings.cpp — Discovery 2026 (FINAL & CLEAN)
 */
 
 #include "WebHandler.h"
@@ -20,17 +16,15 @@
 // ---------------------------------------------------------------------------
 void WebHandler::handleWifi(JsonDocument &doc)
 {
-    bool wifi_on = doc["wifi_on"][0];
+    bool wifi_on = doc["wifi_on"];
 
-    SA_LOG_WARN("[Settings] wifi_on = %d → sauvegarde + reboot\n", wifi_on);
+    SA_LOG_INFO("[Settings] wifi_on = %d\n", wifi_on);
 
     Settings::wifiOn(wifi_on);
+    Settings::save();
 
-    // Sauvegarde du JSON actuel
-    Settings::writeFile(Settings::node);
-
-    delay(1000);
-    ESP.restart();
+    // Si tu veux un reboot automatique :
+    // ESP.restart();
 }
 
 // ---------------------------------------------------------------------------
@@ -38,29 +32,28 @@ void WebHandler::handleWifi(JsonDocument &doc)
 // ---------------------------------------------------------------------------
 void WebHandler::handleDiscovery(JsonDocument &doc)
 {
-    bool discovery_on = doc["discovery_on"][0];
+    bool discovery_on = doc["discovery_on"];
 
     SA_LOG_INFO("[Settings] discovery_on = %d\n", discovery_on);
 
     Settings::discoveryOn(discovery_on);
+    Settings::save();
 
     if (!discovery_on)
     {
         SA_LOG_INFO("[Settings] Arrêt du processus Discovery\n");
         Discovery::stopProcess(true);
     }
-
-    Settings::writeFile(Settings::node);
 }
 
 // ---------------------------------------------------------------------------
 // handleSave()
 // ---------------------------------------------------------------------------
-// Sauvegarde complète de settings.json, y compris servoCfg[]
+// Sauvegarde complète de settings.json, y compris servoCfg[] et Booster
 // ---------------------------------------------------------------------------
 void WebHandler::handleSave()
 {
-    SA_LOG_INFO("[Settings] Sauvegarde settings.json (servos + paramètres)\n");
+    SA_LOG_INFO("[Settings] Sauvegarde settings.json (servos + booster + params)\n");
 
     if (!SPIFFS.begin(true))
     {
@@ -68,27 +61,21 @@ void WebHandler::handleSave()
         return;
     }
 
-    // Charger le JSON existant
-    StaticJsonDocument<2048> doc;
+    StaticJsonDocument<4096> doc;
 
+    // Charger l’existant
     File file = SPIFFS.open("/settings.json", "r");
     if (file)
     {
-        DeserializationError error = deserializeJson(doc, file);
+        DeserializationError err = deserializeJson(doc, file);
         file.close();
 
-        if (error)
-        {
-            SA_LOG_ERROR("[Settings] Erreur JSON à la lecture : %s\n", error.c_str());
-        }
-    }
-    else
-    {
-        SA_LOG_WARN("[Settings] settings.json introuvable → création d’un nouveau document\n");
+        if (err)
+            SA_LOG_WARN("[Settings] Erreur JSON existant : %s\n", err.c_str());
     }
 
     // ------------------------------------------------------------
-    // Mise à jour des réglages servo dans le JSON
+    // Sauvegarde des servos (slider 0–10)
     // ------------------------------------------------------------
     for (uint8_t i = 0; i < 6; ++i)
     {
@@ -102,8 +89,16 @@ void WebHandler::handleSave()
 
         doc[keyPosDroit] = servoCfg[i].posDroit;
         doc[keyPosDevie] = servoCfg[i].posDevie;
+
+        // On stocke le slider 0–10, pas la vitesse µs/s
         doc[keySpeed]    = servoCfg[i].speed;
     }
+
+    // ------------------------------------------------------------
+    // Sauvegarde Booster (seuils)
+    // ------------------------------------------------------------
+    doc["booster_seuil_libre"]  = Settings::boosterSeuilLibre();
+    doc["booster_seuil_occupe"] = Settings::boosterSeuilOccupe();
 
     // ------------------------------------------------------------
     // Écriture du JSON mis à jour
@@ -115,10 +110,7 @@ void WebHandler::handleSave()
         return;
     }
 
-    if (serializeJson(doc, file) == 0)
-    {
-        SA_LOG_ERROR("[Settings] Erreur lors de l’écriture de settings.json\n");
-    }
+    serializeJsonPretty(doc, file);
     file.close();
 
     SA_LOG_INFO("[Settings] settings.json sauvegardé avec succès\n");

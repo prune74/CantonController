@@ -7,58 +7,9 @@
 <link rel="icon" type="image/png" sizes="16X16"  href="favicon.png">
 <link rel="stylesheet" type="text/css" href="w3.css">
 <script src="script.js" type="text/javascript"></script>
-<style>
-div {
-    margin-top: 50px;
-    margin-bottom: 50px;
-}
-.container {
-    position: relative;
-    padding-left: 35px;
-    margin-bottom: 12px;
-    cursor: pointer;
-    font-size: 22px;
-    user-select: none;
-}
-.container input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-.checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 25px;
-    width: 25px;
-    background-color: #eee;
-}
-.container:hover input ~ .checkmark {
-    background-color: #ccc;
-}
-.container input:checked ~ .checkmark {
-    background-color: #2196F3;
-}
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-}
-.container input:checked ~ .checkmark:after {
-    display: block;
-}
-.container .checkmark:after {
-    left: 9px;
-    top: 5px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 3px 3px 0;
-    transform: rotate(45deg);
-}
-</style>
+
+<link rel="stylesheet" type="text/css" href="style.css">
+
 </head>
 
 <body>
@@ -117,6 +68,65 @@ div {
       <td></td>
       <td></td>
     </tr>
+
+    <!-- Booster -->
+<div class="w3-margin w3-card w3-padding-24">
+  <h4>Booster</h4>
+
+  <table width="80%" align="center">
+
+    <!-- Seuils -->
+    <tr>
+      <td>Seuil libre (mA) :</td>
+      <td><input id="booster_seuil_libre" type="number" min="0" max="2000"></td>
+    </tr>
+
+    <tr>
+      <td>Seuil occupé (mA) :</td>
+      <td><input id="booster_seuil_occupe" type="number" min="0" max="2000"></td>
+    </tr>
+
+    <tr><td colspan="2"><hr></td></tr>
+
+    <!-- Mesures live -->
+    <tr>
+      <td>Courant (mA) :</td>
+      <td><input id="booster_courant" type="text" readonly></td>
+    </tr>
+
+    <tr>
+      <td>Tension (mV) :</td>
+      <td><input id="booster_tension" type="text" readonly></td>
+    </tr>
+
+    <tr>
+      <td>État :</td>
+      <td><input id="booster_etat" type="text" readonly></td>
+    </tr>
+
+    <tr>
+      <td>Occupation :</td>
+      <td><input id="booster_occupation" type="text" readonly></td>
+    </tr>
+
+    <tr>
+      <td>Présence booster :</td>
+      <td><input id="booster_present" type="text" readonly></td>
+    </tr>
+
+    <tr><td colspan="2"><hr></td></tr>
+
+    <!-- Boutons -->
+    <tr>
+      <td colspan="2" style="text-align:center;">
+        <button class="w3-button w3-green" onclick="saveBooster()">Sauver seuils</button>
+        <button class="w3-button w3-blue" onclick="calibBooster()">Calibration auto</button>
+      </td>
+    </tr>
+
+  </table>
+</div>
+
 
     <tr>
       <td>p00 :</td>

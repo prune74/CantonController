@@ -1,5 +1,5 @@
 /*
-   WebHandler_Notify.cpp — Discovery 2026 (CLEAN)
+   WebHandler_Notify.cpp — Discovery 2026 (FINAL & CLEAN)
 */
 
 #include "WebHandler.h"
@@ -8,9 +8,13 @@
 #include "Settings.h"
 #include "Aig.h"
 #include "Signal.h"
+#include "Booster.h"
 
 void WebHandler::notifyClients()
 {
+    if (!_ws || _ws->count() == 0)
+        return;
+
     StaticJsonDocument<1024> doc;
 
     // -----------------------------------------------------------------------
@@ -21,65 +25,71 @@ void WebHandler::notifyClients()
     // -----------------------------------------------------------------------
     // Connexions P00/P01/P10/P11/M00/M01/M10/M11
     // -----------------------------------------------------------------------
-    String index[] = {"p00", "p01", "p10", "p11",
-                      "m00", "m01", "m10", "m11"};
+    const char *index[] = {"p00", "p01", "p10", "p11", "m00", "m01", "m10", "m11"};
 
-    for (byte i = 0; i < 8; i++)
+    for (uint8_t i = 0; i < 8; i++)
     {
-        NodePeriph* p = node->getNodeP(i);
-
-        if (!p)
-            doc[index[i]] = "null";
-        else
+        NodePeriph *p = node->getNodeP(i);
+        if (p)
             doc[index[i]] = p->ID();
+        else
+            doc[index[i]] = nullptr;
     }
 
     // -----------------------------------------------------------------------
-    // Aiguilles
+    // Aiguilles (positions + vitesse slider)
     // -----------------------------------------------------------------------
-    for (byte i = 0; i < aigSize; i++)
+    for (uint8_t i = 0; i < 6; i++)
     {
-        Aig* a = node->getAig(i);
+        Aig *a = node->getAig(i);
+
+        char keyEtat[4];
+        char keyD[4];
+        char keyV[4];
+        char keyS[4];
+
+        snprintf(keyEtat, sizeof(keyEtat), "s%u", i);
+        snprintf(keyD, sizeof(keyD), "s%u0", i);
+        snprintf(keyV, sizeof(keyV), "s%u1", i);
+        snprintf(keyS, sizeof(keyS), "s%u2", i);
 
         if (!a)
         {
-            doc["s" + String(i)]       = "null";
-            doc["s" + String(i) + "0"] = "";
-            doc["s" + String(i) + "1"] = "";
-            doc["s" + String(i) + "2"] = "";   // vitesse supprimée
+            doc[keyEtat] = "null";
+            doc[keyD] = "";
+            doc[keyV] = "";
+            doc[keyS] = "";
         }
         else
         {
-            doc["s" + String(i)]       = "Actif";
-            doc["s" + String(i) + "0"] = a->posDroit();
-            doc["s" + String(i) + "1"] = a->posDevie();
+            doc[keyEtat] = "Actif";
+            doc[keyD] = a->posDroit();
+            doc[keyV] = a->posDevie();
 
-            // -------------------------------------------------------------------
-            // La vitesse n'est plus dans Aig.
-            // On renvoie une valeur neutre (ou issue du JSON si tu veux).
-            // -------------------------------------------------------------------
-            doc["s" + String(i) + "2"] = 0;   // vitesse supprimée en 2026
+            char keyJson[32];
+            snprintf(keyJson, sizeof(keyJson), "aig%uspeed", i);
+            doc[keyS] = Settings::get(keyJson);
         }
     }
 
     // -----------------------------------------------------------------------
     // Paramètres système
     // -----------------------------------------------------------------------
-    doc["wifi_on"]      = Settings::wifiOn();
+    doc["wifi_on"] = Settings::wifiOn();
     doc["discovery_on"] = Settings::discoveryOn();
-    doc["maxSpeed"]     = node->maxSpeed();
-    doc["sensMarche"]   = node->sensMarche();
+    doc["maxSpeed"] = node->maxSpeed();
+    doc["sensMarche"] = node->sensMarche();
 
     // -----------------------------------------------------------------------
     // Rôle ferroviaire
     // -----------------------------------------------------------------------
-    doc["role"] = static_cast<uint8_t>(node->getRole());
+    doc["role"] = node->getRole();
 
     // -----------------------------------------------------------------------
     // Signaux (cible horaire / antihoraire)
     // -----------------------------------------------------------------------
-    Signal* sigAH = node->getSignal(0);
-    Signal* sigH  = node->getSignal(1);
+    Signal *sigAH = node->getSignal(0);
+    Signal *sigH = node->getSignal(1);
 
     if (sigH)
         doc["cibleHoraire"] = sigH->type();
@@ -88,11 +98,20 @@ void WebHandler::notifyClients()
         doc["cibleAntiHor"] = sigAH->type();
 
     // -----------------------------------------------------------------------
-    // Sérialisation et envoi
+    // BOOSTER — seuils + mesures live
+    // -----------------------------------------------------------------------
+    doc["booster_tension"] = Booster::tension();
+    doc["booster_courant"] = Booster::courant();
+    doc["booster_etat"] = Booster::etat();
+    doc["booster_present"] = Booster::present();
+    doc["booster_seuil_libre"] = Booster::seuilLibre();
+    doc["booster_seuil_occupe"] = Booster::seuilOccupe();
+
+    // -----------------------------------------------------------------------
+    // Envoi JSON
     // -----------------------------------------------------------------------
     String output;
     serializeJson(doc, output);
-
     _ws->textAll(output);
 
     SA_LOG_TRACE("[Notify] État complet envoyé aux clients WebSocket\n");

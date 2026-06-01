@@ -1,5 +1,5 @@
 /*
-   WebHandler_Aiguilles.cpp — Discovery 2026 (CLEAN & FIXED)
+   WebHandler_Aiguilles.cpp — Discovery 2026 (FINAL & CLEAN)
 */
 
 #include "WebHandler.h"
@@ -7,7 +7,9 @@
 #include "SatTopologieUART.h"
 #include "Node.h"
 #include "Aig.h"
-#include "Settings.h"   // pour mise à jour JSON
+#include "Settings.h"
+#include "SA_RS485.h"
+#include "Discovery_Protocol.h"
 
 // ---------------------------------------------------------------------------
 // handleServoSettings()
@@ -15,7 +17,7 @@
 void WebHandler::handleServoSettings(JsonDocument &doc)
 {
     const char *servoId     = doc["servoSettings"][0];
-    const uint16_t value    = doc["servoSettings"][1];   // slider ou position
+    const uint16_t value    = doc["servoSettings"][1];
     const uint8_t servoName = doc["servoSettings"][2];
 
     Aig* aig = node->getAig(servoName);
@@ -26,11 +28,11 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
         return;
     }
 
-    // -----------------------------------------------------------------------
-    // 1) Mise à jour logique interne + servoCfg (UI)
-    // -----------------------------------------------------------------------
     char key[32];
 
+    // -----------------------------------------------------------------------
+    // 1) Mise à jour logique interne + servoCfg
+    // -----------------------------------------------------------------------
     if (servoId[2] == '0')   // posDroit
     {
         aig->posDroit(value);
@@ -53,25 +55,20 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
     }
     else if (servoId[2] == '2')  // speed (slider 0–10)
     {
-        servoCfg[servoName].speed = value;   // slider 0–10
+        servoCfg[servoName].speed = value;
 
         snprintf(key, sizeof(key), "aig%uspeed", servoName);
-        Settings::set(key, value);           // on stocke le slider dans JSON
-
-        doc["servoSettingsSpeed"] = value;
+        Settings::set(key, value);
 
         SA_LOG_INFO("[Aiguilles] speed slider aiguille %u = %u\n",
                     servoName, value);
     }
 
-    // Sauvegarde settings.json
     Settings::save();
-
-    // Recharger pour cohérence
     Settings::load();
 
     // -----------------------------------------------------------------------
-    // 2) Lire les valeurs JSON (source de vérité)
+    // 2) Lecture JSON (source de vérité)
     // -----------------------------------------------------------------------
     snprintf(key, sizeof(key), "aig%uposDroit", servoName);
     uint16_t posDroit = Settings::get(key);
@@ -80,7 +77,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
     uint16_t posDevie = Settings::get(key);
 
     snprintf(key, sizeof(key), "aig%uspeed", servoName);
-    uint16_t speedSlider = Settings::get(key);   // 0–10
+    uint16_t speedSlider = Settings::get(key);
 
     uint16_t speed = 11000 - (speedSlider * 1000);
 
@@ -94,7 +91,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
                  exsaAdresse, servoName);
 
     // -----------------------------------------------------------------------
-    // 4) Envoi RS485 F1 : servoConfig (Discovery 2026)
+    // 4) Envoi RS485 F1 : servoConfig
     // -----------------------------------------------------------------------
     envoyerServoConfig(
         exsaAdresse,

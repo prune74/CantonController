@@ -1,14 +1,8 @@
 /*
-   WebHandler.h
+   WebHandler.h — Discovery 2026
    ------------------------------------------------------------
-   Gestion centralisée des interactions WebSocket et HTTP pour le
-   Signal Automate (SA). Ce header déclare l’ensemble des méthodes
-   utilisées dans les fichiers WebHandler_*.cpp.
-
-   Le but de ce découpage est de rendre le code plus lisible,
-   plus modulaire et plus facile à maintenir. Chaque fichier .cpp
-   traite une responsabilité unique (routes, WebSocket, aiguilles,
-   settings, rôle, etc.).
+   Gestion centralisée des interactions WebSocket et HTTP pour le SA.
+   Version alignée avec WebHandler.cpp (fusionné).
 */
 
 #pragma once
@@ -17,34 +11,27 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 
-#include "Node.h"          // Structure logique du canton
+#include "Node.h"
 #include "Aig.h"
-#include "debug_sa.h"      // Système de logs Discovery 2026
+#include "debug_sa.h"
 
 class WebHandler
 {
 public:
     // ------------------------------------------------------------
     // Constructeur
-    // Initialise les pointeurs internes à nullptr.
     // ------------------------------------------------------------
     WebHandler();
 
     // ------------------------------------------------------------
     // init()
-    // Initialise le serveur Web et le WebSocket.
-    // Configure les routes HTTP et démarre le serveur.
-    //
-    // Paramètres :
-    //   - node     : pointeur vers la structure logique du SA
-    //   - webPort  : port HTTP à utiliser (ex : 80)
+    // Initialise serveur HTTP + WebSocket + chargement settings
     // ------------------------------------------------------------
     void init(Node *node, uint16_t webPort);
 
     // ------------------------------------------------------------
     // loop()
-    // Fonction appelée régulièrement dans la boucle principale.
-    // Permet de nettoyer les clients WebSocket inactifs.
+    // Nettoyage WebSocket + envoi périodique Booster
     // ------------------------------------------------------------
     void loop();
 
@@ -54,7 +41,7 @@ private:
     Node               *node;      // Structure logique du SA
 
     // ------------------------------------------------------------
-    // Configuration interne des servos (mémoire centrale du SA)
+    // Configuration interne des servos
     // ------------------------------------------------------------
     struct ServoConfig {
         uint16_t posDroit;   // Position droite (µs)
@@ -62,19 +49,15 @@ private:
         uint16_t speed;      // Vitesse (µs/s)
     };
 
-    // 6 servos maximum : 0-2 = EXSA Horaire, 3-5 = EXSA Antihoraire
-    ServoConfig servoCfg[6];
+    ServoConfig servoCfg[6]; // 6 servos max
 
     // ------------------------------------------------------------
-    // route()
-    // Déclare toutes les routes HTTP (fichiers statiques, API).
+    // ROUTES HTTP
     // ------------------------------------------------------------
     void route();
 
     // ------------------------------------------------------------
-    // WsEvent()
-    // Gestion des événements WebSocket (connexion, déconnexion,
-    // réception de données, erreurs, etc.).
+    // WebSocket Event Handler
     // ------------------------------------------------------------
     void WsEvent(AsyncWebSocket *server,
                  AsyncWebSocketClient *client,
@@ -84,33 +67,31 @@ private:
                  size_t len);
 
     // ------------------------------------------------------------
-    // handleWebSocketData()
-    // Analyse le message JSON reçu et redirige vers les fonctions
-    // spécialisées (aiguilles, settings, rôle, etc.).
+    // Analyse JSON reçu → dispatch vers handlers spécialisés
     // ------------------------------------------------------------
     void handleWebSocketData(AsyncWebSocketClient *client,
                              uint8_t *data,
                              size_t len);
 
     // ------------------------------------------------------------
-    // notifyClients()
-    // Envoie à tous les clients WebSocket l’état complet du SA :
-    // - ID du nœud
-    // - connexions P00/P01/P10/P11/M00/M01/M10/M11
-    // - aiguilles
-    // - paramètres (wifi, discovery, vitesse, rôle, signaux)
+    // Envoi état complet SA + Booster à tous les clients
     // ------------------------------------------------------------
     void notifyClients();
 
     // ------------------------------------------------------------
-    // Fonctions spécialisées pour chaque type de commande Web
+    // Envoi état Booster à un client (connexion)
+    // ------------------------------------------------------------
+    void sendBoosterState(AsyncWebSocketClient *client);
+
+    // ------------------------------------------------------------
+    // HANDLERS SPÉCIALISÉS
     // ------------------------------------------------------------
 
     // Aiguilles
     void handleServoSettings(JsonDocument &doc);
     void handleServoTest(JsonDocument &doc);
 
-    // Paramètres (wifi, discovery, save, restart)
+    // Paramètres généraux
     void handleWifi(JsonDocument &doc);
     void handleDiscovery(JsonDocument &doc);
     void handleSave();

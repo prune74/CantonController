@@ -1,75 +1,45 @@
 /*
-   WebHandler_HandleData.cpp
+   WebHandler_HandleData.cpp — Discovery 2026 (CLEAN & FIXED)
    ------------------------------------------------------------
    Analyse et dispatch des messages WebSocket reçus par le SA.
-
-   Ce fichier contient la fonction handleWebSocketData(), chargée de :
-     - parser le JSON reçu depuis l’interface Web
-     - identifier le type de commande (servoSettings, wifi_on, setRole…)
-     - rediriger vers les fonctions spécialisées du module WebHandler
-
-   Le but de ce découpage est de séparer clairement :
-     - la réception brute des données (WsEvent)
-     - l’analyse du JSON (ce fichier)
-     - la logique métier (fichiers spécialisés)
 */
 
 #include "WebHandler.h"
 #include "debug_sa.h"
 #include "Settings.h"
-#include "Discovery.h"
+#include "SatEXSA_Link.h"
+#include "Booster.h"
 
 // ---------------------------------------------------------------------------
 // handleWebSocketData()
-// ---------------------------------------------------------------------------
-// Analyse le message JSON reçu via WebSocket et redirige vers la fonction
-// spécialisée correspondante.
-//
-// Paramètres :
-//   - client : client WebSocket ayant envoyé les données
-//   - data   : buffer contenant les données JSON
-//   - len    : taille du buffer
-//
-// Rôle :
-//   - parser le JSON
-//   - détecter le type de commande
-//   - appeler la fonction métier appropriée
-//
-// Cette fonction ne contient aucune logique métier : elle se contente
-// d’identifier la commande et de déléguer.
 // ---------------------------------------------------------------------------
 void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
                                      uint8_t *data,
                                      size_t len)
 {
-    // Tentative de parsing JSON
-    StaticJsonDocument<4066> doc;
-    DeserializationError error = deserializeJson(doc, data, len);
+    StaticJsonDocument<1024> doc;
+    DeserializationError err = deserializeJson(doc, data, len);
 
-    if (error)
+    if (err)
     {
-        SA_LOG_WARN("[WebHandler] JSON parsing failed: %s\n", error.c_str());
+        SA_LOG_WARN("[WebHandler] JSON invalide : %s\n", err.c_str());
         return;
     }
-
-    // Conversion en String pour faciliter la détection des commandes
-    String message = (char *)data;
-
-    SA_LOG_TRACE("[WebHandler] Commande reçue : %s\n", message.c_str());
 
     // -----------------------------------------------------------------------
     // AIGUILLES — CONFIGURATION
     // -----------------------------------------------------------------------
-    if (message.indexOf("servoSettings") >= 0)
+    if (doc.containsKey("servoSettings"))
     {
         handleServoSettings(doc);
+        notifyClients();
         return;
     }
 
     // -----------------------------------------------------------------------
     // AIGUILLES — TEST
     // -----------------------------------------------------------------------
-    if (message.indexOf("servoTest") >= 0)
+    if (doc.containsKey("servoTest"))
     {
         handleServoTest(doc);
         return;
@@ -78,36 +48,39 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     // -----------------------------------------------------------------------
     // WIFI
     // -----------------------------------------------------------------------
-    if (message.indexOf("wifi_on") >= 0)
+    if (doc.containsKey("wifi_on"))
     {
         handleWifi(doc);
+        notifyClients();
         return;
     }
 
     // -----------------------------------------------------------------------
     // DISCOVERY
     // -----------------------------------------------------------------------
-    if (message.indexOf("discovery_on") >= 0)
+    if (doc.containsKey("discovery_on"))
     {
         handleDiscovery(doc);
+        notifyClients();
         return;
     }
 
     // -----------------------------------------------------------------------
     // MAX SPEED
     // -----------------------------------------------------------------------
-    if (message.indexOf("maxSpeed") >= 0)
+    if (doc.containsKey("maxSpeed"))
     {
-        uint8_t maxSpeed = doc["maxSpeed"][0];
-        SA_LOG_INFO("[WebHandler] maxSpeed = %u\n", maxSpeed);
-        node->maxSpeed(maxSpeed);
+        uint8_t v = doc["maxSpeed"];
+        node->maxSpeed(v);
+        SA_LOG_INFO("[WebHandler] maxSpeed = %u\n", v);
+        notifyClients();
         return;
     }
 
     // -----------------------------------------------------------------------
     // SAVE
     // -----------------------------------------------------------------------
-    if (message.indexOf("save") >= 0)
+    if (doc.containsKey("save"))
     {
         handleSave();
         return;
@@ -116,7 +89,7 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     // -----------------------------------------------------------------------
     // RESTART
     // -----------------------------------------------------------------------
-    if (message.indexOf("restartEsp") >= 0)
+    if (doc.containsKey("restartEsp"))
     {
         handleRestart();
         return;
@@ -125,15 +98,52 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     // -----------------------------------------------------------------------
     // RÔLE FERROVIAIRE
     // -----------------------------------------------------------------------
-    if (message.indexOf("setRole") >= 0)
+    if (doc.containsKey("cmd") && strcmp(doc["cmd"], "setRole") == 0)
     {
         handleRole(doc);
         return;
     }
 
     // -----------------------------------------------------------------------
+    // BOOSTER — seuils
+    // -----------------------------------------------------------------------
+    if (doc.containsKey("booster_seuils"))
+    {
+        JsonArray arr = doc["booster_seuils"];
+        if (arr.size() >= 2)
+        {
+            uint16_t libre  = arr[0];
+            uint16_t occupe = arr[1];
+
+            Settings::setBoosterSeuilLibre(libre);
+            Settings::setBoosterSeuilOccupe(occupe);
+            Settings::save();
+
+            Booster::setSeuils(libre, occupe);
+
+            SA_LOG_INFO("[WebHandler] Booster seuils mis à jour : libre=%u occupe=%u\n",
+                        libre, occupe);
+        }
+        notifyClients();
+        return;
+    }
+
+    // -----------------------------------------------------------------------
+    // BOOSTER — calibration auto
+    // -----------------------------------------------------------------------
+    if (doc.containsKey("cmd") && strcmp(doc["cmd"], "calibBooster") == 0)
+    {
+        int8_t idx = SatEXSA_Link::getBoosterExsaIndex();
+        if (idx >= 0)
+            SatEXSA_Link::demanderRecalibration(idx);
+        else
+            SA_LOG_WARN("[WebHandler] Calibration demandée mais aucun EXSA booster détecté\n");
+
+        return;
+    }
+
+    // -----------------------------------------------------------------------
     // COMMANDE INCONNUE
     // -----------------------------------------------------------------------
-    SA_LOG_WARN("[WebHandler] Commande WebSocket inconnue : %s\n",
-                message.c_str());
+    SA_LOG_WARN("[WebHandler] Commande WebSocket inconnue\n");
 }
