@@ -2,16 +2,9 @@
   "standalone": true,
   "idCanton": 255,
   "wifi_on": true,
-<<<<<<< HEAD
   "ssid": "Bbox-E51CC95D",
   "password": "53DA477752646293F62EEEDD9F21D2",
   "exploration_on": false,
-=======
-  "ssid": "Ssid",
-  "password": "Password",
-
-  "discovery_on": true,
->>>>>>> df9174ad02694fbe78bbf9099a96ae78c97e6d06
   "booster_on": true,
   "booster_seuil_libre": 50,
   "booster_seuil_occupe": 200,
