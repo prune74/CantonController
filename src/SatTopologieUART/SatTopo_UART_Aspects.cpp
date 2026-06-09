@@ -17,7 +17,7 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "debug_sa.h"
 
 #include "Settings.h"
@@ -32,10 +32,10 @@ extern HardwareSerial Serial1;
 void envoyerAspectsDepuisEtatCourant()
 {
   ExsaAspect aspectHoraire =
-      mettreAJourAspectCanton(Settings::node, 0);
+      mettreAJourAspectCanton(Settings::canton, 0);
 
   ExsaAspect aspectAntiHoraire =
-      mettreAJourAspectCanton(Settings::node, 1);
+      mettreAJourAspectCanton(Settings::canton, 1);
 
   envoyerAspectSignalHoraire(aspectHoraire);
   envoyerAspectSignalAntiHoraire(aspectAntiHoraire);

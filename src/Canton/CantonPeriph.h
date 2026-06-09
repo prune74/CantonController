@@ -1,5 +1,5 @@
 /*
- * NodePeriph.h — Interface publique du voisin d’un canton
+ * CantonPeriph.h — Interface publique du voisin d’un canton
  * ---------------------------------------------------------------------------
  * Rôle :
  *   Représente un canton voisin dans la topologie :
@@ -18,11 +18,11 @@
 #pragma once
 #include <Arduino.h>
 
-class NodePeriph
+class CantonPeriph
 {
 public:
-    NodePeriph();
-    ~NodePeriph();
+    CantonPeriph();
+    ~CantonPeriph();
 
     // Identité
     void ID(uint8_t id);
@@ -55,11 +55,11 @@ public:
     static uint8_t comptInst;
 
 private:
-    uint8_t  m_id;
-    bool     m_busy;
+    uint8_t m_id;
+    bool m_busy;
     uint16_t m_reserved;
-    bool     m_acces;
+    bool m_acces;
     uint16_t m_locoAddr;
-    byte     m_masqueAig;
-    uint8_t  m_signal;
+    byte m_masqueAig;
+    uint8_t m_signal;
 };

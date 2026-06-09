@@ -1,11 +1,11 @@
 /*
-   WebHandler_Settings.cpp — Discovery 2026 (FINAL & CLEAN)
+   WebHandler_Settings.cpp — Exploration 2026 (FINAL & CLEAN)
 */
 
 #include "WebHandler.h"
 #include "debug_sa.h"
 #include "Settings.h"
-#include "Discovery.h"
+#include "Exploration.h"
 
 #include <SPIFFS.h>
 #include <FS.h>
@@ -28,21 +28,21 @@ void WebHandler::handleWifi(JsonDocument &doc)
 }
 
 // ---------------------------------------------------------------------------
-// handleDiscovery()
+// handleExploration()
 // ---------------------------------------------------------------------------
-void WebHandler::handleDiscovery(JsonDocument &doc)
+void WebHandler::handleExploration(JsonDocument &doc)
 {
-    bool discovery_on = doc["discovery_on"];
+    bool exploration_on = doc["exploration_on"];
 
-    SA_LOG_INFO("[Settings] discovery_on = %d\n", discovery_on);
+    SA_LOG_INFO("[Settings] exploration_on = %d\n", exploration_on);
 
-    Settings::discoveryOn(discovery_on);
+    Settings::explorationOn(exploration_on);
     Settings::save();
 
-    if (!discovery_on)
+    if (!exploration_on)
     {
-        SA_LOG_INFO("[Settings] Arrêt du processus Discovery\n");
-        Discovery::stopProcess(true);
+        SA_LOG_INFO("[Settings] Arrêt du processus Exploration\n");
+        Exploration::stopProcess(true);
     }
 }
 
@@ -85,19 +85,19 @@ void WebHandler::handleSave()
 
         snprintf(keyPosDroit, sizeof(keyPosDroit), "aig%uposDroit", i);
         snprintf(keyPosDevie, sizeof(keyPosDevie), "aig%uposDevie", i);
-        snprintf(keySpeed,    sizeof(keySpeed),    "aig%uspeed",    i);
+        snprintf(keySpeed, sizeof(keySpeed), "aig%uspeed", i);
 
         doc[keyPosDroit] = servoCfg[i].posDroit;
         doc[keyPosDevie] = servoCfg[i].posDevie;
 
         // On stocke le slider 0–10, pas la vitesse µs/s
-        doc[keySpeed]    = servoCfg[i].speed;
+        doc[keySpeed] = servoCfg[i].speed;
     }
 
     // ------------------------------------------------------------
     // Sauvegarde Booster (seuils)
     // ------------------------------------------------------------
-    doc["booster_seuil_libre"]  = Settings::boosterSeuilLibre();
+    doc["booster_seuil_libre"] = Settings::boosterSeuilLibre();
     doc["booster_seuil_occupe"] = Settings::boosterSeuilOccupe();
 
     // ------------------------------------------------------------

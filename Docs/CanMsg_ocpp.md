@@ -4,13 +4,13 @@
 
 #include "CanMsg.h"
 
-void CanMsg::setup(Node *node)
+void CanMsg::setup(Canton *canton)
 {
 #ifdef DEBUG
   debug.printf("[CanMsg %d] : setup\n", __LINE__);
 #endif
   TaskHandle_t canReceiveHandle = NULL;
-  xTaskCreatePinnedToCore(canReceiveMsg, "CanReceiveMsg", 4 * 1024, (void *)node, 6, &canReceiveHandle, 0); // Création de la tâches pour le traitement
+  xTaskCreatePinnedToCore(canReceiveMsg, "CanReceiveMsg", 4 * 1024, (void *)canton, 6, &canReceiveHandle, 0); // Création de la tâches pour le traitement
 #ifdef TEST_MEMORY_TASK
   xTaskCreate(testMemory, "TestMemory", 2 * 1024, (void *)canReceiveHandle, 2, NULL); // Création de la tâches pour le traitement
 #endif
@@ -37,8 +37,8 @@ void CanMsg::testMemory(void *pvParameters)
 
 void CanMsg::canReceiveMsg(void *pvParameters)
 {
-  Node *node;
-  node = (Node *)pvParameters;
+  Canton *canton;
+  canton = (Canton *)pvParameters;
 
   TickType_t xLastWakeTime;
   xLastWakeTime = xTaskGetTickCount();
@@ -75,8 +75,8 @@ void CanMsg::canReceiveMsg(void *pvParameters)
             Settings::sMainReady(true);
           break;
         case 0xB5: // fn : Reponse à demande d'identifiant (0xB4)
-          if (node->ID() == UNUSED_ID)
-            node->ID(frameIn.data[0]);
+          if (canton->ID() == UNUSED_ID)
+            canton->ID(frameIn.data[0]);
           break;
         case 0xBC: // Reset ESP32
           ESP.restart();
@@ -91,18 +91,18 @@ void CanMsg::canReceiveMsg(void *pvParameters)
           delay(1000);
           ESP.restart();
           break;
-        case 0xBE: // Activation  - desactivation du mode Discovery
+        case 0xBE: // Activation  - desactivation du mode Exploration
           if (frameIn.data[0])
           {
-            Settings::discoveryOn(true);
+            Settings::explorationOn(true);
             Settings::writeFile();
             delay(1000);
             ESP.restart();
           }
           else
           {
-            Settings::discoveryOn(false);
-            Discovery::stopProcess(true);
+            Settings::explorationOn(false);
+            Exploration::stopProcess(true);
           }
           Settings::writeFile();
           break;
@@ -119,17 +119,17 @@ void CanMsg::canReceiveMsg(void *pvParameters)
           break;
 
         case 0xC0: // fn : Réception de l'ID d'un satellite
-          Discovery::ID_satPeriph(idSatExpediteur);
+          Exploration::ID_satPeriph(idSatExpediteur);
           break;
 
         case 0xC1:
           /*****************************************************************************************************
-           * reception periodique des data envoyees par les sat pendant le processus de decouverte
+           * reception periodique des data envoyees par les sat pendant le processus de exploration
            ******************************************************************************************************/
 
           // debug.printf("[CanMsg %d] : commande 0xC1, ID exped %d \n", __LINE__, idSatExpediteur);
 
-          for (auto el : node->nodeP)
+          for (auto el : canton->cantonP)
           {
             if (el != nullptr)
             {
@@ -152,67 +152,67 @@ void CanMsg::canReceiveMsg(void *pvParameters)
           //   Serial.println(frameIn.data[0]);
           // }
 
-          // Serial.println(node->nodeP[node->SP1_idx()]->ID());
+          // Serial.println(canton->cantonP[canton->SP1_idx()]->ID());
 
           /*****************************************************************************************************
            * reception periodique des data envoyees par les sat en exploitation (GestionReseau.cpp ligne 42)
            ******************************************************************************************************/
 
-          // NB : node->SP1_idx() et node->SM1_idx() sont renseignés à GestionReseau.cpp ligne 111
+          // NB : canton->SP1_idx() et canton->SM1_idx() sont renseignés à GestionReseau.cpp ligne 111
           // en fonction de la position des aiguilles
 
-          if (node->nodeP[node->SP1_idx()] != nullptr)
+          if (canton->cantonP[canton->SP1_idx()] != nullptr)
           {
-            if (idSatExpediteur == node->nodeP[node->SP1_idx()]->ID()) // L'expediteur est-il le SP1 de ce sat ?
+            if (idSatExpediteur == canton->cantonP[canton->SP1_idx()]->ID()) // L'expediteur est-il le SP1 de ce sat ?
             {
-              // debug.printf("[CanMsg %d] node->SP1_idx()->ID() : %d\n", __LINE__, node->nodeP[node->SP1_idx()]->ID());
+              // debug.printf("[CanMsg %d] canton->SP1_idx()->ID() : %d\n", __LINE__, canton->cantonP[canton->SP1_idx()]->ID());
               //   L'expediteur est le SP1 de ce sat / ce sat est-il le SM1 de l'expediteur ?
-              if (node->ID() == frameIn.data[2])
+              if (canton->ID() == frameIn.data[2])
               {
                 // Cela veut dire que le SP1 de ce sat est accessible
-                node->nodeP[node->SP1_idx()]->acces(true);
-                node->SP2_acces(frameIn.data[3]);
-                node->SP2_busy(frameIn.data[4]);
+                canton->cantonP[canton->SP1_idx()]->acces(true);
+                canton->SP2_acces(frameIn.data[3]);
+                canton->SP2_busy(frameIn.data[4]);
               }
               else
-                node->nodeP[node->SP1_idx()]->acces(false); // Le SP1 de ce sat n'est pas accessible
+                canton->cantonP[canton->SP1_idx()]->acces(false); // Le SP1 de ce sat n'est pas accessible
 
-              node->nodeP[node->SP1_idx()]->busy(frameIn.data[0]);
-              node->nodeP[node->SP1_idx()]->reserved(frameIn.data[1]);
+              canton->cantonP[canton->SP1_idx()]->busy(frameIn.data[0]);
+              canton->cantonP[canton->SP1_idx()]->reserved(frameIn.data[1]);
 
 #ifdef DEBUG
-              // debug.printf("[CanMsg %d] Sat %d busy : %d\n", __LINE__, node->nodeP[node->SP1_idx()]->ID(), node->nodeP[node->SP1_idx()]->busy());
-              // debug.printf("[CanMsg %d] Sat %d acces : %d\n", __LINE__, node->nodeP[node->SP1_idx()]->ID(),  node->nodeP[node->SP1_idx()]->acces());
-              // debug.printf("[CanMsg %d] node->SP2_busy : %d\n", __LINE__, node->SP2_busy());
-              // debug.printf("[CanMsg %d] node->SP2_acces : %d\n", __LINE__, node->SP2_acces());
+              // debug.printf("[CanMsg %d] Sat %d busy : %d\n", __LINE__, canton->cantonP[canton->SP1_idx()]->ID(), canton->cantonP[canton->SP1_idx()]->busy());
+              // debug.printf("[CanMsg %d] Sat %d acces : %d\n", __LINE__, canton->cantonP[canton->SP1_idx()]->ID(),  canton->cantonP[canton->SP1_idx()]->acces());
+              // debug.printf("[CanMsg %d] canton->SP2_busy : %d\n", __LINE__, canton->SP2_busy());
+              // debug.printf("[CanMsg %d] canton->SP2_acces : %d\n", __LINE__, canton->SP2_acces());
 #endif
             }
           }
 
-          if (node->nodeP[node->SM1_idx()] != nullptr)
+          if (canton->cantonP[canton->SM1_idx()] != nullptr)
           {
-            if (idSatExpediteur == node->nodeP[node->SM1_idx()]->ID()) // L'expediteur est-il le SM1 de ce sat ?
+            if (idSatExpediteur == canton->cantonP[canton->SM1_idx()]->ID()) // L'expediteur est-il le SM1 de ce sat ?
             {
-              // debug.printf("[CanMsg %d] node->SM1_idx()->ID() : %d\n", __LINE__, node->nodeP[node->SM1_idx()]->ID());
+              // debug.printf("[CanMsg %d] canton->SM1_idx()->ID() : %d\n", __LINE__, canton->cantonP[canton->SM1_idx()]->ID());
               //   L'expediteur est le SM1 de ce sat / ce sat est-il le SP1 de l'expediteur ?
-              if (node->ID() == frameIn.data[1])
+              if (canton->ID() == frameIn.data[1])
               {
                 // Cela veut dire que le SM1 de ce sat est accessible
-                node->nodeP[node->SM1_idx()]->acces(true);
-                node->SM2_acces(frameIn.data[5]);
-                node->SM2_busy(frameIn.data[6]);
+                canton->cantonP[canton->SM1_idx()]->acces(true);
+                canton->SM2_acces(frameIn.data[5]);
+                canton->SM2_busy(frameIn.data[6]);
               }
               else
-                node->nodeP[node->SM1_idx()]->acces(false); // Le SM1 de ce sat n'est pas accessible
+                canton->cantonP[canton->SM1_idx()]->acces(false); // Le SM1 de ce sat n'est pas accessible
 
-              node->nodeP[node->SM1_idx()]->busy(frameIn.data[0]);
-              node->nodeP[node->SM1_idx()]->reserved(frameIn.data[1]);
+              canton->cantonP[canton->SM1_idx()]->busy(frameIn.data[0]);
+              canton->cantonP[canton->SM1_idx()]->reserved(frameIn.data[1]);
 
 #ifdef DEBUG
-              // debug.printf("[CanMsg %d] Sat %d busy : %d\n", __LINE__, node->nodeP[node->SM1_idx()]->ID(), node->nodeP[node->SM1_idx()]->busy());
-              // debug.printf("[CanMsg %d] Sat %d acces : %d\n", __LINE__, node->nodeP[node->SM1_idx()]->ID(), node->nodeP[node->SM1_idx()]->acces());
-              // debug.printf("[CanMsg %d] node->SM2_busy : %d\n", __LINE__, node->SM2_busy());
-              // debug.printf("[CanMsg %d] node->SM2_acces : %d\n", __LINE__, node->SM2_acces());
+              // debug.printf("[CanMsg %d] Sat %d busy : %d\n", __LINE__, canton->cantonP[canton->SM1_idx()]->ID(), canton->cantonP[canton->SM1_idx()]->busy());
+              // debug.printf("[CanMsg %d] Sat %d acces : %d\n", __LINE__, canton->cantonP[canton->SM1_idx()]->ID(), canton->cantonP[canton->SM1_idx()]->acces());
+              // debug.printf("[CanMsg %d] canton->SM2_busy : %d\n", __LINE__, canton->SM2_busy());
+              // debug.printf("[CanMsg %d] canton->SM2_acces : %d\n", __LINE__, canton->SM2_acces());
 #endif
             }
           }
@@ -224,13 +224,13 @@ void CanMsg::canReceiveMsg(void *pvParameters)
            ******************************************************************************************************/
 
           // debug.printf("[CanMsg %d] frameIn.data[0] : %d\n", __LINE__, frameIn.data[0]);
-          if (node->ID() == frameIn.data[0])
+          if (canton->ID() == frameIn.data[0])
           {
             // debug.printf("[CanMsg %d] frameIn.data[0] : %d\n", __LINE__, frameIn.data[0]);
-            if (node->reserved() == 0) // Si le canton n'est pas déjà reservé
+            if (canton->reserved() == 0) // Si le canton n'est pas déjà reservé
             {
-              node->reserved((frameIn.data[1] << 8) + frameIn.data[2]);
-              // debug.printf("[CanMsg %d] node->reserved : %d\n", __LINE__, node->reserved());
+              canton->reserved((frameIn.data[1] << 8) + frameIn.data[2]);
+              // debug.printf("[CanMsg %d] canton->reserved : %d\n", __LINE__, canton->reserved());
             }
           }
           break;
@@ -239,18 +239,18 @@ void CanMsg::canReceiveMsg(void *pvParameters)
           /*****************************************************************************************************
            * reception de l'adresse de la locomotive
            *****************************************************************************************************/
-          if (node->nodeP[node->SP1_idx()] != nullptr)
+          if (canton->cantonP[canton->SP1_idx()] != nullptr)
           {
-            if (idSatExpediteur == node->nodeP[node->SP1_idx()]->ID()) // Si l'expediteur est SP1
+            if (idSatExpediteur == canton->cantonP[canton->SP1_idx()]->ID()) // Si l'expediteur est SP1
             {
-              node->nodeP[node->SP1_idx()]->locoAddr((frameIn.data[0] << 8) + frameIn.data[1]);
+              canton->cantonP[canton->SP1_idx()]->locoAddr((frameIn.data[0] << 8) + frameIn.data[1]);
             }
           }
-          if (node->nodeP[node->SM1_idx()] != nullptr)
+          if (canton->cantonP[canton->SM1_idx()] != nullptr)
           {
-            if (idSatExpediteur == node->nodeP[node->SM1_idx()]->ID()) // Si l'expediteur est SM1
+            if (idSatExpediteur == canton->cantonP[canton->SM1_idx()]->ID()) // Si l'expediteur est SM1
             {
-              node->nodeP[node->SM1_idx()]->locoAddr((frameIn.data[0] << 8) + frameIn.data[1]);
+              canton->cantonP[canton->SM1_idx()]->locoAddr((frameIn.data[0] << 8) + frameIn.data[1]);
             }
           }
           break;
@@ -261,12 +261,12 @@ void CanMsg::canReceiveMsg(void *pvParameters)
           uint8_t idFeu = frameIn.data[1]; // identifiant du feu (0 ou 1)
           uint16_t aspect = (frameIn.data[2] << 8) | frameIn.data[3];
 
-          NodePeriph *voisin = nullptr;
+          CantonPeriph *voisin = nullptr;
 
           if (sens == 0)
-            voisin = node->nodeP[node->SP1_idx()];
+            voisin = canton->cantonP[canton->SP1_idx()];
           else if (sens == 1)
-            voisin = node->nodeP[node->SM1_idx()];
+            voisin = canton->cantonP[canton->SM1_idx()];
 
           if (voisin != nullptr && idSatExpediteur == voisin->ID())
           {
@@ -311,7 +311,7 @@ void CanMsg::canReceiveMsg(void *pvParameters)
                *****************************************************************************************************/
 
               // Vérifier que la commande est bien destinée à ce SA
-              if (node->ID() != frameIn.data[0])
+              if (canton->ID() != frameIn.data[0])
                   break;
 
               uint8_t idx = frameIn.data[1];
@@ -319,7 +319,7 @@ void CanMsg::canReceiveMsg(void *pvParameters)
               // Déterminer si l’aiguille appartient à EXSA_H ou EXSA_AH
               uint8_t exsaAdresse = 0; // 0 = EXSA côté H, 1 = EXSA côté AH
 
-              if (node->aig[idx]->nodePdroitIdx() == node->SP1_idx())
+              if (canton->aig[idx]->cantonPdroitIdx() == canton->SP1_idx())
                   exsaAdresse = 0; // EXSA côté horaire
               else
                   exsaAdresse = 1; // EXSA côté anti-horaire
@@ -352,48 +352,48 @@ void CanMsg::sendMsg(CANMessage &frame)
   // #endif
 }
 
-auto formatMsg = [](CANMessage &frame, byte prio, byte cmde, byte resp, uint16_t thisNodeId) -> CANMessage
+auto formatMsg = [](CANMessage &frame, byte prio, byte cmde, byte resp, uint16_t thisCantonId) -> CANMessage
 {
   frame.id |= (uint32_t)prio << 25; // Priorite 0, 1 ou 2
   frame.id |= (uint32_t)cmde << 17; // commande appelée
   frame.id |= (uint32_t)resp << 16; // Response
-  frame.id |= (uint32_t)thisNodeId; // ID expediteur
+  frame.id |= (uint32_t)thisCantonId; // ID expediteur
   frame.ext = true;
   return frame;
 };
 
 // Nouvelle messagerie
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 0;
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 1;
   frame.data[0] = data0;
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 2;
   frame.data[0] = data0;
   frame.data[1] = data1;
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 3;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -401,10 +401,10 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte 
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 4;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -413,10 +413,10 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte 
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 5;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -426,10 +426,10 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte 
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 6;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -440,10 +440,10 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte 
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 7;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -455,10 +455,10 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte 
   CanMsg::sendMsg(frame);
 }
 
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6, byte data7)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6, byte data7)
 {
   CANMessage frame;
-  frame = formatMsg(frame, prio, cmde, resp, thisNodeId);
+  frame = formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 8;
   frame.data[0] = data0;
   frame.data[1] = data1;

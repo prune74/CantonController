@@ -1,13 +1,13 @@
 #pragma once
 #include <Arduino.h>
-#include "SensEnum.h"   // SensHoraire / SensAntiHoraire
+#include "SensEnum.h" // SensHoraire / SensAntiHoraire
 
 class Loco
 {
 private:
-    uint16_t     m_address;
-    SensDeMarche m_sens;     // ← plus uint8_t
-    uint16_t     m_speed;
+    uint16_t m_address;
+    SensDeMarche m_sens; // ← plus uint8_t
+    uint16_t m_speed;
 
 public:
     Loco();
@@ -16,7 +16,7 @@ public:
     void address(uint16_t address);
     uint16_t address() const;
 
-    // Sens de marche (Discovery 2026)
+    // Sens de marche (Exploration 2026)
     void sens(SensDeMarche sens);
     SensDeMarche sens() const;
 

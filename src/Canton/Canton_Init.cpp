@@ -1,18 +1,19 @@
 /*
- * Node_Init.cpp — Initialisation du canton (Node)
+ * Canton_Init.cpp — Initialisation du canton (Canton)
  * ---------------------------------------------------------------------------
  */
 
-#include "Node_Internal.h"
-#include "debug_sa.h"   // pour SA_LOG_TRACE / SA_LOG_INFO / SA_LOG_WARN
-#include "Node.h"       // 🔥 indispensable pour la définition du singleton
+#include "Canton.h"
+#include "Config.h"
+#include "debug_sa.h"
+#include "ConsoCourant.h"
 
 // ---------------------------------------------------------------------------
-// Définition du singleton Node (un seul canton par SA)
+// Définition du singleton Canton (un seul canton par SA)
 // ---------------------------------------------------------------------------
-Node* Node::s_instance = nullptr;
+Canton *Canton::s_instance = nullptr;
 
-Node::Node()
+Canton::Canton()
     : m_id(UNUSED_ID),
       m_busy(false),
       m_reserved(0),
@@ -28,9 +29,9 @@ Node::Node()
       m_maxSpeed(128),
       m_sensMarche(SensHoraire),
       m_role(ROLE_PLEINE_VOIE),
-      nodeP{nullptr, nullptr, nullptr, nullptr},
-      aig{nullptr, nullptr, nullptr, nullptr},
-      signal{nullptr, nullptr},
+      cantonP{},
+      aig{},
+      signal{},
       sensor{},
       loco(nullptr),
       occupation(nullptr)
@@ -40,14 +41,39 @@ Node::Node()
     // ----------------------------------------------------------------------
     s_instance = this;
 
-    SA_LOG_TRACE("[Node] Construction du canton (ID=%u)\n", m_id);
+    SA_LOG_TRACE("[Canton] Construction du canton (ID=%u)\n", m_id);
+
+    // ----------------------------------------------------------------------
+    // Création des CantonPeriph (voisins)
+    // ----------------------------------------------------------------------
+    for (uint8_t i = 0; i < cantonPsize; i++)
+    {
+        cantonP[i] = new CantonPeriph();
+        cantonP[i]->ID(UNUSED_ID); // par défaut : absent
+    }
+
+    // ----------------------------------------------------------------------
+    // Création des aiguilles logiques
+    // ----------------------------------------------------------------------
+    for (uint8_t i = 0; i < aigSize; i++)
+    {
+        aig[i] = new Aig();
+        // Aig est déjà correctement initialisée dans son constructeur
+    }
+
+    // ----------------------------------------------------------------------
+    // Création des signaux (AH = 0, H = 1)
+    // ----------------------------------------------------------------------
+    signal[0] = new Signal(); // AH
+    signal[1] = new Signal(); // H
+    // Pas de setActive() en 2026 : les signaux sont neutres par défaut
 
     // ----------------------------------------------------------------------
     // Capteurs ponctuels virtuels (EXSA → SA)
     // ----------------------------------------------------------------------
-    // ⚠️ En Discovery 2026, les capteurs sont VIRTUELS (PROTO_03)
-    // → Pas d’appel à Sensor::setup()
+    // ⚠️ En Exploration 2026, les capteurs sont VIRTUELS (PROTO_03)
     // → Pas de GPIO
+    // → Pas de Sensor::setup()
     // → L’état est mis à jour via SA_UartRx
 
     // ----------------------------------------------------------------------
@@ -59,28 +85,41 @@ Node::Node()
     // Capteur d’occupation (courant) — EXSA UART
     // ----------------------------------------------------------------------
     occupation = new ConsoCourant;
-    occupation->setup(this);   // OK : initialise la logique interne
+    occupation->setup(this);
 
-    SA_LOG_TRACE("[Node] Loco + ConsoCourant initialisés\n");
+    SA_LOG_TRACE("[Canton] CantonPeriph + Aig + Signal + Loco + ConsoCourant initialisés\n");
 }
 
-Node::~Node()
+Canton::~Canton()
 {
+    // ----------------------------------------------------------------------
+    // 🔥 Destruction propre (jamais en cours d’exécution FreeRTOS)
+    // ----------------------------------------------------------------------
+    for (uint8_t i = 0; i < cantonPsize; i++)
+        delete cantonP[i];
+
+    for (uint8_t i = 0; i < aigSize; i++)
+        delete aig[i];
+
+    delete signal[0];
+    delete signal[1];
+
     delete occupation;
     delete loco;
-    SA_LOG_TRACE("[Node] Destruction du canton (ID=%u)\n", m_id);
+
+    SA_LOG_TRACE("[Canton] Destruction du canton (ID=%u)\n", m_id);
 }
 
 // ---------------------------------------------------------------------------
-// Identité du canton (ID Node)
+// Identité du canton (ID Canton)
 // ---------------------------------------------------------------------------
 
-void Node::ID(uint16_t id)
+void Canton::ID(uint16_t id)
 {
     m_id = id;
 }
 
-uint16_t Node::ID()
+uint16_t Canton::ID()
 {
     return m_id;
 }
@@ -88,18 +127,18 @@ uint16_t Node::ID()
 // ---------------------------------------------------------------------------
 // Validation de la topologie (SP1_idx / SM1_idx)
 // ---------------------------------------------------------------------------
-void Node::validateTopology()
+void Canton::validateTopology()
 {
-    if (m_SP1_idx >= 4)
+    if (m_SP1_idx >= cantonPsize)
     {
-        SA_LOG_WARN("[Node %u] SP1_idx invalide (%u) → remis à 0\n",
+        SA_LOG_WARN("[Canton %u] SP1_idx invalide (%u) → remis à 0\n",
                     m_id, m_SP1_idx);
         m_SP1_idx = 0;
     }
 
-    if (m_SM1_idx >= 4)
+    if (m_SM1_idx >= cantonPsize)
     {
-        SA_LOG_WARN("[Node %u] SM1_idx invalide (%u) → remis à 0\n",
+        SA_LOG_WARN("[Canton %u] SM1_idx invalide (%u) → remis à 0\n",
                     m_id, m_SM1_idx);
         m_SM1_idx = 0;
     }
@@ -108,31 +147,31 @@ void Node::validateTopology()
 // ---------------------------------------------------------------------------
 // Détection du sens de marche initial à partir des capteurs virtuels
 // ---------------------------------------------------------------------------
-void Node::detectInitialDirection()
+void Canton::detectInitialDirection()
 {
     bool ah = sensor[IDX_CAPT_ANTIHORAIRE].state();
-    bool h  = sensor[IDX_CAPT_HORAIRE].state();
+    bool h = sensor[IDX_CAPT_HORAIRE].state();
 
     if (ah && !h)
     {
         m_sensMarche = SensAntiHoraire;
-        SA_LOG_INFO("[Node %u] Sens initial détecté : anti‑horaire\n", m_id);
+        SA_LOG_INFO("[Canton %u] Sens initial détecté : anti‑horaire\n", m_id);
     }
     else if (h && !ah)
     {
         m_sensMarche = SensHoraire;
-        SA_LOG_INFO("[Node %u] Sens initial détecté : horaire\n", m_id);
+        SA_LOG_INFO("[Canton %u] Sens initial détecté : horaire\n", m_id);
     }
     else
     {
-        SA_LOG_TRACE("[Node %u] Sens initial indéterminé\n", m_id);
+        SA_LOG_TRACE("[Canton %u] Sens initial indéterminé\n", m_id);
     }
 }
 
-void Node::logInitialState()
+void Canton::logInitialState()
 {
     SA_LOG_INFO("==============================================\n");
-    SA_LOG_INFO("[Node %u] Démarrage du canton\n", m_id);
+    SA_LOG_INFO("[Canton %u] Démarrage du canton\n", m_id);
     SA_LOG_INFO("Rôle ferroviaire : %u\n", m_role);
     SA_LOG_INFO("SP1_idx=%u | SM1_idx=%u\n", m_SP1_idx, m_SM1_idx);
     SA_LOG_INFO("Capteur AH=%d | H=%d\n",

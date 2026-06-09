@@ -5,21 +5,21 @@
 
 #include "PilotageDistribue.h"
 #include "SensEnum.h"
-#include "Discovery_Protocol.h"
-#include "Node.h"
+#include "Exploration_Protocol.h"
+#include "Canton.h"
 #include "debug_sa.h"
 
-void executerPilotageDistribue(Node *node)
+void executerPilotageDistribue(Canton *canton)
 {
-    if (!node)
+    if (!canton)
         return;
 
-    Loco *loco = node->getLoco(); // ← accès moderne
+    Loco *loco = canton->getLoco(); // ← accès moderne
     if (!loco)
         return;
 
     ExsaAspect aspectCommande = ASPECT_CARRE;
-    NodePeriph *voisin = nullptr;
+    CantonPeriph *voisin = nullptr;
 
     /*
      * 1) Déterminer le voisin pertinent selon le sens de marche
@@ -30,8 +30,8 @@ void executerPilotageDistribue(Node *node)
     {
     case SensHoraire:
     {
-        uint8_t idx = node->SP1_idx();
-        voisin = node->getNodeP(idx);
+        uint8_t idx = canton->SP1_idx();
+        voisin = canton->getCantonP(idx);
 
         if (voisin)
             aspectCommande = static_cast<ExsaAspect>(voisin->aspectRecu[0]);
@@ -43,8 +43,8 @@ void executerPilotageDistribue(Node *node)
 
     case SensAntiHoraire:
     {
-        uint8_t idx = node->SM1_idx();
-        voisin = node->getNodeP(idx);
+        uint8_t idx = canton->SM1_idx();
+        voisin = canton->getCantonP(idx);
 
         if (voisin)
             aspectCommande = static_cast<ExsaAspect>(voisin->aspectRecu[1]);

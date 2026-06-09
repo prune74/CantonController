@@ -1,5 +1,5 @@
 /*
- * Settings.cpp — Orchestrateur principal (Discovery 2026)
+ * Settings.cpp — Orchestrateur principal (Exploration 2026)
  * ---------------------------------------------------------------------------
  * Rôle :
  *   - Centraliser l’accès aux paramètres du SA
@@ -17,25 +17,26 @@
  */
 
 #include "Settings.h"
-#include "settings/Settings_Internal.h"
 #include "debug_sa.h"
 #include "SA_UartRx.h"
+#include "Config.h"
+#include "Canton.h"
 
 /* ============================================================================
  *  Déclarations statiques
  * ==========================================================================*/
 
 bool Settings::WIFI_ON = true;
-bool Settings::DISCOVERY_ON = true;
+bool Settings::EXPLORATION_ON = true;
 String Settings::ssid_str = "";
 String Settings::password_str = "";
-char Settings::ssid[30] = {};
-char Settings::password[30] = {};
+char Settings::ssid[64] = {};
+char Settings::password[64] = {};
 bool Settings::isMainReady = false;
-Node *Settings::node = nullptr;
+Canton *Settings::canton = nullptr;
 
 /* ============================================================================
- *  Paramètres globaux : WiFi / Discovery
+ *  Paramètres globaux : WiFi / Exploration
  * ==========================================================================*/
 
 bool Settings::wifiOn()
@@ -49,15 +50,15 @@ void Settings::wifiOn(bool val)
     SA_LOG_INFO("[Settings] wifiOn = %d\n", val);
 }
 
-bool Settings::discoveryOn()
+bool Settings::explorationOn()
 {
-    return Settings::DISCOVERY_ON;
+    return Settings::EXPLORATION_ON;
 }
 
-void Settings::discoveryOn(bool val)
+void Settings::explorationOn(bool val)
 {
-    Settings::DISCOVERY_ON = val;
-    SA_LOG_INFO("[Settings] discoveryOn = %d\n", val);
+    Settings::EXPLORATION_ON = val;
+    SA_LOG_INFO("[Settings] explorationOn = %d\n", val);
 }
 
 /* ============================================================================
@@ -71,9 +72,9 @@ void Settings::discoveryOn(bool val)
  * Remarque :
  *   Le dialogue CAN avec la carte Main est effectué dans begin().
  * ==========================================================================*/
-void Settings::setup(Node *nd)
+void Settings::setup(Canton *nd)
 {
-    node = nd;
+    canton = nd;
 
     SA_LOG_INFO("[Settings] Initialisation complète du SA...\n");
 
@@ -106,7 +107,8 @@ void Settings::setup(Node *nd)
     // 3) Lecture settings.json
     // ------------------------------------------------------------------------
     SA_LOG_TRACE("[Settings] Lecture settings.json...\n");
-    loadFile(node); // ← NOUVELLE API 2026
+    Settings::load(); // ← charge ssid/password dans settingsDoc et dans les champs statiques
+    loadFile(canton); // ← NOUVELLE API 2026
 
     SA_LOG_INFO("[Settings] ✔ setup() terminé\n\n");
 }

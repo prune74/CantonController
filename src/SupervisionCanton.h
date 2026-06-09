@@ -1,8 +1,8 @@
 #pragma once
 #include <Arduino.h>
-#include "Node.h"
+#include "Canton.h"
 #include "SensEnum.h"
-#include "Discovery_Protocol.h" // pour ExsaAspect
+#include "Exploration_Protocol.h" // pour ExsaAspect
 
 /*************************************************************************************
  * Supervision cantonale
@@ -18,10 +18,10 @@
  * - Propagation passive d’un aspect reçu (prévision)
  *
  * Paramètres :
- * - node : pointeur vers le satellite courant
+ * - canton : pointeur vers le satellite courant
  * - i    : 0 = horaire, 1 = anti-horaire
  *
  * Retour :
  * - ExsaAspect : aspect SNCF à afficher
  *************************************************************************************/
-ExsaAspect mettreAJourAspectCanton(Node *node, uint8_t i);
+ExsaAspect mettreAJourAspectCanton(Canton *canton, uint8_t i);

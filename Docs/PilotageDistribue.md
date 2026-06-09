@@ -9,10 +9,10 @@ Le module `PilotageDistribue.cpp` pilote la locomotive en fonction de l’aspect
 ## 🔧 Fonction principale
 
 ```cpp
-void executerPilotageDistribue(Node* node);
+void executerPilotageDistribue(Canton* canton);
 ```
 
-- **Entrée** : pointeur vers le `Node` courant
+- **Entrée** : pointeur vers le `Canton` courant
 - **Sortie** : appel à `pilotageDepuisAspect()` avec l’aspect à appliquer
 
 ---
@@ -21,7 +21,7 @@ void executerPilotageDistribue(Node* node);
 
 ```plaintext
 ┌────────────┐
-│  Node      │
+│  Canton      │
 └────┬───────┘
      │
      ▼
@@ -31,7 +31,7 @@ void executerPilotageDistribue(Node* node);
      │
      ▼
 ┌────────────┐
-│ NodePeriph │
+│ CantonPeriph │
 │ aspectRecu │
 └────┬───────┘
      │
@@ -47,8 +47,8 @@ void executerPilotageDistribue(Node* node);
 
 | Sens de marche | Voisin consulté         | Aspect utilisé           | Direction logique |
 |----------------|--------------------------|---------------------------|-------------------|
-| `horaire`      | `nodeP[SP1_idx()]`       | `aspectRecu[0]`           | vers l’avant      |
-| `antiHor`      | `nodeP[SM1_idx()]`       | `aspectRecu[1]`           | vers l’arrière    |
+| `horaire`      | `cantonP[SP1_idx()]`       | `aspectRecu[0]`           | vers l’avant      |
+| `antiHor`      | `cantonP[SM1_idx()]`       | `aspectRecu[1]`           | vers l’arrière    |
 | `inconnu`      | —                        | Aucun pilotage            | —                 |
 
 ---
@@ -58,13 +58,13 @@ void executerPilotageDistribue(Node* node);
 - `PilotageDistribue.h` : déclaration de `executerPilotageDistribue`
 - `PilotageLoco.h` : contient `pilotageDepuisAspect()`
 - `SensEnum.h` : enum `horaire`, `antiHor`
-- `Node.h` : structure du satellite courant
-- `NodePeriph.h` : structure des voisins
+- `Canton.h` : structure du satellite courant
+- `CantonPeriph.h` : structure des voisins
 
 ---
 
 ## 🧠 Notes pédagogiques
 
 - Le pilotage est **réactif** : il dépend uniquement de l’aspect reçu du canton aval
-- La logique est **modulaire** : chaque `Node` agit selon son propre contexte
+- La logique est **modulaire** : chaque `Canton` agit selon son propre contexte
 - Le système est **extensible** : on peut ajouter des cas pour `ralentissement`, `masquage`, etc.

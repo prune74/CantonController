@@ -39,7 +39,7 @@ function onMessage(event) {
   }
 
   // --- Champs généraux ---
-  document.getElementById('idNode').value = data.idNode;
+  document.getElementById('idCanton').value = data.idCanton;
 
   document.getElementById('p00').value = data.p00;
   document.getElementById('p01').value = data.p01;
@@ -74,7 +74,7 @@ function onMessage(event) {
   document.getElementById('imageAntiHor').src = 'cible_' + data.cibleAntiHor + '.jpg';
 
   // --- Switchs ---
-  document.getElementById('discovery_on').checked = data.discovery_on;
+  document.getElementById('exploration_on').checked = data.exploration_on;
   document.getElementById('wifi_on').checked = data.wifi_on;
 
   // --- Type de canton ---
@@ -93,7 +93,7 @@ window.addEventListener('load', initWebSocket);
 
 function sendJson() {
   const msg = {
-    idNode: document.getElementById('idNode').value,
+    idCanton: document.getElementById('idCanton').value,
     comptAig: document.getElementById('comptAig').value,
     p00: document.getElementById('p00').value,
     p01: document.getElementById('p01').value,
@@ -119,8 +119,8 @@ function wifi_on(obj) {
   websocket.send(JSON.stringify({ wifi_on: [obj.checked] }));
 }
 
-function discovery_on(obj) {
-  websocket.send(JSON.stringify({ discovery_on: [obj.checked] }));
+function exploration_on(obj) {
+  websocket.send(JSON.stringify({ exploration_on: [obj.checked] }));
 }
 
 function restartEsp(obj) {

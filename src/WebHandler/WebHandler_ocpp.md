@@ -9,7 +9,7 @@
 
 WebHandler::WebHandler() : _server(nullptr), _ws(nullptr) {}
 
-void WebHandler::init(Node *node, uint16_t webPort)
+void WebHandler::init(Canton *canton, uint16_t webPort)
 {
   _server = new AsyncWebServer(webPort);
   _ws = new AsyncWebSocket("/ws");
@@ -26,7 +26,7 @@ void WebHandler::init(Node *node, uint16_t webPort)
   _server->addHandler(_ws);
   _server->begin();
 
-  this->node = node;
+  this->canton = canton;
 }
 
 void WebHandler::loop()
@@ -87,25 +87,25 @@ void WebHandler::WsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
 
       // Mise à jour logique interne
       if ('0' == servoId[2])      // Position droite
-        node->aig[servoName]->posDroit(servoValue);
+        canton->aig[servoName]->posDroit(servoValue);
       else if ('1' == servoId[2]) // Position déviée
-        node->aig[servoName]->posDevie(servoValue);
+        canton->aig[servoName]->posDevie(servoValue);
       else if ('2' == servoId[2]) // Vitesse
       {
         uint16_t speed = 11000 - (servoValue * 1000);
-        node->aig[servoName]->speed(speed);
+        canton->aig[servoName]->speed(speed);
       }
 
       // Déterminer EXSA H/AH
       uint8_t exsaAdresse =
-        (node->aig[servoName]->nodePdroitIdx() == node->SP1_idx()) ? 0 : 1;
+        (canton->aig[servoName]->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
 
       // Envoi F1 : servoConfig (adressé)
       envoyerServoConfig(exsaAdresse,
                          servoName,
-                         node->aig[servoName]->posDroit(),
-                         node->aig[servoName]->posDevie(),
-                         node->aig[servoName]->speed());
+                         canton->aig[servoName]->posDroit(),
+                         canton->aig[servoName]->posDevie(),
+                         canton->aig[servoName]->speed());
     }
 
     // -------------------------
@@ -117,7 +117,7 @@ void WebHandler::WsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
 
       // Déterminer EXSA H/AH
       uint8_t exsaAdresse =
-        (node->aig[servoName]->nodePdroitIdx() == node->SP1_idx()) ? 0 : 1;
+        (canton->aig[servoName]->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
 
       // Envoi F2 : servoTest (adressé)
       envoyerServoTest(exsaAdresse, servoName);
@@ -136,14 +136,14 @@ void WebHandler::WsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
     }
 
     // -------------------------
-    // DISCOVERY
+    // EXPLORATION
     // -------------------------
-    if (message.indexOf("discovery_on") >= 0)
+    if (message.indexOf("exploration_on") >= 0)
     {
-      const bool discovery_on = doc1["discovery_on"][0];
-      Settings::discoveryOn(discovery_on);
-      if (!discovery_on)
-        Discovery::stopProcess(true);
+      const bool exploration_on = doc1["exploration_on"][0];
+      Settings::explorationOn(exploration_on);
+      if (!exploration_on)
+        Exploration::stopProcess(true);
       Settings::writeFile();
     }
 
@@ -153,7 +153,7 @@ void WebHandler::WsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
     if (message.indexOf("maxSpeed") >= 0)
     {
       const uint8_t maxSpeed = doc1["maxSpeed"][0];
-      node->maxSpeed(maxSpeed);
+      canton->maxSpeed(maxSpeed);
     }
 
     // -------------------------
@@ -179,7 +179,7 @@ void WebHandler::WsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
     {
       const uint8_t role = doc1["setRole"];
 
-      node->setRole((CantonRole)role);
+      canton->setRole((CantonRole)role);
       Settings::writeFile();
 
 
@@ -197,22 +197,22 @@ void WebHandler::notifyClients()
 {
   StaticJsonDocument<1024> doc;
 
-  doc["idNode"] = node->ID();
+  doc["idCanton"] = canton->ID();
 
   // Nœuds
   String index[] = {"p00", "p01", "p10", "p11", "m00", "m01", "m10", "m11"};
   for (byte i = 0; i < 8; i++)
   {
-    if (node->nodeP[i] == nullptr)
+    if (canton->cantonP[i] == nullptr)
       doc[index[i]] = "null";
     else
-      doc[index[i]] = node->nodeP[i]->ID();
+      doc[index[i]] = canton->cantonP[i]->ID();
   }
 
   // Aiguilles
   for (byte i = 0; i < aigSize; i++)
   {
-    if (node->aig[i] == nullptr)
+    if (canton->aig[i] == nullptr)
     {
       doc["s" + String(i)] = "null";
       doc["s" + String(i) + "0"] = "";
@@ -222,26 +222,26 @@ void WebHandler::notifyClients()
     else
     {
       doc["s" + String(i)] = "Actif";
-      doc["s" + String(i) + "0"] = node->aig[i]->posDroit();
-      doc["s" + String(i) + "1"] = node->aig[i]->posDevie();
-      doc["s" + String(i) + "2"] = (11000 - node->aig[i]->speed()) / 1000;
+      doc["s" + String(i) + "0"] = canton->aig[i]->posDroit();
+      doc["s" + String(i) + "1"] = canton->aig[i]->posDevie();
+      doc["s" + String(i) + "2"] = (11000 - canton->aig[i]->speed()) / 1000;
     }
   }
 
   doc["wifi_on"] = Settings::wifiOn();
-  doc["discovery_on"] = Settings::discoveryOn();
+  doc["exploration_on"] = Settings::explorationOn();
 
-  doc["maxSpeed"] = node->maxSpeed();
-  doc["sensMarche"] = node->sensMarche();
+  doc["maxSpeed"] = canton->maxSpeed();
+  doc["sensMarche"] = canton->sensMarche();
 
   // 🔥 Rôle ferroviaire
-  doc["role"] = (uint8_t)node->role();
+  doc["role"] = (uint8_t)canton->role();
 
   // Signaux
-  if (node->signal[0] != nullptr)
-    doc["cibleHoraire"] = node->signal[0]->type();
-  if (node->signal[1] != nullptr)
-    doc["cibleAntiHor"] = node->signal[1]->type();
+  if (canton->signal[0] != nullptr)
+    doc["cibleHoraire"] = canton->signal[0]->type();
+  if (canton->signal[1] != nullptr)
+    doc["cibleAntiHor"] = canton->signal[1]->type();
 
   String output;
   serializeJson(doc, output);

@@ -1,10 +1,11 @@
-#include "Node_Internal.h"
+#include "Canton.h"
+#include "Config.h"
 #include "debug_sa.h"
 
-void Node::debugTopologieEtAiguilles()
+void Canton::debugTopologieEtAiguilles()
 {
     SA_LOG_INFO("==============================================\n");
-    SA_LOG_INFO("[Node %u] Diagnostic topologie & aiguilles\n", m_id);
+    SA_LOG_INFO("[Canton %u] Diagnostic topologie & aiguilles\n", m_id);
     SA_LOG_INFO("==============================================\n");
 
     SA_LOG_INFO("SP1_idx = %u\n", m_SP1_idx);
@@ -21,34 +22,34 @@ void Node::debugTopologieEtAiguilles()
 
     for (uint8_t i = 0; i < aigSize; i++)
     {
-        Aig* a = aig[i];
+        Aig *a = aig[i];
         if (!a)
             continue;
 
         SA_LOG_INFO(" - Aig[%u] : droit=%u devie=%u | estDroit=%u\n",
                     i,
-                    a->nodePdroitIdx(),
-                    a->nodePdevieIdx(),
+                    a->cantonPdroitIdx(),
+                    a->cantonPdevieIdx(),
                     a->estDroit());
 
-        if (a->nodePdroitIdx() == m_SP1_idx || a->nodePdevieIdx() == m_SP1_idx)
+        if (a->cantonPdroitIdx() == m_SP1_idx || a->cantonPdevieIdx() == m_SP1_idx)
             SA_LOG_INFO("     → Côté HORAIRE (SP)\n");
-        else if (a->nodePdroitIdx() == m_SM1_idx || a->nodePdevieIdx() == m_SM1_idx)
+        else if (a->cantonPdroitIdx() == m_SM1_idx || a->cantonPdevieIdx() == m_SM1_idx)
             SA_LOG_INFO("     → Côté ANTI‑HORAIRE (SM)\n");
         else
             SA_LOG_WARN("     → ⚠️ Aiguille non reliée à SP1 ni SM1 !\n");
     }
 
     SA_LOG_INFO("----------------------------------------------\n");
-    SA_LOG_INFO("Voisins (nodeP[]) :\n");
+    SA_LOG_INFO("Voisins (cantonP[]) :\n");
 
-    for (uint8_t i = 0; i < nodePsize; i++)
+    for (uint8_t i = 0; i < cantonPsize; i++)
     {
-        NodePeriph* p = nodeP[i];
+        CantonPeriph *p = cantonP[i];
         if (!p)
             continue;
 
-        SA_LOG_INFO(" - nodeP[%u] : ID=%u busy=%d acces=%d reserved=%u\n",
+        SA_LOG_INFO(" - cantonP[%u] : ID=%u busy=%d acces=%d reserved=%u\n",
                     i,
                     p->ID(),
                     p->busy(),

@@ -1,31 +1,16 @@
 #pragma once
 
-/*
- * Node.h — Interface publique du canton (Node)
- * ------------------------------------------------------------
- * Représente un CANTON du réseau.
- *
- * Notes 2026 :
- *  - Le SA ne pilote plus aucun servo.
- *  - Les aiguilles sont 100 % logiques (Aig).
- *  - EXSA pilote physiquement les servos via PCA9685.
- *  - Node stocke uniquement la logique ferroviaire.
- */
-
 #include <Arduino.h>
 #include <map>
 #include <string>
 
 #include "SensEnum.h"
-#include "Node/NodePeriph.h"
+#include "Canton/CantonPeriph.h"
 #include "Aig.h"
 #include "Signal.h"
 #include "Sensor.h"
 #include "Loco.h"
 
-/* ---------------------------------------------------------------------------
- * Rôle ferroviaire du canton
- * ------------------------------------------------------------------------- */
 enum CantonRole
 {
     ROLE_PLEINE_VOIE = 0,
@@ -37,9 +22,6 @@ enum CantonRole
     ROLE_SERVICE
 };
 
-/* ---------------------------------------------------------------------------
- * Structures FeuxDirection (H / AH)
- * ------------------------------------------------------------------------- */
 struct DirectionConfig
 {
     bool active = false;
@@ -53,20 +35,16 @@ struct DirectionSettings
     DirectionConfig AH;
 };
 
-/* ---------------------------------------------------------------------------
- * Classe Node
- * ------------------------------------------------------------------------- */
-class Node
+class Canton
 {
-    friend class Discovery;
+    friend class Exploration;
     friend class CanMsg;
 
 public:
-    Node();
-    ~Node();
+    Canton();
+    ~Canton();
 
-    // Singleton SA = un seul Node
-    static Node* s_instance;
+    static Canton *s_instance;
 
     /* Identité */
     void ID(uint16_t id);
@@ -109,10 +87,10 @@ public:
     uint8_t masqueAigSM2();
 
     /* Voisins directs */
-    NodePeriph* voisinSP1();
-    NodePeriph* voisinSM1();
-    NodePeriph* voisinSP2();
-    NodePeriph* voisinSM2();
+    CantonPeriph *voisinSP1();
+    CantonPeriph *voisinSM1();
+    CantonPeriph *voisinSP2();
+    CantonPeriph *voisinSM2();
 
     bool SP1_estAccessible();
     bool SM1_estAccessible();
@@ -139,7 +117,7 @@ public:
     /* Logique métier ferroviaire */
     bool estAccesAutorise(SensDeMarche sens);
     bool aiguillesConformes(uint8_t masque);
-    NodePeriph* prochainVoisin(SensDeMarche sens);
+    CantonPeriph *prochainVoisin(SensDeMarche sens);
     bool peutEntrerDansVoisin(SensDeMarche sens);
     bool estSortiePossible(SensDeMarche sens);
 
@@ -155,8 +133,8 @@ public:
     void updateFeuDirection(SensDeMarche sens);
 
     /* API FeuxDirection pour Settings_JSON */
-    DirectionConfig& directionH() { return direction.H; }
-    DirectionConfig& directionAH() { return direction.AH; }
+    DirectionConfig &directionH() { return direction.H; }
+    DirectionConfig &directionAH() { return direction.AH; }
 
     /* Debug */
     void debugTopologieEtAiguilles();
@@ -167,35 +145,53 @@ public:
     void logInitialState();
 
     /* Accès contrôlé */
-    NodePeriph* getNodeP(uint8_t idx) {
-        return (idx < 8) ? nodeP[idx] : nullptr;
+    CantonPeriph *getCantonP(uint8_t idx)
+    {
+        return (idx < 8) ? cantonP[idx] : nullptr;
     }
 
-    Aig* getAig(uint8_t idx) {
+    Aig *getAig(uint8_t idx)
+    {
         return (idx < 6) ? aig[idx] : nullptr;
     }
 
-    Signal* getSignal(uint8_t idx) {
+    Signal *getSignal(uint8_t idx)
+    {
         return (idx < 2) ? signal[idx] : nullptr;
     }
 
-    // 🔥 Ajout indispensable pour main.cpp
-    void setSignal(uint8_t idx, Signal* s) {
+    void setSignal(uint8_t idx, Signal *s)
+    {
         if (idx < 2)
             signal[idx] = s;
     }
 
-    Sensor* getSensor(uint8_t idx) {
+    // Ajouts pour Exploration
+    void setCantonP(uint8_t idx, CantonPeriph *np)
+    {
+        if (idx < 8)
+            cantonP[idx] = np;
+    }
+
+    void setAig(uint8_t idx, Aig *a)
+    {
+        if (idx < 6)
+            aig[idx] = a;
+    }
+
+    Sensor *getSensor(uint8_t idx)
+    {
         return (idx < 2) ? &sensor[idx] : nullptr;
     }
 
-    Sensor* getSensorArray() { return sensor; }
+    Sensor *getSensorArray() { return sensor; }
 
-    Loco* getLoco() {
+    Loco *getLoco()
+    {
         return loco;
     }
 
-    /* STOP global Discovery 2026 */
+    /* STOP global Exploration 2026 */
     void setStopActive(bool v);
     bool isStopActive() const { return m_stopActive; }
 
@@ -228,13 +224,13 @@ private:
 
     DirectionSettings direction;
 
-    NodePeriph* nodeP[8];
-    Aig*        aig[6];
-    Signal*     signal[2];
-    Sensor      sensor[2];
-    Loco*       loco;
+    CantonPeriph *cantonP[8];
+    Aig *aig[6];
+    Signal *signal[2];
+    Sensor sensor[2];
+    Loco *loco;
 
-    class ConsoCourant* occupation;
+    class ConsoCourant *occupation;
 
     bool m_stopActive = false;
 };

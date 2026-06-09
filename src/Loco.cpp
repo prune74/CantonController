@@ -11,7 +11,7 @@
 
 Loco::Loco()
     : m_address(0),
-      m_sens(SensHoraire),   // ← valeur par défaut cohérente
+      m_sens(SensHoraire), // ← valeur par défaut cohérente
       m_speed(0),
       vitesseAvertissement(40),
       vitesseRalentissement30(30),
@@ -27,7 +27,7 @@ Loco::Loco()
 void Loco::address(uint16_t address) { m_address = address; }
 uint16_t Loco::address() const { return m_address; }
 
-/* --- Sens de marche (Discovery 2026) --- */
+/* --- Sens de marche (Exploration 2026) --- */
 void Loco::sens(SensDeMarche sens)
 {
     m_sens = sens;

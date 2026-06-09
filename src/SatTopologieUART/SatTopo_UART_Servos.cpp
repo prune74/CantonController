@@ -12,20 +12,20 @@
  *
  * IMPORTANT :
  *   - La logique métier (estDroit, posDroit, posDevie, etc.)
- *     est gérée dans Aig.cpp et Node_Aiguilles.cpp.
+ *     est gérée dans Aig.cpp et Canton_Aiguilles.cpp.
  *
- *   - Ce module ne fait que traduire les paramètres Discovery 2026
+ *   - Ce module ne fait que traduire les paramètres Exploration 2026
  *     (slider 0–10) en valeurs EXSA (11000 → 1000).
  */
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "debug_sa.h"
 
 #include "Settings.h"
 #include "Aig.h"
-#include "Node.h"
+#include "Canton.h"
 
 #include <SPIFFS.h>
 #include <FS.h>
@@ -79,12 +79,12 @@ void envoyerConfigurationServosDepuisSettings()
 
   for (uint8_t servo = 0; servo < 6; ++servo)
   {
-    Aig *aig = Settings::node->getAig(servo);
+    Aig *aig = Settings::canton->getAig(servo);
     if (!aig)
       continue;
 
     uint8_t exsaAdresse =
-        (aig->nodePdroitIdx() == Settings::node->SP1_idx()) ? 0 : 1;
+        (aig->cantonPdroitIdx() == Settings::canton->SP1_idx()) ? 0 : 1;
 
     char keyPosDroit[16];
     char keyPosDevie[16];
@@ -101,7 +101,7 @@ void envoyerConfigurationServosDepuisSettings()
     // speed = slider 0–10
     uint16_t speedSlider = doc[keySpeed] | 5;
 
-    // Conversion Discovery 2026 → EXSA
+    // Conversion Exploration 2026 → EXSA
     uint16_t speed = 11000 - (speedSlider * 1000);
 
     envoyerServoConfig(exsaAdresse, servo, posDroit, posDevie, speed);

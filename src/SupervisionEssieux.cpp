@@ -1,23 +1,23 @@
 #include "SupervisionEssieux.h"
 #include "CompteurEssieuxUart.h"
-#include "Node.h"
+#include "Canton.h"
 #include "debug_sa.h"
 
 /*
  * Variables internes statiques
  */
 
-Node*     SupervisionEssieux::s_node = nullptr;
-bool      SupervisionEssieux::s_rebootDetecte = false;
-uint16_t  SupervisionEssieux::s_incoherenceTimer = 0;
+Canton *SupervisionEssieux::s_canton = nullptr;
+bool SupervisionEssieux::s_rebootDetecte = false;
+uint16_t SupervisionEssieux::s_incoherenceTimer = 0;
 const uint16_t SupervisionEssieux::INCOHERENCE_TIMEOUT;
 
-void SupervisionEssieux::begin(Node* node)
+void SupervisionEssieux::begin(Canton *canton)
 {
-    s_node = node;
+    s_canton = canton;
     s_incoherenceTimer = 0;
 
-    SA_LOG_INFO("[Essieux] Supervision initialisée pour Node %d\n", node->ID());
+    SA_LOG_INFO("[Essieux] Supervision initialisée pour Canton %d\n", canton->ID());
 }
 
 void SupervisionEssieux::notifierRebootEXSA()
@@ -28,7 +28,7 @@ void SupervisionEssieux::notifierRebootEXSA()
 
 void SupervisionEssieux::loop()
 {
-    if (!s_node)
+    if (!s_canton)
         return;
 
     verifierCoherence();
@@ -39,17 +39,17 @@ void SupervisionEssieux::verifierCoherence()
     // ------------------------------------------------------------------------
     // Récupération des états ferroviaires
     // ------------------------------------------------------------------------
-    int  compteur  = CompteurEssieuxUart::compteurGlobal();
-    bool occLocal  = s_node->busy();  // Occupation logique du canton local
-    bool occAmont  = false;
-    bool occAval   = s_node->SP2_busy() || s_node->SM2_busy();
+    int compteur = CompteurEssieuxUart::compteurGlobal();
+    bool occLocal = s_canton->busy(); // Occupation logique du canton local
+    bool occAmont = false;
+    bool occAval = s_canton->SP2_busy() || s_canton->SM2_busy();
 
     // Canton amont occupé ?
-    NodePeriph* sp1 = s_node->getNodeP(s_node->SP1_idx());
+    CantonPeriph *sp1 = s_canton->getCantonP(s_canton->SP1_idx());
     if (sp1)
         occAmont |= sp1->busy();
 
-    NodePeriph* sm1 = s_node->getNodeP(s_node->SM1_idx());
+    CantonPeriph *sm1 = s_canton->getCantonP(s_canton->SM1_idx());
     if (sm1)
         occAmont |= sm1->busy();
 
@@ -59,8 +59,8 @@ void SupervisionEssieux::verifierCoherence()
     if (s_rebootDetecte)
     {
         CompteurEssieuxUart::reset();
-        s_rebootDetecte     = false;
-        s_incoherenceTimer  = 0;
+        s_rebootDetecte = false;
+        s_incoherenceTimer = 0;
 
         SA_LOG_WARN("[Essieux] Reset compteur (reboot EXSA)\n");
         return;

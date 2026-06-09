@@ -1,39 +1,65 @@
 /*
-   Wifi_fl.cpp — Gestion du WiFi (SA)
-   Version Discovery 2026
+   Wifi_fl.cpp
 */
 
 #include "Wifi_fl.h"
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include "Config.h"
 #include "Settings.h"
-#include "debug_sa.h"
+
+#include <Arduino.h>
 
 void Fl_Wifi::start()
 {
+
 #ifdef WIFI_AP_MODE
 
     WiFi.softAP(WIFI_SSID, WIFI_PSW);
 
-    SA_LOG_INFO("------------ WIFI (AP MODE) ------------\n");
-    SA_LOG_INFO("SSID        : %s\n", WIFI_SSID);
-    SA_LOG_INFO("IP address  : %s\n", WiFi.softAPIP().toString().c_str());
-    SA_LOG_INFO("----------------------------------------\n");
+    Serial.print("\n");
+    Serial.print("\n------------WIFI------------");
+    Serial.print("\nConnected to : ");
+    Serial.print(WIFI_SSID);
+    Serial.print("\nIP address :   ");
+    Serial.print(WiFi.softAPIP());
+    Serial.print("\n\n");
 
 #else
+    // 🔥 Version corrigée : utilisation des String (comme la Master)
+    Serial.print("Connecting to: ");
+    Serial.println(Settings::ssid_str);
 
     WiFi.begin(Settings::ssid, Settings::password);
 
-    SA_LOG_INFO("Connexion au WiFi : %s\n", Settings::ssid);
-
     while (WiFi.status() != WL_CONNECTED)
     {
-        SA_LOG_TRACE("Tentative de connexion WiFi...\n");
+        Serial.println(Settings::ssid_str);
         vTaskDelay(pdMS_TO_TICKS(500));
+        Serial.print(".");
     }
 
-    SA_LOG_INFO("------------ WIFI (CLIENT MODE) ------------\n");
-    SA_LOG_INFO("SSID        : %s\n", Settings::ssid);
-    SA_LOG_INFO("IP address  : %s\n", WiFi.localIP().toString().c_str());
-    SA_LOG_INFO("--------------------------------------------\n");
+    Serial.print("\n");
+    Serial.print("\n------------WIFI------------");
+    Serial.print("\nConnected to : ");
+    Serial.print(Settings::ssid_str);
+    Serial.print("\nIP address :   ");
+    Serial.print(WiFi.localIP());
+    Serial.print("\n----------------------------\n\n");
 
 #endif
+
+    //     if (!MDNS.begin(MDNS_NAME))
+    //     {
+    //         debug.print("Error setting up MDNS responder!\n");
+    //         while (1)
+    //             vTaskDelay(pdMS_TO_TICKS(1000));
+    //     }
+
+    // #ifdef DEBUG
+    //     debug.print("MDNS responder started @ http://");
+    //     debug.print(MDNS_NAME);
+    //     debug.print(".local");
+    //     debug.print("\n\n");
+    // #endif
 }

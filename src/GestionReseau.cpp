@@ -5,9 +5,9 @@
 */
 
 #include "GestionReseau.h"
-#include "FeuxDirection.h"      // LED blanches de direction
-#include "Discovery_Protocol.h" // ExsaAspect + opcodes UART/CAN
-#include "AspectSignal.h"       // pour mettreAJourAspectSignal
+#include "FeuxDirection.h"        // LED blanches de direction
+#include "Exploration_Protocol.h" // ExsaAspect + opcodes UART/CAN
+#include "AspectSignal.h"         // pour mettreAJourAspectSignal
 /*
   ------------------------------------------------------------
   Rôle global :
@@ -33,13 +33,13 @@
 // Valeurs d’aspect envoyées aux signaux (horaire / anti-horaire)
 ExsaAspect GestionReseau::signalValue[2] = {ASPECT_CARRE, ASPECT_CARRE};
 
-void GestionReseau::setup(Node *node)
+void GestionReseau::setup(Canton *canton)
 {
     xTaskCreatePinnedToCore(
         loopTask,
         "LoopTask",
         8 * 1024,
-        (void *)node,
+        (void *)canton,
         10,
         NULL,
         0);
@@ -47,45 +47,45 @@ void GestionReseau::setup(Node *node)
 
 void IRAM_ATTR GestionReseau::loopTask(void *pvParameters)
 {
-    Node *node = static_cast<Node *>(pvParameters);
+    Canton *canton = static_cast<Canton *>(pvParameters);
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     for (;;)
     {
         // 1) Mise à jour des capteurs
-        mettreAJourCapteurs(node);
+        mettreAJourCapteurs(canton);
 
         // 2) Déduction du sens de roulage
-        deduireSensRoulage(node);
+        deduireSensRoulage(canton);
 
         // 3) Mise à jour de la topologie SP1 / SM1
-        mettreAJourTopologie(node);
+        mettreAJourTopologie(canton);
 
         // 4)Mise à jour interne des feux directionnels
-        node->updateFeuDirection(SensHoraire);
-        node->updateFeuDirection(SensAntiHoraire);
+        canton->updateFeuDirection(SensHoraire);
+        canton->updateFeuDirection(SensAntiHoraire);
 
         // Lecture des valeurs calculées (0..4)
-        uint8_t feuH = node->getFeuDirection(SensHoraire);
-        uint8_t feuAH = node->getFeuDirection(SensAntiHoraire);
+        uint8_t feuH = canton->getFeuDirection(SensHoraire);
+        uint8_t feuAH = canton->getFeuDirection(SensAntiHoraire);
 
         // 5) Envoi des états sur le bus CAN
-        envoyerEtatCAN(node);
+        envoyerEtatCAN(canton);
 
         // 6) Supervision cantonale → mise à jour des aspects locaux
         for (uint8_t i = 0; i < 2; i++)
         {
-            signalValue[i] = mettreAJourAspectCanton(node, i);
+            signalValue[i] = mettreAJourAspectCanton(canton, i);
         }
 
         // 7) Pilotage loco selon aspect reçu
-        executerPilotageDistribue(node);
+        executerPilotageDistribue(canton);
 
         // 8) Envoi des commandes DCC++ (trame 0x04)
-        envoyerCommandeDCC(node);
+        envoyerCommandeDCC(canton);
 
         // 9) Déduction + envoi des aspects dynamiques aux signaux EXSA
-        mettreAJourAspectSignal(node,
+        mettreAJourAspectSignal(canton,
                                 reinterpret_cast<uint8_t *>(signalValue));
 
         // 10) Temporisation fixe (100 ms)

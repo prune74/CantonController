@@ -1,5 +1,5 @@
 /*
-   WebHandler_HandleData.cpp — Discovery 2026 (CLEAN & FIXED)
+   WebHandler_HandleData.cpp — Exploration 2026 (CLEAN & FIXED)
    ------------------------------------------------------------
    Analyse et dispatch des messages WebSocket reçus par le SA.
 */
@@ -56,11 +56,11 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     }
 
     // -----------------------------------------------------------------------
-    // DISCOVERY
+    // EXPLORATION
     // -----------------------------------------------------------------------
-    if (doc.containsKey("discovery_on"))
+    if (doc.containsKey("exploration_on"))
     {
-        handleDiscovery(doc);
+        handleExploration(doc);
         notifyClients();
         return;
     }
@@ -71,7 +71,7 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     if (doc.containsKey("maxSpeed"))
     {
         uint8_t v = doc["maxSpeed"];
-        node->maxSpeed(v);
+        canton->maxSpeed(v);
         SA_LOG_INFO("[WebHandler] maxSpeed = %u\n", v);
         notifyClients();
         return;
@@ -112,7 +112,7 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
         JsonArray arr = doc["booster_seuils"];
         if (arr.size() >= 2)
         {
-            uint16_t libre  = arr[0];
+            uint16_t libre = arr[0];
             uint16_t occupe = arr[1];
 
             Settings::setBoosterSeuilLibre(libre);

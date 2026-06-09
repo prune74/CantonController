@@ -1,8 +1,8 @@
 /*
  * ============================================================================
- *  Node.h — Version 2026
+ *  Canton.h — Version 2026
  *  --------------------------------------------------------------------------
- *  Le Node représente un CANTON complet dans le SA (Satellite d’Aiguillage).
+ *  Le Canton représente un CANTON complet dans le SA (Satellite d’Aiguillage).
  *
  *  Il contient :
  *    - la topologie SP/SM (voisins amont/aval)
@@ -18,7 +18,7 @@
  *    - Les objets Aig sont purement LOGIQUES.
  *    - EXSA exécute physiquement les mouvements.
  *
- *  Le Node est donc :
+ *  Le Canton est donc :
  *    → un conteneur de LOGIQUE ferroviaire
  *    → un conteneur de TOPOLOGIE
  *    → un conteneur de CAPTEURS
@@ -67,7 +67,7 @@ enum CantonRole : uint8_t {
 
 
 /* ============================================================================
- *                           NodePeriph
+ *                           CantonPeriph
  *  --------------------------------------------------------------------------
  *  Représente un VOISIN dans la topologie :
  *    - SP1 (amont horaire)
@@ -75,7 +75,7 @@ enum CantonRole : uint8_t {
  *    - SP2 (aval horaire)
  *    - SM2 (aval anti-horaire)
  *
- *  Chaque NodePeriph contient :
+ *  Chaque CantonPeriph contient :
  *    - ID du voisin
  *    - busy() : occupation logique du voisin
  *    - acces() : autorisation d’accès
@@ -84,12 +84,12 @@ enum CantonRole : uint8_t {
  *    - aspectRecu[] : aspect SNCF reçu du voisin (H/AH)
  *
  *  Utilisé dans :
- *    - la topologie Discovery
+ *    - la topologie Exploration
  *    - la supervision canton
  *    - la logique d’itinéraires
  * ============================================================================
  */
-class NodePeriph
+class CantonPeriph
 {
 protected:
   uint8_t m_id;          // ID du voisin (0..255)
@@ -102,8 +102,8 @@ protected:
   byte m_typeCible;      // Type de cible (non utilisé en 2026)
 
 public:
-  NodePeriph();
-  ~NodePeriph();
+  CantonPeriph();
+  ~CantonPeriph();
   static uint8_t comptInst; // Debug : nombre d’instances
 
   // Aspect SNCF reçu du voisin (H=0 / AH=1)
@@ -131,9 +131,9 @@ public:
 
 
 /* ============================================================================
- *                           Node (canton principal)
+ *                           Canton (canton principal)
  *  --------------------------------------------------------------------------
- *  Le Node est le cœur du SA :
+ *  Le Canton est le cœur du SA :
  *
  *    - Topologie SP/SM
  *    - Aiguilles logiques (pilotées par EXSA)
@@ -144,13 +144,13 @@ public:
  *    - Paramètres (vitesse max, sens)
  *
  *  IMPORTANT :
- *    Node hérite de Aig uniquement pour compatibilité historique.
+ *    Canton hérite de Aig uniquement pour compatibilité historique.
  *    → Les servos NE SONT PLUS pilotés localement.
  * ============================================================================
  */
-class Node : public Aig
+class Canton : public Aig
 {
-  friend class Discovery; // Discovery peut modifier la topologie
+  friend class Exploration; // Exploration peut modifier la topologie
 
 private:
   // --- Identité ---
@@ -160,8 +160,8 @@ private:
   byte m_masqueAig;       // Aiguilles bloquantes SP1/SM1
 
   // --- Topologie automatique ---
-  uint8_t m_SP1_idx;      // Index du voisin SP1 dans nodeP[]
-  uint8_t m_SM1_idx;      // Index du voisin SM1 dans nodeP[]
+  uint8_t m_SP1_idx;      // Index du voisin SP1 dans cantonP[]
+  uint8_t m_SM1_idx;      // Index du voisin SM1 dans cantonP[]
   bool m_SP2_acces;       // SP2 accessible ?
   bool m_SP2_busy;        // SP2 occupé ?
   bool m_SM2_acces;       // SM2 accessible ?
@@ -177,11 +177,11 @@ private:
   CantonRole m_role = ROLE_PLEINE_VOIE;
 
 public:
-  Node();
-  ~Node();
+  Canton();
+  ~Canton();
 
   // --- Voisins, aiguilles, capteurs, signaux ---
-  NodePeriph *nodeP[nodePsize];   // Tableau des voisins SP/SM
+  CantonPeriph *cantonP[cantonPsize];   // Tableau des voisins SP/SM
   Aig *aig[aigSize];              // Aiguilles logiques (sans servo)
   Loco loco;                      // Informations loco (Railcom)
   Sensor sensor[sensorSize];      // Capteurs ponctuels

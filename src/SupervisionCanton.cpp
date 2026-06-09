@@ -3,33 +3,33 @@
  */
 
 #include "SupervisionCanton.h"
-#include "Discovery_Protocol.h"
-#include "Node.h"
+#include "Exploration_Protocol.h"
+#include "Canton.h"
 #include "Aig.h"
 #include "Railcom.h"
 #include "debug_sa.h"
 
 /**
- * trouverAiguillePourSens(node, indexAval)
+ * trouverAiguillePourSens(canton, indexAval)
  */
-static Aig *trouverAiguillePourSens(Node *node, uint8_t indexAval)
+static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval)
 {
     for (uint8_t k = 0; k < aigSize; ++k)
     {
-        Aig *a = node->getAig(k);
+        Aig *a = canton->getAig(k);
         if (!a)
             continue;
 
-        if (a->nodePdroitIdx() == indexAval || a->nodePdevieIdx() == indexAval)
+        if (a->cantonPdroitIdx() == indexAval || a->cantonPdevieIdx() == indexAval)
             return a;
     }
     return nullptr;
 }
 
 /**
- * mettreAJourAspectCanton(node, i)
+ * mettreAJourAspectCanton(canton, i)
  */
-ExsaAspect mettreAJourAspectCanton(Node *node, uint8_t i)
+ExsaAspect mettreAJourAspectCanton(Canton *canton, uint8_t i)
 {
     uint8_t indexAval = 0;
     bool s2access = false;
@@ -38,15 +38,15 @@ ExsaAspect mettreAJourAspectCanton(Node *node, uint8_t i)
     switch (i)
     {
     case 0: // sens horaire
-        indexAval = node->SP1_idx();
-        s2access = node->SP2_acces();
-        s2busy = node->SP2_busy();
+        indexAval = canton->SP1_idx();
+        s2access = canton->SP2_acces();
+        s2busy = canton->SP2_busy();
         break;
 
     case 1: // sens anti-horaire
-        indexAval = node->SM1_idx();
-        s2access = node->SM2_acces();
-        s2busy = node->SM2_busy();
+        indexAval = canton->SM1_idx();
+        s2access = canton->SM2_acces();
+        s2busy = canton->SM2_busy();
         break;
 
     default:
@@ -54,7 +54,7 @@ ExsaAspect mettreAJourAspectCanton(Node *node, uint8_t i)
         return ASPECT_CARRE;
     }
 
-    NodePeriph *aval = node->getNodeP(indexAval);
+    CantonPeriph *aval = canton->getCantonP(indexAval);
 
     if (!aval)
     {
@@ -68,7 +68,7 @@ ExsaAspect mettreAJourAspectCanton(Node *node, uint8_t i)
         return ASPECT_CARRE;
     }
 
-    Aig *aigSens = trouverAiguillePourSens(node, indexAval);
+    Aig *aigSens = trouverAiguillePourSens(canton, indexAval);
     bool voieDevie = aigSens ? !aigSens->estDroit() : false;
 
     SA_LOG_TRACE("[Canton] Sens=%u aval=%u voieDevie=%d\n",

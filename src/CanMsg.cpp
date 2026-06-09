@@ -4,21 +4,21 @@
   - crée la tâche FreeRTOS de réception
   - lit les trames CAN
   - décode l’en-tête (commande, ID expéditeur, rtr/response)
-  - route la trame vers le bon handler (System, Discovery, Exploitation)
+  - route la trame vers le bon handler (System, Exploration, Exploitation)
 */
 
 #include "CanMsg.h"
-#include "debug_sa.h" // ← système de logs Discovery 2026
+#include "debug_sa.h" // ← système de logs Exploration 2026
 
 // Handlers déclarés dans les autres fichiers .cpp
-void handleSystemCommand(uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
-void handleDiscoveryCommand(uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
-void handleExploitCommand(uint8_t commande, const CANMessage &frame, Node *node, uint16_t idSatExpediteur);
+void handleSystemCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
+void handleExplorationCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
+void handleExploitCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
 
 // -----------------------------------------------------------------------------
 // setup() : création de la tâche de réception CAN
 // -----------------------------------------------------------------------------
-void CanMsg::setup(Node *node)
+void CanMsg::setup(Canton *canton)
 {
   SA_LOG_INFO("[CanMsg %d] : setup\n", __LINE__);
 
@@ -28,7 +28,7 @@ void CanMsg::setup(Node *node)
       canReceiveMsg,
       "CanReceiveMsg",
       4 * 1024,
-      (void *)node,
+      (void *)canton,
       6,
       &canReceiveHandle,
       0);
@@ -65,7 +65,7 @@ void CanMsg::testMemory(void *pvParameters)
 // -----------------------------------------------------------------------------
 void CanMsg::canReceiveMsg(void *pvParameters)
 {
-  Node *node = (Node *)pvParameters;
+  Canton *canton = (Canton *)pvParameters;
 
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
@@ -75,16 +75,17 @@ void CanMsg::canReceiveMsg(void *pvParameters)
     if (ACAN_ESP32::can.receive(frameIn))
     {
       // ---------------------------------------------------------------------
-      // 🔥 STOP global Discovery 2026 (ID = 0x201, 11 bits, DLC = 0)
+      // 🔥 STOP global Exploration 2026 (ID = 0x201, 11 bits, DLC = 0)
       // ---------------------------------------------------------------------
-      if (frameIn.id == DISCOVERY_CAN_ID_EMERGENCY_STOP) {
-        node->setStopActive(true);
-        SA_LOG_ERROR("[Node %u] STOP global reçu depuis Master\n", node->ID());
+      if (frameIn.id == EXPLORATION_CAN_ID_EMERGENCY_STOP)
+      {
+        canton->setStopActive(true);
+        SA_LOG_ERROR("[Canton %u] STOP global reçu depuis Master\n", canton->ID());
         continue; // on ne traite rien d'autre
       }
 
       // ---------------------------------------------------------------------
-      // ⚠️ Décodage standard Discovery (29 bits)
+      // ⚠️ Décodage standard Exploration (29 bits)
       // ---------------------------------------------------------------------
       const uint8_t commande = (uint8_t)((frameIn.id & 0x1FE0000) >> 17);
       const uint16_t idSatExpediteur = (uint16_t)(frameIn.id & 0xFFFF);
@@ -106,15 +107,15 @@ void CanMsg::canReceiveMsg(void *pvParameters)
       {
         if (commande >= CMD_SAT_TEST_BUS_REPLY && commande <= CMD_SAVE_ALL)
         {
-          handleSystemCommand(commande, frameIn, node, idSatExpediteur);
+          handleSystemCommand(commande, frameIn, canton, idSatExpediteur);
         }
         else if (commande >= 0xC0 && commande <= 0xC1)
         {
-          handleDiscoveryCommand(commande, frameIn, node, idSatExpediteur);
+          handleExplorationCommand(commande, frameIn, canton, idSatExpediteur);
         }
         else if (commande >= 0xE0 && commande <= 0xE9)
         {
-          handleExploitCommand(commande, frameIn, node, idSatExpediteur);
+          handleExploitCommand(commande, frameIn, canton, idSatExpediteur);
         }
         else
         {

@@ -1,12 +1,13 @@
 /*
- * Node_Stop.cpp — Gestion du STOP global Discovery 2026
+ * Canton_Stop.cpp — Gestion du STOP global Exploration 2026
  */
 
-#include "Node_Internal.h"
+#include "Canton.h"
+#include "Config.h"
 #include "SatEXSA_Link.h"
 #include "debug_sa.h"
 
-void Node::setStopActive(bool v)
+void Canton::setStopActive(bool v)
 {
     if (m_stopActive == v)
         return; // aucun changement
@@ -18,20 +19,20 @@ void Node::setStopActive(bool v)
 
     if (exsaBooster < 0)
     {
-        SA_LOG_ERROR("[Node %u] STOP demandé mais aucun EXSA n’a déclaré de booster !\n", m_id);
+        SA_LOG_ERROR("[Canton %u] STOP demandé mais aucun EXSA n’a déclaré de booster !\n", m_id);
         return;
     }
 
     if (m_stopActive)
     {
-        SA_LOG_ERROR("[Node %u] STOP global ACTIVÉ → Booster EXSA %d OFF\n",
+        SA_LOG_ERROR("[Canton %u] STOP global ACTIVÉ → Booster EXSA %d OFF\n",
                      m_id, exsaBooster);
 
         SatEXSA_Link::envoyerBoosterPower(exsaBooster, false);
     }
     else
     {
-        SA_LOG_INFO("[Node %u] STOP global LEVÉ → Booster EXSA %d ON\n",
+        SA_LOG_INFO("[Canton %u] STOP global LEVÉ → Booster EXSA %d ON\n",
                     m_id, exsaBooster);
 
         SatEXSA_Link::envoyerBoosterPower(exsaBooster, true);

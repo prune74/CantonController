@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "freertos/queue.h"
 
-// CAN (topologie Discovery)
+// CAN (topologie Exploration)
 #include "CanMsg.h"
 #include "CanConfig.h"
 
@@ -16,10 +16,10 @@
 #endif
 
 // Modules SA
-#include "Node.h"
+#include "Canton.h"
 #include "Railcom.h"
 #include "GestionReseau.h"
-#include "Discovery.h"
+#include "Exploration.h"
 
 // Interface Web + WiFi
 #include "WebHandler.h"
@@ -31,12 +31,12 @@
 // Watchdog Master (heartbeat + arrêt en cas de blocage)
 #include "SAWatchdog.h"
 
-// Logs Discovery 2026
+// Logs Exploration 2026
 #include "debug_sa.h"
 
 //--- Instances globales ------------------------------------------------------
 // Le SA gère un seul canton principal
-Node* node = new Node();
+Canton *canton = new Canton();
 
 // Gestion WiFi + interface Web
 Fl_Wifi wifi;
@@ -45,7 +45,6 @@ WebHandler webHandler;
 // Flag WiFi actif ou non
 bool wifiOn = false;
 
-
 /*============================================================================
                                 setup()
 ============================================================================*/
@@ -53,7 +52,9 @@ void setup()
 {
   //--- UART Debug ------------------------------------------------------------
   Serial.begin(115200);
-  while (!Serial) {}
+  while (!Serial)
+  {
+  }
   delay(100);
 
 #ifdef CHIP_INFO
@@ -67,81 +68,79 @@ void setup()
   Serial.printf("\nCompiled  : %s - %s\n\n", __DATE__, __TIME__);
   Serial.printf("-----------------------------------\n\n");
 
-  //--- Chargement settings.json ---------------------------------------------
-  Settings::setup(node);
+  //--- Chargement settings.json (UART + SPIFFS + JSON) -----------------------
+  Settings::setup(canton);
   vTaskDelay(pdMS_TO_TICKS(100));
 
   //--- Initialisation CAN ----------------------------------------------------
   CanConfig::setup();
   vTaskDelay(pdMS_TO_TICKS(100));
-  CanMsg::setup(node);
+  CanMsg::setup(canton);
   vTaskDelay(pdMS_TO_TICKS(100));
 
-  //--- Lecture ID Node -------------------------------------------------------
-  if (Settings::begin())
-  {
-    Serial.printf("-----------------------------------\n");
-    Serial.printf("ID Node : %d\n", node->ID());
-    Serial.printf("-----------------------------------\n\n");
-  }
-  else
+  //--- Dialogue CAN avec la carte Main --------------------------------------
+  if (!Settings::begin())
   {
     Serial.printf("[Settings] : Echec de la configuration\n");
     return;
   }
 
-  //--- Mode Discovery --------------------------------------------------------
-  if (Settings::discoveryOn())
+  Serial.printf("-----------------------------------\n");
+  Serial.printf("ID Canton : %d\n", canton->ID());
+  Serial.printf("-----------------------------------\n\n");
+
+  //--- ⚠️ CHARGEMENT settings.json COMPLET (SSID / PASSWORD / booster / aiguilles)
+  Settings::loadFile(canton);
+
+  //--- Mode Exploration --------------------------------------------------------
+  if (Settings::explorationOn())
   {
-    // Mode apprentissage topologie SP/SM
-    Discovery::begin(node);
+    Exploration::begin(canton);
   }
   else
   {
-    // Mode normal : initialisation des signaux
     for (byte i = 0; i < signalSize; i++)
     {
-      Signal* s = node->getSignal(i);
+      Signal *s = canton->getSignal(i);
       if (!s)
       {
         s = new Signal;
-        node->setSignal(i, s);
+        canton->setSignal(i, s);
       }
-
       s->setup();
     }
 
-    // Railcom + logique ferroviaire
     Railcom::begin();
-    GestionReseau::setup(node);
+    GestionReseau::setup(canton);
   }
+
+  //--- 🔥 Supervision EXSA (PING/PONG) --------------------------------------
+  // SatEXSA_Link::begin();
+
+  //--- 🔥 Watchdog Exploration 2026 : Heartbeat + STOP -------------------------
+  // SAWatchdog_begin();
 
   //--- WiFi + Interface Web --------------------------------------------------
-  wifiOn = Settings::wifiOn();
+  wifiOn = Settings::wifiOn(); // ⚠️ maintenant que loadFile() a rempli ssid_str
+  Serial.printf(">>> DEBUG wifiOn = %d\n", wifiOn);
+
   if (wifiOn)
   {
-    wifi.start();
-    webHandler.init(node, 80);
+    wifi.start(); // ⚠️ ssid_str et password_str sont maintenant valides
+    webHandler.init(canton, 80);
   }
 
-  Serial.printf(Settings::discoveryOn() ? "[Discovery] : on\n" : "[Discovery] : off\n");
+  Serial.printf(Settings::explorationOn() ? "[Exploration] : on\n" : "[Exploration] : off\n");
   Serial.printf(Settings::wifiOn() ? "[Wifi] : on\n" : "Wifi : off\n");
   Serial.printf("-----------------------------------\n");
   Serial.printf("[Main %d] : End setup\n\n", __LINE__);
   Serial.printf("-----------------------------------\n\n");
 
-  //--- 🔥 Supervision EXSA (PING/PONG) --------------------------------------
-  SatEXSA_Link::begin();
-
-  //--- 🔥 Watchdog Discovery 2026 : Heartbeat + STOP -------------------------
-  SAWatchdog_begin();
-
   // En mode release, on coupe le port série après 1 seconde
-  vTaskDelay(pdMS_TO_TICKS(1000));
-  Serial.end();
-  SA_LOG_INFO("Ne doit pas s'afficher !\n");
+  // vTaskDelay(pdMS_TO_TICKS(1000));
+  // Serial.end();
+  // SA_LOG_INFO("Ne doit pas s'afficher !\n");
 }
-
 
 /*============================================================================
                                 loop()
@@ -155,11 +154,11 @@ void loop()
     webHandler.loop();
 
   //--- Railcom : mise à jour adresse loco -----------------------------------
-  if (!Settings::discoveryOn())
+  if (!Settings::explorationOn())
   {
-    if (Railcom::address() && node->busy())
+    if (Railcom::address() && canton->busy())
     {
-      Loco* loco = node->getLoco();
+      Loco *loco = canton->getLoco();
       if (loco)
       {
         loco->address(Railcom::address());
@@ -169,7 +168,7 @@ void loop()
 
   // Log si l’adresse loco change
   {
-    Loco* loco = node->getLoco();
+    Loco *loco = canton->getLoco();
     uint16_t currentAddress = (loco ? loco->address() : 0);
 
     if (currentAddress != oldAddress)
@@ -181,7 +180,7 @@ void loop()
   }
 
   //--- 🔥 Supervision EXSA : PING/PONG + ONLINE/OFFLINE ----------------------
-  SatEXSA_Link::loop();
+  // SatEXSA_Link::loop();
 
   //--- Pause FreeRTOS --------------------------------------------------------
   vTaskDelay(pdMS_TO_TICKS(50));

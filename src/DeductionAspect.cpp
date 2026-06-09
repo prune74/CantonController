@@ -3,8 +3,8 @@ DeductionAspect.cpp - Gestion de la déduction d’aspect local depuis l’aspec
 */
 
 #include "DeductionAspect.h"
-#include "Config.h"             // pour USE_CLIGNOTANTS
-#include "Discovery_Protocol.h" // pour ExsaAspect
+#include "Config.h"               // pour USE_CLIGNOTANTS
+#include "Exploration_Protocol.h" // pour ExsaAspect
 
 /*************************************************************************************
  * Fonction de déduction d’aspect local depuis l’aspect aval

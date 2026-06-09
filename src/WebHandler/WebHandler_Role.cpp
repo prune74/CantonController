@@ -1,5 +1,5 @@
 /*
-   WebHandler_Role.cpp — Discovery 2026 (FINAL & CLEAN)
+   WebHandler_Role.cpp — Exploration 2026 (FINAL & CLEAN)
 */
 
 #include "WebHandler.h"
@@ -13,7 +13,7 @@
 //   { "cmd": "setRole", "value": 3 }
 //
 // Rôle :
-//   - mettre à jour node->setRole()
+//   - mettre à jour canton->setRole()
 //   - sauvegarder dans settings.json
 //   - notifier les clients WebSocket
 // ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ void WebHandler::handleRole(JsonDocument &doc)
     SA_LOG_INFO("[Role] Nouveau rôle demandé : %u\n", role);
 
     // Mise à jour logique interne
-    node->setRole((CantonRole)role);
+    canton->setRole((CantonRole)role);
 
     // Sauvegarde dans settings.json
     Settings::set("role", role);
@@ -40,7 +40,7 @@ void WebHandler::handleRole(JsonDocument &doc)
 
     // Notifier l’interface Web
     StaticJsonDocument<64> out;
-    out["cmd"]  = "roleUpdate";
+    out["cmd"] = "roleUpdate";
     out["role"] = role;
 
     String json;

@@ -5,7 +5,7 @@
    - Initialise l’UART RS485 (communication SA → EXSA)
    - Charge settings.json (positions aiguilles, signaux, voisins…)
    - Applique le rôle ferroviaire
-   - Reconstruit les objets NodePeriph, Aig, Signal
+   - Reconstruit les objets CantonPeriph, Aig, Signal
    - Communique avec la carte Main via CAN pour obtenir l’ID
    ------------------------------------------------------------
 */
@@ -13,21 +13,21 @@
 #include "Settings.h"
 
 bool Settings::WIFI_ON = true;
-bool Settings::DISCOVERY_ON = true;
+bool Settings::EXPLORATION_ON = true;
 String Settings::ssid_str;
 String Settings::password_str;
 char Settings::ssid[30] = {};
 char Settings::password[30] = {};
 bool Settings::isMainReady = false;
-Node *Settings::node = nullptr;
+Canton *Settings::canton = nullptr;
 
 // UART RS485 partagé entre EXSA_H et EXSA_AH
 HardwareSerial Settings::SerialUART(1);
 HardwareSerial& Settings::uart() { return SerialUART; }
 
 void Settings::sMainReady(bool val) { Settings::isMainReady = val; }
-bool Settings::discoveryOn() { return DISCOVERY_ON; }
-void Settings::discoveryOn(bool val) { Settings::DISCOVERY_ON = val; }
+bool Settings::explorationOn() { return EXPLORATION_ON; }
+void Settings::explorationOn(bool val) { Settings::EXPLORATION_ON = val; }
 bool Settings::wifiOn() { return WIFI_ON; }
 void Settings::wifiOn(bool val) { Settings::WIFI_ON = val; }
 
@@ -38,9 +38,9 @@ void Settings::wifiOn(bool val) { Settings::WIFI_ON = val; }
    - SPIFFS
    - settings.json
 --------------------------------------------------------------*/
-void Settings::setup(Node *nd)
+void Settings::setup(Canton *nd)
 {
-  node = nd;
+  canton = nd;
 
   // UART RS485 (communication SA → EXSA)
   Settings::uart().begin(UART_BAUDRATE, SERIAL_8N1, UART_RX_SATELLITE, UART_TX_SATELLITE);
@@ -73,7 +73,7 @@ bool Settings::begin()
   // Attente du message 0xB3 (Main ready)
   do
   {
-    CanMsg::sendMsg(0, 0xB2, 0, node->ID());
+    CanMsg::sendMsg(0, 0xB2, 0, canton->ID());
     vTaskDelay(pdMS_TO_TICKS(1000));
     Serial.print(".");
     if (countReset == 10)
@@ -86,14 +86,14 @@ bool Settings::begin()
   } while (!isMainReady);
 
   // Demande d’ID si non attribué
-  if (node->ID() == UNUSED_ID)
+  if (canton->ID() == UNUSED_ID)
     Serial.printf("\n[Settings %d] : Le satellite ne possede pas d'identifiant.\n", __LINE__);
 
-  while (node->ID() == UNUSED_ID)
+  while (canton->ID() == UNUSED_ID)
   {
-    CanMsg::sendMsg(0, 0xB4, 0, node->ID());
+    CanMsg::sendMsg(0, 0xB4, 0, canton->ID());
     vTaskDelay(pdMS_TO_TICKS(1000));
-    if (node->ID() != UNUSED_ID)
+    if (canton->ID() != UNUSED_ID)
       writeFile();
     else
       Serial.print(".");
@@ -109,11 +109,11 @@ bool Settings::begin()
                            readFile()
    Charge settings.json :
    - ID du SA
-   - voisins (NodePeriph)
+   - voisins (CantonPeriph)
    - aiguilles (Aig)
    - signaux
    - rôle ferroviaire
-   - paramètres WiFi / Discovery
+   - paramètres WiFi / Exploration
 --------------------------------------------------------------*/
 void Settings::readFile()
 {
@@ -157,39 +157,39 @@ void Settings::readFile()
   }
 
   // ID du SA
-  node->ID(doc["idNode"] | UNUSED_ID);
+  canton->ID(doc["idCanton"] | UNUSED_ID);
 
   // Nombre d’aiguilles détectées
-  Discovery::comptAig(doc["comptAig"]);
+  Exploration::comptAig(doc["comptAig"]);
 
   // Masque d’aiguilles
-  node->masqueAig(doc["masqueAig"]);
+  canton->masqueAig(doc["masqueAig"]);
 
   // Paramètres généraux
   WIFI_ON = doc["wifi_on"];
-  DISCOVERY_ON = doc["discovery_on"];
+  EXPLORATION_ON = doc["exploration_on"];
   ssid_str = doc["ssid"].as<String>();
   password_str = doc["password"].as<String>();
   strcpy(ssid, ssid_str.c_str());
   strcpy(password, password_str.c_str());
-  node->maxSpeed(doc["maxSpeed"]);
-  node->sensMarche(doc["sensMarche"]);
+  canton->maxSpeed(doc["maxSpeed"]);
+  canton->sensMarche(doc["sensMarche"]);
 
   // Rôle ferroviaire
   if (doc.containsKey("role"))
-    node->setRole((CantonRole)(uint8_t)doc["role"]);
+    canton->setRole((CantonRole)(uint8_t)doc["role"]);
   else
-    node->setRole(ROLE_PLEINE_VOIE);
+    canton->setRole(ROLE_PLEINE_VOIE);
 
   // Reconstruction des voisins
   const char *index[] = {"p00", "p01", "p10", "p11", "m00", "m01", "m10", "m11"};
-  for (byte i = 0; i < nodePsize; i++)
+  for (byte i = 0; i < cantonPsize; i++)
   {
     if (doc[index[i]] != "null")
     {
-      if (node->nodeP[i] == nullptr)
-        node->nodeP[i] = new NodePeriph;
-      node->nodeP[i]->ID(doc[index[i]]);
+      if (canton->cantonP[i] == nullptr)
+        canton->cantonP[i] = new CantonPeriph;
+      canton->cantonP[i]->ID(doc[index[i]]);
     }
   }
 
@@ -198,21 +198,21 @@ void Settings::readFile()
   {
     if (doc["aig" + String(i)] != "null")
     {
-      if (node->aig[i] == nullptr)
-        node->aig[i] = new Aig;
+      if (canton->aig[i] == nullptr)
+        canton->aig[i] = new Aig;
 
-      node->aig[i]->ID(doc["aig" + String(i) + "id"]);
-      node->aig[i]->posDroit(doc["aig" + String(i) + "posDroit"]);
-      node->aig[i]->posDevie(doc["aig" + String(i) + "posDevie"]);
-      node->aig[i]->speed(doc["aig" + String(i) + "speed"]);
-      node->aig[i]->pin(doc["aig" + String(i) + "pin"]);
+      canton->aig[i]->ID(doc["aig" + String(i) + "id"]);
+      canton->aig[i]->posDroit(doc["aig" + String(i) + "posDroit"]);
+      canton->aig[i]->posDevie(doc["aig" + String(i) + "posDevie"]);
+      canton->aig[i]->speed(doc["aig" + String(i) + "speed"]);
+      canton->aig[i]->pin(doc["aig" + String(i) + "pin"]);
 
       // 🟩 NOUVEAU : index EXSA côté H / AH
-      node->aig[i]->nodePdroitIdx(doc["aig" + String(i) + "nodePdroitIdx"]);
-      node->aig[i]->nodePdevieIdx(doc["aig" + String(i) + "nodePdevieIdx"]);
+      canton->aig[i]->cantonPdroitIdx(doc["aig" + String(i) + "cantonPdroitIdx"]);
+      canton->aig[i]->cantonPdevieIdx(doc["aig" + String(i) + "cantonPdevieIdx"]);
 
       // 🟦 IMPORTANT : neutralisation du pilotage local
-      // node->aig[i]->setup();  // ❌ Désactivé — EXSA pilote les servos
+      // canton->aig[i]->setup();  // ❌ Désactivé — EXSA pilote les servos
     }
   }
 
@@ -221,11 +221,11 @@ void Settings::readFile()
   {
     if (doc["sign" + String(i)] != "null")
     {
-      if (node->signal[i] == nullptr)
-        node->signal[i] = new Signal;
+      if (canton->signal[i] == nullptr)
+        canton->signal[i] = new Signal;
 
-      node->signal[i]->type(doc["sign" + String(i) + "type"]);
-      node->signal[i]->position(doc["sign" + String(i) + "position"]);
+      canton->signal[i]->type(doc["sign" + String(i) + "type"]);
+      canton->signal[i]->position(doc["sign" + String(i) + "position"]);
     }
   }
 
@@ -249,33 +249,33 @@ void Settings::writeFile()
 
   DynamicJsonDocument doc(1024);
 
-  doc["idNode"] = node->ID();
-  doc["comptAig"] = Discovery::comptAig();
-  doc["masqueAig"] = node->masqueAig();
+  doc["idCanton"] = canton->ID();
+  doc["comptAig"] = Exploration::comptAig();
+  doc["masqueAig"] = canton->masqueAig();
   doc["wifi_on"] = WIFI_ON;
-  doc["discovery_on"] = DISCOVERY_ON;
+  doc["exploration_on"] = EXPLORATION_ON;
   doc["ssid"] = ssid;
   doc["password"] = password;
-  doc["maxSpeed"] = node->maxSpeed();
-  doc["sensMarche"] = node->sensMarche();
+  doc["maxSpeed"] = canton->maxSpeed();
+  doc["sensMarche"] = canton->sensMarche();
 
   // Rôle ferroviaire
-  doc["role"] = (uint8_t)node->role();
+  doc["role"] = (uint8_t)canton->role();
 
   // Voisins
   const String index[] = {"p00", "p01", "p10", "p11", "m00", "m01", "m10", "m11"};
-  for (byte i = 0; i < nodePsize; i++)
+  for (byte i = 0; i < cantonPsize; i++)
   {
-    if (node->nodeP[i] == nullptr)
+    if (canton->cantonP[i] == nullptr)
       doc[index[i]] = "null";
     else
-      doc[index[i]] = node->nodeP[i]->ID();
+      doc[index[i]] = canton->cantonP[i]->ID();
   }
 
   // Aiguilles
   for (byte i = 0; i < aigSize; i++)
   {
-      if (node->aig[i] == nullptr)
+      if (canton->aig[i] == nullptr)
       {
           doc["aig" + String(i)] = "null";
       }
@@ -284,27 +284,27 @@ void Settings::writeFile()
           // 🟩 Correction essentielle : indiquer que l’aiguille existe
           doc["aig" + String(i)] = "Actif";
 
-          doc["aig" + String(i) + "id"] = node->aig[i]->ID();
-          doc["aig" + String(i) + "posDroit"] = node->aig[i]->posDroit();
-          doc["aig" + String(i) + "posDevie"] = node->aig[i]->posDevie();
-          doc["aig" + String(i) + "speed"] = node->aig[i]->speed();
-          doc["aig" + String(i) + "pin"] = node->aig[i]->pin();
+          doc["aig" + String(i) + "id"] = canton->aig[i]->ID();
+          doc["aig" + String(i) + "posDroit"] = canton->aig[i]->posDroit();
+          doc["aig" + String(i) + "posDevie"] = canton->aig[i]->posDevie();
+          doc["aig" + String(i) + "speed"] = canton->aig[i]->speed();
+          doc["aig" + String(i) + "pin"] = canton->aig[i]->pin();
 
           // 🟩 Nouveaux champs EXSA
-          doc["aig" + String(i) + "nodePdroitIdx"] = node->aig[i]->nodePdroitIdx();
-          doc["aig" + String(i) + "nodePdevieIdx"] = node->aig[i]->nodePdevieIdx();
+          doc["aig" + String(i) + "cantonPdroitIdx"] = canton->aig[i]->cantonPdroitIdx();
+          doc["aig" + String(i) + "cantonPdevieIdx"] = canton->aig[i]->cantonPdevieIdx();
       }
   }
 
   // Signaux
   for (byte i = 0; i < signalSize; i++)
   {
-    if (node->signal[i] == nullptr)
+    if (canton->signal[i] == nullptr)
       doc["sign" + String(i)] = "null";
     else
     {
-      doc["sign" + String(i) + "type"] = node->signal[i]->type();
-      doc["sign" + String(i) + "position"] = node->signal[i]->position();
+      doc["sign" + String(i) + "type"] = canton->signal[i]->type();
+      doc["sign" + String(i) + "position"] = canton->signal[i]->position();
     }
   }
 

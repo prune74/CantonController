@@ -1,5 +1,5 @@
 #include "SatEXSA_Link.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "SatTopologieUART.h"
 #include "SA_RS485.h"
 #include "Booster.h"

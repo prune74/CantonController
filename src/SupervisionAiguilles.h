@@ -1,12 +1,12 @@
 #pragma once
 #include <stdint.h>
 
-class Node;
+class Canton;
 
 class SupervisionAiguilles
 {
 public:
-    static void begin(Node* node);
+    static void begin(Canton *canton);
 
     static void onPosition(uint8_t index_exsa,
                            uint8_t idAig,
@@ -14,5 +14,5 @@ public:
                            uint8_t masque);
 
 private:
-    static Node* s_node;
+    static Canton *s_canton;
 };

@@ -1,10 +1,10 @@
 /*
-   WebHandler_Notify.cpp — Discovery 2026 (FINAL & CLEAN)
+   WebHandler_Notify.cpp — Exploration 2026 (FINAL & CLEAN)
 */
 
 #include "WebHandler.h"
 #include "debug_sa.h"
-#include "Node.h"
+#include "Canton.h"
 #include "Settings.h"
 #include "Aig.h"
 #include "Signal.h"
@@ -20,7 +20,7 @@ void WebHandler::notifyClients()
     // -----------------------------------------------------------------------
     // ID du nœud
     // -----------------------------------------------------------------------
-    doc["idNode"] = node->ID();
+    doc["idCanton"] = canton->ID();
 
     // -----------------------------------------------------------------------
     // Connexions P00/P01/P10/P11/M00/M01/M10/M11
@@ -29,7 +29,7 @@ void WebHandler::notifyClients()
 
     for (uint8_t i = 0; i < 8; i++)
     {
-        NodePeriph *p = node->getNodeP(i);
+        CantonPeriph *p = canton->getCantonP(i);
         if (p)
             doc[index[i]] = p->ID();
         else
@@ -41,7 +41,7 @@ void WebHandler::notifyClients()
     // -----------------------------------------------------------------------
     for (uint8_t i = 0; i < 6; i++)
     {
-        Aig *a = node->getAig(i);
+        Aig *a = canton->getAig(i);
 
         char keyEtat[4];
         char keyD[4];
@@ -76,20 +76,20 @@ void WebHandler::notifyClients()
     // Paramètres système
     // -----------------------------------------------------------------------
     doc["wifi_on"] = Settings::wifiOn();
-    doc["discovery_on"] = Settings::discoveryOn();
-    doc["maxSpeed"] = node->maxSpeed();
-    doc["sensMarche"] = node->sensMarche();
+    doc["exploration_on"] = Settings::explorationOn();
+    doc["maxSpeed"] = canton->maxSpeed();
+    doc["sensMarche"] = canton->sensMarche();
 
     // -----------------------------------------------------------------------
     // Rôle ferroviaire
     // -----------------------------------------------------------------------
-    doc["role"] = node->getRole();
+    doc["role"] = canton->getRole();
 
     // -----------------------------------------------------------------------
     // Signaux (cible horaire / antihoraire)
     // -----------------------------------------------------------------------
-    Signal *sigAH = node->getSignal(0);
-    Signal *sigH = node->getSignal(1);
+    Signal *sigAH = canton->getSignal(0);
+    Signal *sigH = canton->getSignal(1);
 
     if (sigH)
         doc["cibleHoraire"] = sigH->type();

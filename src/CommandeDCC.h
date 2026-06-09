@@ -1,5 +1,5 @@
 #pragma once
-#include "Node.h"
+#include "Canton.h"
 #include "CanMsg.h"
 
-void envoyerCommandeDCC(Node* node);
+void envoyerCommandeDCC(Canton *canton);

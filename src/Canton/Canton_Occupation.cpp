@@ -1,8 +1,9 @@
 /*
- * Node_Occupation.cpp — Gestion de l’occupation du canton
+ * Canton_Occupation.cpp — Gestion de l’occupation du canton
  */
 
-#include "Node_Internal.h"
+#include "Canton.h"
+#include "Config.h"
 #include "debug_sa.h"
 
 /* ============================================================================
@@ -10,13 +11,13 @@
  * ============================================================================
  */
 
-void Node::busy(bool v)
+void Canton::busy(bool v)
 {
     m_busy = v;
-    SA_LOG_TRACE("[Node %u] busy() = %d\n", m_id, m_busy);
+    SA_LOG_TRACE("[Canton %u] busy() = %d\n", m_id, m_busy);
 }
 
-bool Node::busy()
+bool Canton::busy()
 {
     return m_busy;
 }
@@ -26,13 +27,13 @@ bool Node::busy()
  * ============================================================================
  */
 
-void Node::reserved(uint16_t addr)
+void Canton::reserved(uint16_t addr)
 {
     m_reserved = addr;
-    SA_LOG_TRACE("[Node %u] reserved() = %u\n", m_id, m_reserved);
+    SA_LOG_TRACE("[Canton %u] reserved() = %u\n", m_id, m_reserved);
 }
 
-uint16_t Node::reserved()
+uint16_t Canton::reserved()
 {
     return m_reserved;
 }
@@ -42,7 +43,7 @@ uint16_t Node::reserved()
  * ============================================================================
  */
 
-bool Node::estOccupe()
+bool Canton::estOccupe()
 {
     return (m_busy || m_reserved != 0);
 }
@@ -52,29 +53,29 @@ bool Node::estOccupe()
  * ============================================================================
  */
 
-void Node::maxSpeed(uint8_t v)
+void Canton::maxSpeed(uint8_t v)
 {
     m_maxSpeed = v;
-    SA_LOG_TRACE("[Node %u] maxSpeed() = %u\n", m_id, m_maxSpeed);
+    SA_LOG_TRACE("[Canton %u] maxSpeed() = %u\n", m_id, m_maxSpeed);
 }
 
-uint8_t Node::maxSpeed()
+uint8_t Canton::maxSpeed()
 {
     return m_maxSpeed;
 }
 
 /* ============================================================================
- * sensMarche() — Version Discovery 2026
+ * sensMarche() — Version Exploration 2026
  * ============================================================================
  */
 
-void Node::sensMarche(SensDeMarche v)
+void Canton::sensMarche(SensDeMarche v)
 {
     m_sensMarche = v;
-    SA_LOG_TRACE("[Node %u] sensMarche() = %u\n", m_id, (uint8_t)m_sensMarche);
+    SA_LOG_TRACE("[Canton %u] sensMarche() = %u\n", m_id, (uint8_t)m_sensMarche);
 }
 
-SensDeMarche Node::sensMarche()
+SensDeMarche Canton::sensMarche()
 {
     return m_sensMarche;
 }

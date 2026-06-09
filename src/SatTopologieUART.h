@@ -5,7 +5,7 @@
  *  SatTopologieUART.h — API publique du module de communication UART → EXSA
  *  =============================================================================
  *
- *  Ce module constitue la *couche de transport* entre le firmware Discovery
+ *  Ce module constitue la *couche de transport* entre le firmware Exploration
  *  (côté SA) et les modules EXSA (côté terrain). Il encapsule l’intégralité
  *  des trames UART du protocole EXSA :
  *
@@ -59,7 +59,6 @@
  * =============================================================================
  */
 
-
 /**
  * @brief Envoie la topologie SP/SM à EXSA (opcode E4).
  *
@@ -76,7 +75,6 @@
  * À appeler uniquement lorsque la topologie est prête.
  */
 void envoyerTopologieDepuisSettings();
-
 
 /**
  * @brief Déclenche automatiquement l’envoi de la topologie dès qu’elle est prête.
@@ -148,11 +146,11 @@ void envoyerAspectSignalAntiHoraire(uint8_t aspect);
  *  SECTION 3 — FEUX DIRECTIONNELS (E8 / E9)
  * =============================================================================
  *
- *  Les feux directionnels sont une innovation Discovery 2026 :
+ *  Les feux directionnels sont une innovation Exploration 2026 :
  *  ils indiquent à EXSA la direction logique du trafic sur le canton.
  *
  *  Le calcul est effectué dans :
- *      Node_FeuxDirection.cpp → updateFeuDirection()
+ *      Canton_FeuxDirection.cpp → updateFeuDirection()
  *
  *  Ce module n’a qu’un rôle :
  *      → transmettre à EXSA les codes calculés (0..4)
@@ -168,7 +166,7 @@ void envoyerAspectSignalAntiHoraire(uint8_t aspect);
  *      4 = Erreur / incohérence
  *
  *  Ce découpage garantit une séparation stricte :
- *      - logique métier (Node)
+ *      - logique métier (Canton)
  *      - transport protocolaire (ce module)
  * =============================================================================
  */
@@ -176,7 +174,7 @@ void envoyerAspectSignalAntiHoraire(uint8_t aspect);
 /**
  * @brief Envoie les feux directionnels calculés (opcode E8 + E9).
  *
- * Met à jour les feux dans le Node, lit les codes (0..4),
+ * Met à jour les feux dans le Canton, lit les codes (0..4),
  * puis les transmet à EXSA.
  */
 void envoyerFeuxDepuisEtatCourant();
@@ -197,7 +195,7 @@ void envoyerFeuDirectionAntiHoraire(uint8_t code);
  *
  *  Les aiguilles logiques sont gérées dans :
  *      - Aig.cpp
- *      - Node_Aiguilles.cpp
+ *      - Canton_Aiguilles.cpp
  *
  *  Ce module ne fait qu’une seule chose :
  *      → transmettre à EXSA l’ordre de mouvement réel (opcode F0)
@@ -265,7 +263,7 @@ void envoyerAiguillesDepuisEtatCourant();
  *  --------------
  *  Ce module garantit une séparation stricte :
  *
- *      - logique métier (Aig.cpp / Node_Aiguilles.cpp)
+ *      - logique métier (Aig.cpp / Canton_Aiguilles.cpp)
  *      - configuration physique (settings.json)
  *      - protocole EXSA (ce module)
  *
@@ -308,7 +306,6 @@ void envoyerServoConfig(uint8_t exsaAdresse,
  */
 void envoyerServoTest(uint8_t exsaAdresse, uint8_t servoIndex);
 
-
 /* =============================================================================
  *  SECTION 6 — OCCUPATION (EA)
  * =============================================================================
@@ -320,7 +317,7 @@ void envoyerServoTest(uint8_t exsaAdresse, uint8_t servoIndex);
  *      - SM1 (sens anti-horaire)
  *
  *  Ces informations proviennent de :
- *      NodePeriph::busy()
+ *      CantonPeriph::busy()
  *
  *  Le SA ne fait aucun calcul ici :
  *      → il lit l’état réel
@@ -342,7 +339,7 @@ void envoyerServoTest(uint8_t exsaAdresse, uint8_t servoIndex);
 /**
  * @brief Envoie l’occupation SP1 / SM1 (opcode EA).
  *
- * Lit l’état d’occupation des deux voisins directs via NodePeriph,
+ * Lit l’état d’occupation des deux voisins directs via CantonPeriph,
  * encode les deux bits, puis transmet la valeur à EXSA.
  */
 void envoyerOccupationDepuisEtatCourant();

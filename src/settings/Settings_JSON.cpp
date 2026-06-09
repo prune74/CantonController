@@ -1,9 +1,9 @@
 /*
-   Settings_JSON.cpp — Discovery 2026 (CLEAN & FIXED, MINIMAL)
+   Settings_JSON.cpp — Exploration 2026 (CLEAN & FIXED, MINIMAL)
 */
 
 #include "Settings.h"
-#include "Node.h"
+#include "Canton.h"
 #include "Aig.h"
 #include "debug_sa.h"
 #include <ArduinoJson.h>
@@ -17,7 +17,7 @@ static StaticJsonDocument<4096> settingsDoc;
 /* ============================================================================
    Booster — Seuils calibrés (PROTO_09)
    ==========================================================================*/
-uint16_t Settings::s_boosterSeuilLibre  = 0;
+uint16_t Settings::s_boosterSeuilLibre = 0;
 uint16_t Settings::s_boosterSeuilOccupe = 0;
 
 /* ============================================================================
@@ -43,7 +43,7 @@ void Settings::load()
     }
 
     // Charger les seuils booster
-    s_boosterSeuilLibre  = settingsDoc["booster_seuil_libre"]  | 0;
+    s_boosterSeuilLibre = settingsDoc["booster_seuil_libre"] | 0;
     s_boosterSeuilOccupe = settingsDoc["booster_seuil_occupe"] | 0;
 
     SA_LOG_INFO("[Settings] Seuils booster chargés → libre=%u occupe=%u\n",
@@ -56,7 +56,7 @@ void Settings::save()
         return;
 
     // Sauvegarder les seuils booster
-    settingsDoc["booster_seuil_libre"]  = s_boosterSeuilLibre;
+    settingsDoc["booster_seuil_libre"] = s_boosterSeuilLibre;
     settingsDoc["booster_seuil_occupe"] = s_boosterSeuilOccupe;
 
     File file = SPIFFS.open("/settings.json", "w");
@@ -69,12 +69,12 @@ void Settings::save()
     SA_LOG_INFO("[Settings] settings.json sauvegardé\n");
 }
 
-uint16_t Settings::get(const char* key)
+uint16_t Settings::get(const char *key)
 {
     return settingsDoc[key] | 0;
 }
 
-void Settings::set(const char* key, uint16_t value)
+void Settings::set(const char *key, uint16_t value)
 {
     settingsDoc[key] = value;
 }
@@ -82,11 +82,11 @@ void Settings::set(const char* key, uint16_t value)
 /* ============================================================================
    Chargement des aiguilles depuis un JsonDocument
    ==========================================================================*/
-static void loadAiguilles(Node* node, JsonDocument& doc)
+static void loadAiguilles(Canton *canton, JsonDocument &doc)
 {
     for (byte i = 0; i < aigSize; i++)
     {
-        Aig* a = node->getAig(i);
+        Aig *a = canton->getAig(i);
         if (!a)
             continue;
 
@@ -103,11 +103,11 @@ static void loadAiguilles(Node* node, JsonDocument& doc)
 /* ============================================================================
    Sauvegarde des aiguilles dans un JsonDocument
    ==========================================================================*/
-static void saveAiguilles(Node* node, JsonDocument& doc)
+static void saveAiguilles(Canton *canton, JsonDocument &doc)
 {
     for (byte i = 0; i < aigSize; i++)
     {
-        Aig* a = node->getAig(i);
+        Aig *a = canton->getAig(i);
         if (!a)
             continue;
 
@@ -121,7 +121,7 @@ static void saveAiguilles(Node* node, JsonDocument& doc)
 /* ============================================================================
    Chargement FeuxDirection (H / AH)
    ==========================================================================*/
-static void loadDirection(Node* node, JsonDocument& doc)
+static void loadDirection(Canton *canton, JsonDocument &doc)
 {
     if (!doc.containsKey("direction"))
         return;
@@ -132,8 +132,8 @@ static void loadDirection(Node* node, JsonDocument& doc)
     if (dir.containsKey("H"))
     {
         JsonObject h = dir["H"];
-        node->directionH().active = h["active"] | false;
-        node->directionH().codeBarre = h["codeBarre"] | "";
+        canton->directionH().active = h["active"] | false;
+        canton->directionH().codeBarre = h["codeBarre"] | "";
 
         if (h.containsKey("voieDuVoisin"))
         {
@@ -142,7 +142,7 @@ static void loadDirection(Node* node, JsonDocument& doc)
             {
                 uint16_t id = atoi(kv.key().c_str());
                 uint8_t voie = kv.value() | 0;
-                node->directionH().voieDuVoisin[id] = voie;
+                canton->directionH().voieDuVoisin[id] = voie;
             }
         }
     }
@@ -151,8 +151,8 @@ static void loadDirection(Node* node, JsonDocument& doc)
     if (dir.containsKey("AH"))
     {
         JsonObject ah = dir["AH"];
-        node->directionAH().active = ah["active"] | false;
-        node->directionAH().codeBarre = ah["codeBarre"] | "";
+        canton->directionAH().active = ah["active"] | false;
+        canton->directionAH().codeBarre = ah["codeBarre"] | "";
 
         if (ah.containsKey("voieDuVoisin"))
         {
@@ -161,7 +161,7 @@ static void loadDirection(Node* node, JsonDocument& doc)
             {
                 uint16_t id = atoi(kv.key().c_str());
                 uint8_t voie = kv.value() | 0;
-                node->directionAH().voieDuVoisin[id] = voie;
+                canton->directionAH().voieDuVoisin[id] = voie;
             }
         }
     }
@@ -170,37 +170,37 @@ static void loadDirection(Node* node, JsonDocument& doc)
 /* ============================================================================
    Sauvegarde FeuxDirection (H / AH)
    ==========================================================================*/
-static void saveDirection(Node* node, JsonDocument& doc)
+static void saveDirection(Canton *canton, JsonDocument &doc)
 {
     JsonObject dir = doc.createNestedObject("direction");
 
     // --- H ---
     {
         JsonObject h = dir.createNestedObject("H");
-        h["active"] = node->directionH().active;
-        h["codeBarre"] = node->directionH().codeBarre;
+        h["active"] = canton->directionH().active;
+        h["codeBarre"] = canton->directionH().codeBarre;
 
         JsonObject map = h.createNestedObject("voieDuVoisin");
-        for (auto& kv : node->directionH().voieDuVoisin)
+        for (auto &kv : canton->directionH().voieDuVoisin)
             map[String(kv.first)] = kv.second;
     }
 
     // --- AH ---
     {
         JsonObject ah = dir.createNestedObject("AH");
-        ah["active"] = node->directionAH().active;
-        ah["codeBarre"] = node->directionAH().codeBarre;
+        ah["active"] = canton->directionAH().active;
+        ah["codeBarre"] = canton->directionAH().codeBarre;
 
         JsonObject map = ah.createNestedObject("voieDuVoisin");
-        for (auto& kv : node->directionAH().voieDuVoisin)
+        for (auto &kv : canton->directionAH().voieDuVoisin)
             map[String(kv.first)] = kv.second;
     }
 }
 
 /* ============================================================================
-   Chargement global settings.json → Node + settingsDoc
+   Chargement global settings.json → Canton + settingsDoc
    ==========================================================================*/
-void Settings::loadFile(Node* node)
+void Settings::loadFile(Canton *canton)
 {
     if (!SPIFFS.begin(true))
     {
@@ -225,27 +225,58 @@ void Settings::loadFile(Node* node)
         return;
     }
 
-    loadAiguilles(node, doc);
+    // ------------------------------------------------------------
+    // Aiguilles
+    // ------------------------------------------------------------
+    loadAiguilles(canton, doc);
 
     if (doc.containsKey("maxSpeed"))
-        node->maxSpeed(doc["maxSpeed"]);
+        canton->maxSpeed(doc["maxSpeed"]);
 
+    // ------------------------------------------------------------
     // FeuxDirection
-    loadDirection(node, doc);
+    // ------------------------------------------------------------
+    loadDirection(canton, doc);
 
+    // ------------------------------------------------------------
     // Booster
-    s_boosterSeuilLibre  = doc["booster_seuil_libre"]  | 0;
+    // ------------------------------------------------------------
+    s_boosterSeuilLibre = doc["booster_seuil_libre"] | 0;
     s_boosterSeuilOccupe = doc["booster_seuil_occupe"] | 0;
 
+    // ------------------------------------------------------------
+    // WiFi (CLEAN VERSION — Exploration 2026)
+    // ------------------------------------------------------------
+    if (doc.containsKey("wifi_on"))
+        Settings::wifiOn(doc["wifi_on"]);
+
+    // SSID
+    if (doc.containsKey("ssid"))
+        Settings::ssid_str = String((const char *)doc["ssid"]);
+    else
+        Settings::ssid_str = "";
+
+    // Password
+    if (doc.containsKey("password"))
+        Settings::password_str = String((const char *)doc["password"]);
+    else
+        Settings::password_str = "";
+
+    // Log
+    SA_LOG_INFO("[Settings] WiFi SSID = %s\n", Settings::ssid_str.c_str());
+
+    // ------------------------------------------------------------
+    // Sauvegarde du document complet en RAM
+    // ------------------------------------------------------------
     settingsDoc = doc;
 
     SA_LOG_INFO("[Settings] settings.json chargé\n");
 }
 
 /* ============================================================================
-   Sauvegarde globale Node → settings.json
+   Sauvegarde globale Canton → settings.json
    ==========================================================================*/
-void Settings::writeFile(Node* node)
+void Settings::writeFile(Canton *canton)
 {
     if (!SPIFFS.begin(true))
     {
@@ -255,15 +286,15 @@ void Settings::writeFile(Node* node)
 
     StaticJsonDocument<4096> doc = settingsDoc;
 
-    saveAiguilles(node, doc);
+    saveAiguilles(canton, doc);
 
-    doc["maxSpeed"] = node->maxSpeed();
+    doc["maxSpeed"] = canton->maxSpeed();
 
     // FeuxDirection
-    saveDirection(node, doc);
+    saveDirection(canton, doc);
 
     // Booster
-    doc["booster_seuil_libre"]  = s_boosterSeuilLibre;
+    doc["booster_seuil_libre"] = s_boosterSeuilLibre;
     doc["booster_seuil_occupe"] = s_boosterSeuilOccupe;
 
     settingsDoc = doc;

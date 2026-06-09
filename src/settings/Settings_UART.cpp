@@ -14,7 +14,10 @@
  * Il est appelé depuis Settings::setup().
  */
 
-#include "settings/Settings_Internal.h"
+#include "Settings.h"
+#include "Config.h"
+#include "debug_sa.h"
+#include <HardwareSerial.h>
 
 // UART matériel partagé entre EXSA_H et EXSA_AH
 HardwareSerial Settings::SerialUART(1);

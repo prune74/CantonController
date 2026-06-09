@@ -1,26 +1,26 @@
 /*
-   WebHandler_Aiguilles.cpp — Discovery 2026 (FINAL & CLEAN)
+   WebHandler_Aiguilles.cpp — Exploration 2026 (FINAL & CLEAN)
 */
 
 #include "WebHandler.h"
 #include "debug_sa.h"
 #include "SatTopologieUART.h"
-#include "Node.h"
+#include "Canton.h"
 #include "Aig.h"
 #include "Settings.h"
 #include "SA_RS485.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 
 // ---------------------------------------------------------------------------
 // handleServoSettings()
 // ---------------------------------------------------------------------------
 void WebHandler::handleServoSettings(JsonDocument &doc)
 {
-    const char *servoId     = doc["servoSettings"][0];
-    const uint16_t value    = doc["servoSettings"][1];
+    const char *servoId = doc["servoSettings"][0];
+    const uint16_t value = doc["servoSettings"][1];
     const uint8_t servoName = doc["servoSettings"][2];
 
-    Aig* aig = node->getAig(servoName);
+    Aig *aig = canton->getAig(servoName);
 
     if (!aig)
     {
@@ -33,7 +33,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
     // -----------------------------------------------------------------------
     // 1) Mise à jour logique interne + servoCfg
     // -----------------------------------------------------------------------
-    if (servoId[2] == '0')   // posDroit
+    if (servoId[2] == '0') // posDroit
     {
         aig->posDroit(value);
         servoCfg[servoName].posDroit = value;
@@ -43,7 +43,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
 
         SA_LOG_INFO("[Aiguilles] posDroit aiguille %u = %u\n", servoName, value);
     }
-    else if (servoId[2] == '1')  // posDevie
+    else if (servoId[2] == '1') // posDevie
     {
         aig->posDevie(value);
         servoCfg[servoName].posDevie = value;
@@ -53,7 +53,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
 
         SA_LOG_INFO("[Aiguilles] posDevie aiguille %u = %u\n", servoName, value);
     }
-    else if (servoId[2] == '2')  // speed (slider 0–10)
+    else if (servoId[2] == '2') // speed (slider 0–10)
     {
         servoCfg[servoName].speed = value;
 
@@ -85,7 +85,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
     // 3) Détermination EXSA H/AH
     // -----------------------------------------------------------------------
     uint8_t exsaAdresse =
-        (aig->nodePdroitIdx() == node->SP1_idx()) ? 0 : 1;
+        (aig->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
 
     SA_LOG_TRACE("[Aiguilles] EXSA sélectionné = %u pour aiguille %u\n",
                  exsaAdresse, servoName);
@@ -98,8 +98,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
         servoName,
         posDroit,
         posDevie,
-        speed
-    );
+        speed);
 }
 
 // ---------------------------------------------------------------------------
@@ -109,7 +108,7 @@ void WebHandler::handleServoTest(JsonDocument &doc)
 {
     const uint8_t servoName = doc["servoTest"][0];
 
-    Aig* aig = node->getAig(servoName);
+    Aig *aig = canton->getAig(servoName);
 
     if (!aig)
     {
@@ -118,7 +117,7 @@ void WebHandler::handleServoTest(JsonDocument &doc)
     }
 
     uint8_t exsaAdresse =
-        (aig->nodePdroitIdx() == node->SP1_idx()) ? 0 : 1;
+        (aig->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
 
     SA_LOG_INFO("[Aiguilles] Test aiguille %u via EXSA %u\n",
                 servoName, exsaAdresse);

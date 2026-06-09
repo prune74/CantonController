@@ -1,5 +1,5 @@
 #pragma once
 
-#include "Node.h"
+#include "Canton.h"
 
-void mettreAJourCapteurs(Node* node);
+void mettreAJourCapteurs(Canton *canton);

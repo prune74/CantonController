@@ -1,4 +1,4 @@
 #pragma once
-#include "Node.h"
+#include "Canton.h"
 
-void executerPilotageDistribue(Node* node);
+void executerPilotageDistribue(Canton *canton);

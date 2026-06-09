@@ -7,7 +7,7 @@
     - sendMsg(CANMessage&) : envoi brut
     - sendMsg(prio, cmde, resp, id, data...) : API simplifiée
 
-  Le format CAN Discovery 2026 utilise un ID étendu (29 bits) structuré ainsi :
+  Le format CAN Exploration 2026 utilise un ID étendu (29 bits) structuré ainsi :
 
       [ 2 bits priorité ]   (bits 26..25)
       [ 8 bits commande ]   (bits 24..17)
@@ -30,11 +30,12 @@
 // ============================================================================
 //  Fonction interne : formatMsg()
 //  --------------------------------------------------------------------------
-//  Construit l’ID étendu CAN selon le protocole Discovery 2026.
+//  Construit l’ID étendu CAN selon le protocole Exploration 2026.
 //  Cette fonction n’est PAS exposée dans le .h (namespace anonyme).
 // ============================================================================
-namespace {
-  CANMessage &formatMsg(CANMessage &frame, byte prio, byte cmde, byte resp, uint16_t thisNodeId)
+namespace
+{
+  CANMessage &formatMsg(CANMessage &frame, byte prio, byte cmde, byte resp, uint16_t thisCantonId)
   {
     /*
       Construction de l’ID étendu :
@@ -43,16 +44,16 @@ namespace {
             [prio << 25]   (2 bits)
           | [cmde << 17]   (8 bits)
           | [resp << 16]   (1 bit)
-          | [thisNodeId]   (16 bits)
+          | [thisCantonId]   (16 bits)
     */
 
     frame.id = 0;
-    frame.id |= (uint32_t)prio       << 25; // Priorité (0 = haute, 1 = moyenne, 2 = basse)
-    frame.id |= (uint32_t)cmde       << 17; // Commande CAN
-    frame.id |= (uint32_t)resp       << 16; // Bit "response"
-    frame.id |= (uint32_t)thisNodeId;       // ID du SA expéditeur
+    frame.id |= (uint32_t)prio << 25;   // Priorité (0 = haute, 1 = moyenne, 2 = basse)
+    frame.id |= (uint32_t)cmde << 17;   // Commande CAN
+    frame.id |= (uint32_t)resp << 16;   // Bit "response"
+    frame.id |= (uint32_t)thisCantonId; // ID du SA expéditeur
 
-    frame.ext = true; // ID étendu obligatoire pour Discovery
+    frame.ext = true; // ID étendu obligatoire pour Exploration
     return frame;
   }
 }
@@ -71,65 +72,59 @@ void CanMsg::sendMsg(CANMessage &frame)
       - renvoie 1 si OK
 
     Ici on ignore le retour car :
-      - les trames Discovery sont périodiques
+      - les trames Exploration sont périodiques
       - un échec ponctuel n’est pas critique
   */
   ACAN_ESP32::can.tryToSend(frame);
 }
-
-
 
 // ============================================================================
 //  Surcharges sendMsg() — API simplifiée
 //  --------------------------------------------------------------------------
 //  Ces fonctions permettent d’envoyer une trame CAN en écrivant simplement :
 //
-//      CanMsg::sendMsg(1, 0xE7, 0, node->ID(), aspect);
+//      CanMsg::sendMsg(1, 0xE7, 0, canton->ID(), aspect);
 //
 //  Au lieu de construire manuellement un CANMessage.
 // ============================================================================
 
-
 // --- 0 octet de données -----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 0;
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 1 octet de données -----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0)
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 1;
   frame.data[0] = data0;
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 2 octets de données ----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
                      byte data0, byte data1)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 2;
   frame.data[0] = data0;
   frame.data[1] = data1;
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 3 octets de données ----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
                      byte data0, byte data1, byte data2)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 3;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -137,13 +132,12 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 4 octets de données ----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
                      byte data0, byte data1, byte data2, byte data3)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 4;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -152,13 +146,12 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 5 octets de données ----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
                      byte data0, byte data1, byte data2, byte data3, byte data4)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 5;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -168,14 +161,13 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 6 octets de données ----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
                      byte data0, byte data1, byte data2, byte data3,
                      byte data4, byte data5)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 6;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -186,14 +178,13 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 7 octets de données ----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
                      byte data0, byte data1, byte data2, byte data3,
                      byte data4, byte data5, byte data6)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 7;
   frame.data[0] = data0;
   frame.data[1] = data1;
@@ -205,14 +196,13 @@ void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
   CanMsg::sendMsg(frame);
 }
 
-
 // --- 8 octets de données ----------------------------------------------------
-void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId,
+void CanMsg::sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
                      byte data0, byte data1, byte data2, byte data3,
                      byte data4, byte data5, byte data6, byte data7)
 {
   CANMessage frame;
-  formatMsg(frame, prio, cmde, resp, thisNodeId);
+  formatMsg(frame, prio, cmde, resp, thisCantonId);
   frame.len = 8;
   frame.data[0] = data0;
   frame.data[1] = data1;

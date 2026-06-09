@@ -8,7 +8,7 @@
  *
  * Il ne contient :
  *   - aucune logique métier
- *   - aucune dépendance au Node, Settings, CAN, etc.
+ *   - aucune dépendance au Canton, Settings, CAN, etc.
  *
  * Il sert de fondation commune à :
  *   - FeuxDirection_CodeBarre.h/.cpp     (décodage du code-barres)
@@ -55,7 +55,7 @@ namespace FeuxDirection
     /**
      * Nombre maximal de voies dans un faisceau directionnel.
      *
-     * Discovery supporte :
+     * Exploration supporte :
      *   - V2 → 2 voies
      *   - V3 → 3 voies
      *   - V4 → 4 voies
@@ -63,7 +63,6 @@ namespace FeuxDirection
      * On fixe à 4 pour simplifier les tableaux internes.
      */
     constexpr uint8_t MAX_VOIES = 4;
-
 
     // --------------------------------------------------------
     // Type de faisceau (suffixe du code-barres)
@@ -85,7 +84,6 @@ namespace FeuxDirection
         V3,
         V4
     };
-
 
     // --------------------------------------------------------
     // Description d’une voie (bloc de 5 bits)
@@ -130,9 +128,8 @@ namespace FeuxDirection
         uint8_t T1{0};
         uint8_t T2{0};
 
-        bool active{false};  ///< true si cette voie existe réellement dans ce faisceau
+        bool active{false}; ///< true si cette voie existe réellement dans ce faisceau
     };
-
 
     // --------------------------------------------------------
     // Résultat complet du décodage du code-barres
@@ -162,7 +159,6 @@ namespace FeuxDirection
         bool valide{false};
         std::string erreur;
     };
-
 
     // --------------------------------------------------------
     // Résultat final pour le SA : état du feu directionnel

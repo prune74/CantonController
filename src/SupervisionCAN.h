@@ -1,8 +1,8 @@
-/* 
+/*
 SupervisionCAN.h - Déclaration des fonctions de supervision CAN
 */
 
 #pragma once
-#include "Node.h"
+#include "Canton.h"
 
-void envoyerEtatCAN(Node* node);
+void envoyerEtatCAN(Canton *canton);

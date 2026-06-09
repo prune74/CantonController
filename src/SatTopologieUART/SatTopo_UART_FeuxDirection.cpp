@@ -7,7 +7,7 @@
  *   - E9 : Feu directionnel anti-horaire
  *
  * Les feux directionnels sont calculés par :
- *      Node_FeuxDirection.cpp → updateFeuDirection()
+ *      Canton_FeuxDirection.cpp → updateFeuDirection()
  *
  * Ce module ne fait qu’une seule chose :
  *      → transmettre à EXSA les codes calculés (0..4)
@@ -17,12 +17,12 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "debug_sa.h"
 
-#include "Settings.h" // pour Settings::node
+#include "Settings.h" // pour Settings::canton
 #include "FeuxDirection.h"
-#include "Node.h"
+#include "Canton.h"
 
 extern HardwareSerial Serial1;
 
@@ -32,13 +32,13 @@ extern HardwareSerial Serial1;
 --------------------------------------------------------------*/
 void envoyerFeuxDepuisEtatCourant()
 {
-  // Mise à jour des feux directionnels dans le Node
-  Settings::node->updateFeuDirection(SensHoraire);
-  Settings::node->updateFeuDirection(SensAntiHoraire);
+  // Mise à jour des feux directionnels dans le Canton
+  Settings::canton->updateFeuDirection(SensHoraire);
+  Settings::canton->updateFeuDirection(SensAntiHoraire);
 
   // Lecture du résultat (0..4)
-  uint8_t codeH = Settings::node->getFeuDirection(SensHoraire);
-  uint8_t codeAH = Settings::node->getFeuDirection(SensAntiHoraire);
+  uint8_t codeH = Settings::canton->getFeuDirection(SensHoraire);
+  uint8_t codeAH = Settings::canton->getFeuDirection(SensAntiHoraire);
 
   // Envoi EXSA
   envoyerFeuDirectionHoraire(codeH);

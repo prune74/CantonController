@@ -1,13 +1,13 @@
 #include "SupervisionAiguilles.h"
-#include "Node.h"
+#include "Canton.h"
 #include "debug_sa.h"
 
-Node* SupervisionAiguilles::s_node = nullptr;
+Canton *SupervisionAiguilles::s_canton = nullptr;
 
-void SupervisionAiguilles::begin(Node* node)
+void SupervisionAiguilles::begin(Canton *canton)
 {
-    s_node = node;
-    SA_LOG_INFO("[Aiguilles] Supervision initialisée pour Node %d\n", node->ID());
+    s_canton = canton;
+    SA_LOG_INFO("[Aiguilles] Supervision initialisée pour Canton %d\n", canton->ID());
 }
 
 void SupervisionAiguilles::onPosition(uint8_t index_exsa,
@@ -15,10 +15,10 @@ void SupervisionAiguilles::onPosition(uint8_t index_exsa,
                                       uint8_t etat,
                                       uint8_t masque)
 {
-    if (!s_node)
+    if (!s_canton)
         return;
 
-    Aig* aig = s_node->getAig(idAig);
+    Aig *aig = s_canton->getAig(idAig);
     if (!aig)
     {
         SA_LOG_WARN("[Aiguilles] Aiguille %u inconnue (EXSA %u)\n",
@@ -29,7 +29,7 @@ void SupervisionAiguilles::onPosition(uint8_t index_exsa,
     bool droit = (etat == 1);
     aig->estDroit(droit);
 
-    s_node->masqueAig(masque);
+    s_canton->masqueAig(masque);
 
     SA_LOG_INFO("[Aiguilles] EXSA %u → Aig %u = %s (masque=0x%02X)\n",
                 index_exsa,

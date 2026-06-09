@@ -20,15 +20,15 @@
 
 #include <ACAN_ESP32.h>
 #include "Config.h"
-#include "Discovery.h"
+#include "Exploration.h"
 #include "Settings.h"
-#include "Node.h"
+#include "Canton.h"
 
 class CanMsg
 {
 public:
   CanMsg() = delete;
-  static void setup(Node *);
+  static void setup(Canton *);
   static void testMemory(void *);
   static void canReceiveMsg(void *);
   static void sendMsg(CANMessage &);

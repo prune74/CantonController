@@ -1,5 +1,5 @@
 /*
- * Railcom.cpp — Façade du module Railcom (Discovery 2026)
+ * Railcom.cpp — Façade du module Railcom (Exploration 2026)
  * ---------------------------------------------------------------------------
  * Ce fichier reste volontairement minimal.
  *

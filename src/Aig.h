@@ -42,10 +42,10 @@ protected:
   uint16_t m_curPos;
 
   // Index EXSA côté H (SP1)
-  uint8_t m_nodePdroitIdx;
+  uint8_t m_cantonPdroitIdx;
 
   // Index EXSA côté AH (SM1)
-  uint8_t m_nodePdevieIdx;
+  uint8_t m_cantonPdevieIdx;
 
 public:
   Aig();
@@ -70,12 +70,12 @@ public:
   uint16_t curPos() const;
 
   // Index EXSA côté H (SP1)
-  void nodePdroitIdx(uint8_t);
-  uint8_t nodePdroitIdx() const;
+  void cantonPdroitIdx(uint8_t);
+  uint8_t cantonPdroitIdx() const;
 
   // Index EXSA côté AH (SM1)
-  void nodePdevieIdx(uint8_t);
-  uint8_t nodePdevieIdx() const;
+  void cantonPdevieIdx(uint8_t);
+  uint8_t cantonPdevieIdx() const;
 };
 /* ------------------------------------------------------------
   Fin de Aig.h

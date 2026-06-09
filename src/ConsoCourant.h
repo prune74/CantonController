@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-class Node;
+class Canton;
 
 /*
  * ConsoCourant — SA 2026
@@ -10,7 +10,7 @@ class Node;
  * - Représente l’occupation physique d’un canton.
  * - L’info vient d’EXSA via PROTO_04.
  * - Fusionne occupation physique + compteur essieux.
- * - Met à jour node->busy().
+ * - Met à jour canton->busy().
  */
 
 class ConsoCourant
@@ -20,10 +20,10 @@ public:
     ~ConsoCourant();
 
     // Singleton : instance unique du SA
-    static ConsoCourant* s_instance;
-    
+    static ConsoCourant *s_instance;
+
     // Associe ce capteur virtuel à un canton
-    void setup(Node* node);
+    void setup(Canton *canton);
 
     // Appelé par SA_UartRx (PROTO_04)
     static void onOccupation(uint8_t index_exsa, uint8_t code);
@@ -32,5 +32,5 @@ public:
     void updateEtat(bool occupePhysique);
 
 private:
-    Node* m_node = nullptr;
+    Canton *m_canton = nullptr;
 };

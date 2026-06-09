@@ -9,7 +9,7 @@
  *      - SP1 (sens horaire)
  *      - SM1 (sens anti-horaire)
  *
- * Ces informations proviennent de NodePeriph et reflètent
+ * Ces informations proviennent de CantonPeriph et reflètent
  * l’état réel du réseau (capteurs, essieux, supervision).
  *
  * Ce module ne fait qu’une seule chose :
@@ -23,11 +23,11 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "debug_sa.h"
 
 #include "Settings.h"
-#include "Node.h"
+#include "Canton.h"
 
 extern HardwareSerial Serial1;
 
@@ -40,8 +40,8 @@ void envoyerOccupationDepuisEtatCourant()
   uint8_t occSP1 = 0;
   uint8_t occSM1 = 0;
 
-  NodePeriph *sp1 = Settings::node->getNodeP(Settings::node->SP1_idx());
-  NodePeriph *sm1 = Settings::node->getNodeP(Settings::node->SM1_idx());
+  CantonPeriph *sp1 = Settings::canton->getCantonP(Settings::canton->SP1_idx());
+  CantonPeriph *sm1 = Settings::canton->getCantonP(Settings::canton->SM1_idx());
 
   if (sp1 && sp1->busy())
     occSP1 = 1;

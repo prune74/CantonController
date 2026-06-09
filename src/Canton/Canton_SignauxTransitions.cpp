@@ -1,8 +1,9 @@
 /*
- * Node_SignauxTransitions.cpp — Logique SNCF des transitions d’aspects
+ * Canton_SignauxTransitions.cpp — Logique SNCF des transitions d’aspects
  */
 
-#include "Node_Internal.h"
+#include "Canton.h"
+#include "Config.h"
 #include "debug_sa.h"
 
 /* ============================================================================
@@ -12,10 +13,10 @@
 
 /*
  * aspectVoisin() — retourne l’aspect reçu depuis un voisin
- * sens = SensHoraire    → aspectRecu[0]
+ * sens = SensHoraire     → aspectRecu[0]
  * sens = SensAntiHoraire → aspectRecu[1]
  */
-static inline uint8_t aspectVoisin(NodePeriph *v, SensDeMarche sens)
+static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens)
 {
     if (!v)
         return ASPECT_CARRE;
@@ -27,7 +28,7 @@ static inline uint8_t aspectVoisin(NodePeriph *v, SensDeMarche sens)
 /*
  * estOccupeOuReserve() — règle de sécurité
  */
-static inline bool estOccupeOuReserve(NodePeriph *v)
+static inline bool estOccupeOuReserve(CantonPeriph *v)
 {
     return v && (v->busy() || v->reserved() != 0);
 }
@@ -37,20 +38,20 @@ static inline bool estOccupeOuReserve(NodePeriph *v)
  * ============================================================================
  */
 
-uint8_t Node::transitionAspect(SensDeMarche sens)
+uint8_t Canton::transitionAspect(SensDeMarche sens)
 {
-    // 🔥 STOP global Discovery 2026 : tous les signaux = CARRÉ
+    // 🔥 STOP global Exploration 2026 : tous les signaux = CARRÉ
     if (isStopActive())
     {
-        SA_LOG_WARN("[Node %u] transitionAspect(%s) → CARRÉ (STOP actif)\n",
+        SA_LOG_WARN("[Canton %u] transitionAspect(%s) → CARRÉ (STOP actif)\n",
                     m_id,
                     (sens == SensHoraire ? "H" : "AH"));
         return ASPECT_CARRE;
     }
 
-    NodePeriph *v = (sens == SensHoraire)
-                        ? voisinSP1()
-                        : voisinSM1();
+    CantonPeriph *v = (sens == SensHoraire)
+                          ? voisinSP1()
+                          : voisinSM1();
 
     const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
@@ -59,7 +60,7 @@ uint8_t Node::transitionAspect(SensDeMarche sens)
      */
     if (estOccupeOuReserve(v))
     {
-        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → CARRÉ (voisin occupé)\n",
+        SA_LOG_TRACE("[Canton %u] transitionAspect(%s) → CARRÉ (voisin occupé)\n",
                      m_id, sensStr);
         return ASPECT_CARRE;
     }
@@ -73,7 +74,7 @@ uint8_t Node::transitionAspect(SensDeMarche sens)
         aspV == ASPECT_SEMAPHORE ||
         aspV == ASPECT_AVERTISSEMENT)
     {
-        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → aspect voisin = %u\n",
+        SA_LOG_TRACE("[Canton %u] transitionAspect(%s) → aspect voisin = %u\n",
                      m_id, sensStr, aspV);
         return aspV;
     }
@@ -84,22 +85,22 @@ uint8_t Node::transitionAspect(SensDeMarche sens)
     switch (m_role)
     {
     case ROLE_BAL:
-        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (BAL)\n",
+        SA_LOG_TRACE("[Canton %u] transitionAspect(%s) → Voie libre (BAL)\n",
                      m_id, sensStr);
         return ASPECT_VOIE_LIBRE;
 
     case ROLE_ENTREE_GARE:
-        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Avertissement (entrée gare)\n",
+        SA_LOG_TRACE("[Canton %u] transitionAspect(%s) → Avertissement (entrée gare)\n",
                      m_id, sensStr);
         return ASPECT_AVERTISSEMENT;
 
     case ROLE_SORTIE_GARE:
-        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (sortie gare)\n",
+        SA_LOG_TRACE("[Canton %u] transitionAspect(%s) → Voie libre (sortie gare)\n",
                      m_id, sensStr);
         return ASPECT_VOIE_LIBRE;
 
     case ROLE_MANOEUVRE:
-        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Manoeuvre\n",
+        SA_LOG_TRACE("[Canton %u] transitionAspect(%s) → Manoeuvre\n",
                      m_id, sensStr);
         return ASPECT_MANOEUVRE;
 
@@ -107,7 +108,7 @@ uint8_t Node::transitionAspect(SensDeMarche sens)
     case ROLE_SERVICE:
     case ROLE_PLEINE_VOIE:
     default:
-        SA_LOG_TRACE("[Node %u] transitionAspect(%s) → Voie libre (défaut)\n",
+        SA_LOG_TRACE("[Canton %u] transitionAspect(%s) → Voie libre (défaut)\n",
                      m_id, sensStr);
         return ASPECT_VOIE_LIBRE;
     }
@@ -118,12 +119,12 @@ uint8_t Node::transitionAspect(SensDeMarche sens)
  * ============================================================================
  */
 
-uint8_t Node::transitionH()
+uint8_t Canton::transitionH()
 {
     return transitionAspect(SensHoraire);
 }
 
-uint8_t Node::transitionAH()
+uint8_t Canton::transitionAH()
 {
     return transitionAspect(SensAntiHoraire);
 }

@@ -31,17 +31,17 @@
 #include "freertos/task.h"
 
 // Modules spécialisés appelés dans loopTask()
-#include "Node.h"
-#include "CapteursEtat.h"       // Lecture occupation / IR / courant
-#include "SensRoulage.h"        // Déduction du sens de circulation
-#include "TopologieSat.h"       // Mise à jour SP1 / SM1
-#include "SupervisionCAN.h"     // Diffusion état canton sur CAN
-#include "SupervisionCanton.h"  // Déduction des aspects cantonaux
-#include "PilotageDistribue.h"  // Pilotage loco selon aspect
-#include "CommandeDCC.h"        // Envoi commandes DCC++
-#include "AspectSignal.h"       // Envoi aspects dynamiques aux signaux (UART → EXSA)
-#include "SensEnum.h"           // Enumération des sens (horaire / anti-horaire)
-#include "Discovery_Protocol.h" // ExsaAspect (enum 1 octet)
+#include "Canton.h"
+#include "CapteursEtat.h"         // Lecture occupation / IR / courant
+#include "SensRoulage.h"          // Déduction du sens de circulation
+#include "TopologieSat.h"         // Mise à jour SP1 / SM1
+#include "SupervisionCAN.h"       // Diffusion état canton sur CAN
+#include "SupervisionCanton.h"    // Déduction des aspects cantonaux
+#include "PilotageDistribue.h"    // Pilotage loco selon aspect
+#include "CommandeDCC.h"          // Envoi commandes DCC++
+#include "AspectSignal.h"         // Envoi aspects dynamiques aux signaux (UART → EXSA)
+#include "SensEnum.h"             // Enumération des sens (horaire / anti-horaire)
+#include "Exploration_Protocol.h" // ExsaAspect (enum 1 octet)
 
 class GestionReseau
 {
@@ -52,7 +52,7 @@ public:
   /*************************************************************************************
    * setup()
    *************************************************************************************/
-  static void setup(Node *node);
+  static void setup(Canton *canton);
 
   /*************************************************************************************
    * loopTask()
@@ -72,7 +72,7 @@ public:
    * Typé en ExsaAspect (1 octet) pour cohérence avec :
    *   - SupervisionCanton (calcul des aspects)
    *   - AspectSignal (envoi UART vers EXSA)
-   *   - Discovery_Protocol.h (protocole commun)
+   *   - Exploration_Protocol.h (protocole commun)
    *************************************************************************************/
   static ExsaAspect signalValue[2];
 };

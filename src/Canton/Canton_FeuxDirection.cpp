@@ -1,5 +1,5 @@
 /*
- * Node_FeuxDirection.cpp — Gestion des feux directionnels du canton (Node)
+ * Canton_FeuxDirection.cpp — Gestion des feux directionnels du canton (Canton)
  * ---------------------------------------------------------------------------
  * Ce fichier regroupe la logique liée aux feux de direction (LED blanches),
  * distincte des signaux SNCF classiques.
@@ -10,7 +10,7 @@
  *   - FeuxDirection_Conditions
  */
 
-#include "Node.h"
+#include "Canton.h"
 #include "debug_sa.h"
 
 #include "FeuxDirection/FeuxDirection_Types.h"
@@ -19,33 +19,32 @@
 #include "FeuxDirection.h"
 
 // ---------------------------------------------------------------------------
-// Implémentation concrète de IAiguillesPhysiques pour un Node
+// Implémentation concrète de IAiguillesPhysiques pour un Canton
 // ---------------------------------------------------------------------------
 
-class AiguillesPhysiquesFromNode : public FeuxDirection::IAiguillesPhysiques
+class AiguillesPhysiquesFromCanton : public FeuxDirection::IAiguillesPhysiques
 {
 public:
-    explicit AiguillesPhysiquesFromNode(const Node* n) : m_node(n) {}
+    explicit AiguillesPhysiquesFromCanton(const Canton *n) : m_canton(n) {}
 
     uint8_t getPositionAig(uint8_t indexAig) const override
     {
-        // Node fournit la position physique (0=droit, 1=devie)
-        return m_node->getAiguillePosition(indexAig);
+        // Canton fournit la position physique (0=droit, 1=devie)
+        return m_canton->getAiguillePosition(indexAig);
     }
 
 private:
-    const Node* m_node;
+    const Canton *m_canton;
 };
-
 
 // ---------------------------------------------------------------------------
 // Fonction principale : mise à jour du feu directionnel pour un sens donné
 // ---------------------------------------------------------------------------
 
-void Node::updateFeuDirection(SensDeMarche sens)
+void Canton::updateFeuDirection(SensDeMarche sens)
 {
     // 1) Sélection du bloc directionnel (H ou AH)
-    const DirectionConfig& cfg =
+    const DirectionConfig &cfg =
         (sens == SensHoraire) ? direction.H : direction.AH;
 
     // Si ce sens n'est pas actif → pas de feu
@@ -56,10 +55,10 @@ void Node::updateFeuDirection(SensDeMarche sens)
     }
 
     // 2) Code-barres
-    const std::string& codeBarre = cfg.codeBarre;
+    const std::string &codeBarre = cfg.codeBarre;
 
     // 3) Détermination du voisin réel (SP1/SP2 ou SM1/SM2)
-    NodePeriph* voisin = nullptr;
+    CantonPeriph *voisin = nullptr;
 
     if (sens == SensHoraire)
     {
@@ -90,7 +89,7 @@ void Node::updateFeuDirection(SensDeMarche sens)
     bool occupe = estOccupe();
 
     // 6) Accès aux aiguilles physiques
-    AiguillesPhysiquesFromNode aiguilles(this);
+    AiguillesPhysiquesFromCanton aiguilles(this);
 
     // 7) Calcul du feu directionnel via la nouvelle API
     FeuxDirection::DirectionState st =
@@ -105,37 +104,35 @@ void Node::updateFeuDirection(SensDeMarche sens)
     // 9) Logs
     if (!st.ok)
     {
-        SA_LOG_ERROR("[Node %u] FeuxDirection ERROR (%s) : %s\n",
+        SA_LOG_ERROR("[Canton %u] FeuxDirection ERROR (%s) : %s\n",
                      m_id,
                      (sens == SensHoraire ? "H" : "AH"),
                      st.erreur.c_str());
     }
     else
     {
-        SA_LOG_TRACE("[Node %u] FeuxDirection %s → voieActive=%u (ok)\n",
+        SA_LOG_TRACE("[Canton %u] FeuxDirection %s → voieActive=%u (ok)\n",
                      m_id,
                      (sens == SensHoraire ? "H" : "AH"),
                      st.voieActive);
     }
 }
 
-
 // ---------------------------------------------------------------------------
 // Fonctions manquantes : setFeuDirection() et getFeuDirection()
 // ---------------------------------------------------------------------------
 
-uint8_t Node::getFeuDirection(SensDeMarche sens) const
+uint8_t Canton::getFeuDirection(SensDeMarche sens) const
 {
     return m_feuDirection[sens];
 }
 
-void Node::setFeuDirection(SensDeMarche sens, uint8_t valeur)
+void Canton::setFeuDirection(SensDeMarche sens, uint8_t valeur)
 {
     m_feuDirection[sens] = valeur;
 }
 
-
 /* ------------------------------------------------------------
-  Fin de Node_FeuxDirection.cpp
+  Fin de Canton_FeuxDirection.cpp
   ------------------------------------------------------------
 */

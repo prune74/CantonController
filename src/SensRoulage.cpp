@@ -1,26 +1,26 @@
-/* 
- * SensRoulage.cpp — Déduction du sens de roulage (Discovery 2026)
+/*
+ * SensRoulage.cpp — Déduction du sens de roulage (Exploration 2026)
  */
 
 #include "SensRoulage.h"
 #include "debug_sa.h"
-#include "Node.h"
+#include "Canton.h"
 
 /*************************************************************************************
  * Déduction du sens de roulage
  ************************************************************************************/
-void deduireSensRoulage(Node* node)
+void deduireSensRoulage(Canton *canton)
 {
-    if (!node)
+    if (!canton)
         return;
 
     // Lecture des capteurs via l’API moderne
-    bool h  = node->getSensor(1)->state();   // 1 = horaire (H)
-    bool ah = node->getSensor(0)->state();   // 0 = anti-horaire (AH)
+    bool h = canton->getSensor(1)->state();  // 1 = horaire (H)
+    bool ah = canton->getSensor(0)->state(); // 0 = anti-horaire (AH)
 
     SA_LOG_TRACE("[SensRoulage] sensorH=%d sensorAH=%d\n", h, ah);
 
-    Loco* loco = node->getLoco();
+    Loco *loco = canton->getLoco();
     if (!loco)
         return;
 

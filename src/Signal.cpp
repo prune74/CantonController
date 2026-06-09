@@ -1,5 +1,5 @@
-/* 
- * Signal.cpp — Gestion enrichie des signaux SNCF (Version Discovery 2026)
+/*
+ * Signal.cpp — Gestion enrichie des signaux SNCF (Version Exploration 2026)
  * -----------------------------------------------------------------------
  * Ce module représente un signal ferroviaire physique ou logique.
  *
@@ -60,21 +60,21 @@ Signal::~Signal() {}
 void Signal::setup()
 {
     // Réinitialisation des capacités
-    m_hasCarre        = false;
-    m_hasOeilleton    = false;
-    m_hasRal          = false;
-    m_hasRappel       = false;
-    m_hasManoeuvre    = false;
-    m_hasCarreViolet  = false;
+    m_hasCarre = false;
+    m_hasOeilleton = false;
+    m_hasRal = false;
+    m_hasRappel = false;
+    m_hasManoeuvre = false;
+    m_hasCarreViolet = false;
     m_hasVLclignotant = false;
 
     SA_LOG_TRACE("[Signal] setup() : configuration du type %u\n", m_type);
 
     switch (m_type)
     {
-    // -----------------------------------------------------------------------
-    // Types existants (compatibilité Discovery)
-    // -----------------------------------------------------------------------
+        // -----------------------------------------------------------------------
+        // Types existants (compatibilité Exploration)
+        // -----------------------------------------------------------------------
 
     case SIG_SIMPLE: // 0
         /*
@@ -126,9 +126,9 @@ void Signal::setup()
         SA_LOG_INFO("[Signal] Type RAPPEL → 9 feux (Rappel 30/60)\n");
         break;
 
-    // -----------------------------------------------------------------------
-    // Nouveaux types (préparés pour l’évolution Discovery 2026)
-    // -----------------------------------------------------------------------
+        // -----------------------------------------------------------------------
+        // Nouveaux types (préparés pour l’évolution Exploration 2026)
+        // -----------------------------------------------------------------------
 
     case SIG_MANOEUVRE: // 4
         /*

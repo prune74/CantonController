@@ -5,8 +5,8 @@
    - Gère la configuration persistante du SA (settings.json)
    - Initialise l’UART RS485 (communication SA → EXSA)
    - Dialogue CAN avec la carte Main pour obtenir l’ID du SA
-   - Stocke les paramètres globaux (WiFi, Discovery, SSID, etc.)
-   - Reconstruit les objets NodePeriph, Aig, Signal à partir du JSON
+   - Stocke les paramètres globaux (WiFi, Exploration, SSID, etc.)
+   - Reconstruit les objets CantonPeriph, Aig, Signal à partir du JSON
 
    IMPORTANT :
    Le SA ne pilote plus les servos localement.
@@ -25,7 +25,7 @@
 #include "CanMsg.h"
 #include "CanConfig.h"
 #include "Config.h"
-#include "Node.h"
+#include "Canton.h"
 
 class Settings
 {
@@ -40,10 +40,10 @@ private:
 
   // Paramètres globaux
   static bool WIFI_ON;
-  static bool DISCOVERY_ON;
+  static bool EXPLORATION_ON;
 
-  // Référence vers le Node principal (logique ferroviaire)
-  static Node *node;
+  // Référence vers le Canton principal (logique ferroviaire)
+  static Canton *canton;
 
   // UART RS485 partagé entre EXSA_H et EXSA_AH
   static HardwareSerial SerialUART;
@@ -58,7 +58,7 @@ public:
   Settings() = delete;
 
   // Initialisation générale (UART + SPIFFS + settings.json)
-  static void setup(Node *);
+  static void setup(Canton *);
 
   // Dialogue CAN avec la carte Main (obtention ID)
   static bool begin();
@@ -70,9 +70,9 @@ public:
   // Indique que la carte Main est prête
   static void sMainReady(bool);
 
-  // Gestion du mode Discovery
-  static bool discoveryOn();
-  static void discoveryOn(bool);
+  // Gestion du mode Exploration
+  static bool explorationOn();
+  static void explorationOn(bool);
 
   // Gestion du WiFi
   static bool wifiOn();

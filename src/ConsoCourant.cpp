@@ -15,15 +15,15 @@
  */
 
 #include "ConsoCourant.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "CompteurEssieuxUart.h"
-#include "Node.h"
+#include "Canton.h"
 #include "debug_sa.h"
 
 /* ============================================================
    Singleton (instance unique du SA)
    ============================================================ */
-ConsoCourant* ConsoCourant::s_instance = nullptr;
+ConsoCourant *ConsoCourant::s_instance = nullptr;
 
 /* ============================================================
    Constructeur / Destructeur
@@ -34,10 +34,10 @@ ConsoCourant::~ConsoCourant() {}
 /* ============================================================
    setup()
    ============================================================ */
-void ConsoCourant::setup(Node *node)
+void ConsoCourant::setup(Canton *canton)
 {
-    m_node = node;
-    s_instance = this;   // <-- instance unique
+    m_canton = canton;
+    s_instance = this; // <-- instance unique
 }
 
 /* ============================================================
@@ -45,16 +45,16 @@ void ConsoCourant::setup(Node *node)
    ============================================================ */
 void ConsoCourant::updateEtat(bool occupePhysique)
 {
-    if (!m_node)
+    if (!m_canton)
     {
-        SA_LOG_ERROR("[ConsoCourant] Erreur : m_node nul\n");
+        SA_LOG_ERROR("[ConsoCourant] Erreur : m_canton nul\n");
         return;
     }
 
     int compteur = CompteurEssieuxUart::compteurGlobal();
     bool occupeLogique = occupePhysique || (compteur > 0);
 
-    m_node->busy(occupeLogique);
+    m_canton->busy(occupeLogique);
 
     SA_LOG_INFO(
         "[ConsoCourant] Canton = %s (phys=%d, essieux=%d)\n",

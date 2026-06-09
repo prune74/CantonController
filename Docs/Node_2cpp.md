@@ -1,27 +1,27 @@
 /*
- * Node.cpp — Façade publique du module Node (Discovery 2026)
+ * Canton.cpp — Façade publique du module Canton (Exploration 2026)
  * ---------------------------------------------------------------------------
  * Rôle :
  *   Ce fichier ne contient AUCUNE logique métier.
- *   Il inclut simplement les sous-modules internes situés dans /Node/.
+ *   Il inclut simplement les sous-modules internes situés dans /Canton/.
  *
  * Objectif :
  *   - garder une façade propre et stable
- *   - séparer l’API publique (Node.h) de l’implémentation interne
+ *   - séparer l’API publique (Canton.h) de l’implémentation interne
  *   - faciliter l’onboarding et la maintenance
  */
 
-#include "Node.h"
+#include "Canton.h"
 
 // Sous-modules internes
-#include "Node/Node_Init.cpp"
-#include "Node/Node_Periph.cpp"
-#include "Node/Node_Topologie.cpp"
-#include "Node/Node_Aiguilles.cpp"
-#include "Node/Node_Signaux.cpp"
-#include "Node/Node_SignauxTransitions.cpp"
-#include "Node/Node_Occupation.cpp"
-#include "Node/Node_Capteurs.cpp"
-#include "Node/Node_Role.cpp"
-#include "Node/Node_Logic.cpp"
-#include "Node/Node_Debug.cpp"
+#include "Canton/Canton_Init.cpp"
+#include "Canton/Canton_Periph.cpp"
+#include "Canton/Canton_Topologie.cpp"
+#include "Canton/Canton_Aiguilles.cpp"
+#include "Canton/Canton_Signaux.cpp"
+#include "Canton/Canton_SignauxTransitions.cpp"
+#include "Canton/Canton_Occupation.cpp"
+#include "Canton/Canton_Capteurs.cpp"
+#include "Canton/Canton_Role.cpp"
+#include "Canton/Canton_Logic.cpp"
+#include "Canton/Canton_Debug.cpp"

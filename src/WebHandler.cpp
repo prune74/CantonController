@@ -1,5 +1,5 @@
 /*
-   WebHandler.cpp — Discovery 2026 (Option B — Modulaire)
+   WebHandler.cpp — Exploration 2026 (Option B — Modulaire)
 */
 
 #include "WebHandler.h"
@@ -10,24 +10,24 @@
 WebHandler::WebHandler()
 {
     _server = nullptr;
-    _ws     = nullptr;
-    node    = nullptr;
+    _ws = nullptr;
+    canton = nullptr;
 
     // Init servoCfg
     for (uint8_t i = 0; i < 6; i++)
     {
         servoCfg[i].posDroit = 1500;
         servoCfg[i].posDevie = 1500;
-        servoCfg[i].speed    = 5;   // slider 0–10
+        servoCfg[i].speed = 5; // slider 0–10
     }
 }
 
-void WebHandler::init(Node *n, uint16_t webPort)
+void WebHandler::init(Canton *n, uint16_t webPort)
 {
-    node = n;
+    canton = n;
 
     _server = new AsyncWebServer(webPort);
-    _ws     = new AsyncWebSocket("/ws");
+    _ws = new AsyncWebSocket("/ws");
 
     _ws->onEvent([this](AsyncWebSocket *server,
                         AsyncWebSocketClient *client,
@@ -35,13 +35,11 @@ void WebHandler::init(Node *n, uint16_t webPort)
                         void *arg,
                         uint8_t *data,
                         size_t len)
-    {
-        this->WsEvent(server, client, type, arg, data, len);
-    });
+                 { this->WsEvent(server, client, type, arg, data, len); });
 
     _server->addHandler(_ws);
 
-    route();   // défini dans WebHandler_Routes.cpp
+    route(); // défini dans WebHandler_Routes.cpp
 
     _server->begin();
 
@@ -55,11 +53,11 @@ void WebHandler::loop()
 
     StaticJsonDocument<256> doc;
 
-    doc["booster_tension"]      = Booster::tension();
-    doc["booster_courant"]      = Booster::courant();
-    doc["booster_etat"]         = Booster::etat();
-    doc["booster_present"]      = Booster::present();
-    doc["booster_seuil_libre"]  = Booster::seuilLibre();
+    doc["booster_tension"] = Booster::tension();
+    doc["booster_courant"] = Booster::courant();
+    doc["booster_etat"] = Booster::etat();
+    doc["booster_present"] = Booster::present();
+    doc["booster_seuil_libre"] = Booster::seuilLibre();
     doc["booster_seuil_occupe"] = Booster::seuilOccupe();
 
     String out;

@@ -1,14 +1,14 @@
 /*
-  SA_CanMsg_Discovery.cpp — Commandes Discovery (0xC0–0xC1)
+  SA_CanMsg_Exploration.cpp — Commandes Exploration (0xC0–0xC1)
   --------------------------------------------------------------------------
-  Ces commandes sont utilisées UNIQUEMENT pendant le mode Discovery.
+  Ces commandes sont utilisées UNIQUEMENT pendant le mode Exploration.
 */
 
 #include "CanMsg.h"
-#include "debug_sa.h" // cohérence Discovery 2026
+#include "debug_sa.h" // cohérence Exploration 2026
 
-void handleDiscoveryCommand(uint8_t commande, const CANMessage &frameIn,
-                            Node *node, uint16_t idSatExpediteur)
+void handleExplorationCommand(uint8_t commande, const CANMessage &frameIn,
+                              Canton *canton, uint16_t idSatExpediteur)
 {
     switch (commande)
     {
@@ -16,16 +16,16 @@ void handleDiscoveryCommand(uint8_t commande, const CANMessage &frameIn,
         /**************************************************************************
          * 0xC0 — Réception de l’ID d’un satellite voisin
          **************************************************************************/
-        Discovery::ID_satPeriph(idSatExpediteur);
+        Exploration::ID_satPeriph(idSatExpediteur);
         break;
 
     case 0xC1:
         /**************************************************************************
-         * 0xC1 — Masque aiguilles pendant Discovery
+         * 0xC1 — Masque aiguilles pendant Exploration
          **************************************************************************/
-        for (uint8_t i = 0; i < nodePsize; i++)
+        for (uint8_t i = 0; i < cantonPsize; i++)
         {
-            NodePeriph *el = node->getNodeP(i);
+            CantonPeriph *el = canton->getCantonP(i);
             if (el != nullptr && el->ID() == idSatExpediteur)
             {
                 el->masqueAig(frameIn.data[0]);

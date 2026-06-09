@@ -1,49 +1,48 @@
 {
-  "idNode": 255,
-
+  "standalone": true,
+  "idCanton": 255,
   "wifi_on": true,
   "ssid": "Bbox-E51CC95D",
   "password": "53DA477752646293F62EEEDD9F21D2",
-
-  "discovery_on": true,
+  "exploration_on": false,
   "booster_on": true,
-
   "booster_seuil_libre": 50,
   "booster_seuil_occupe": 200,
-  
+  "p00": 255,
+  "p01": 255,
+  "p10": 255,
+  "p11": 255,
+  "m00": 255,
+  "m01": 255,
+  "m10": 255,
+  "m11": 255,
   "SP1_idx": 0,
   "SM1_idx": 0,
   "SP2_acces": true,
   "SM2_acces": true,
-
   "comptAig": 0,
   "masqueAig": 0,
-
   "aig0posDroit": 0,
   "aig1posDroit": 0,
   "aig2posDroit": 0,
   "aig3posDroit": 0,
   "aig4posDroit": 0,
   "aig5posDroit": 0,
-
   "aig0posDevie": 0,
   "aig1posDevie": 0,
   "aig2posDevie": 0,
   "aig3posDevie": 0,
   "aig4posDevie": 0,
   "aig5posDevie": 0,
-
   "aig0speed": 0,
   "aig1speed": 0,
   "aig2speed": 0,
   "aig3speed": 0,
   "aig4speed": 0,
   "aig5speed": 0,
-
   "role": 0,
   "maxSpeed": 128,
   "sensMarche": 0,
-
   "sign0": "null",
   "sign1": "null",
   "sign0type": 0,

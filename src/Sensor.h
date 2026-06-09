@@ -18,7 +18,7 @@ public:
 
     void overrideState(bool state);
 
-    // Callback Discovery 2026 (PROTO_03)
+    // Callback Exploration 2026 (PROTO_03)
     static void onPonctuel(uint8_t index_exsa, uint8_t code);
 
 private:

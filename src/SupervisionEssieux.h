@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-class Node;
+class Canton;
 
 /*
  * ============================================================
@@ -11,7 +11,7 @@ class Node;
  *  Rôle :
  *    Ce module surveille la cohérence ferroviaire entre :
  *
- *      - l’occupation logique du canton (Node::busy())
+ *      - l’occupation logique du canton (Canton::busy())
  *      - le compteur global d’essieux (CompteurEssieuxUart)
  *      - l’état des cantons amont et aval
  *      - les reboot EXSA (via notifierRebootEXSA)
@@ -26,7 +26,7 @@ class Node;
  *    Ce module :
  *      - détecte ces incohérences
  *      - remet le compteur à zéro dans les cas sûrs
- *      - NE MODIFIE JAMAIS Node::busy()
+ *      - NE MODIFIE JAMAIS Canton::busy()
  *        (l’occupation logique reste gérée par ConsoCourant)
  *
  *    🔥 Option A : Timer anti‑faux‑positifs
@@ -38,8 +38,8 @@ class Node;
 class SupervisionEssieux
 {
 public:
-    // Initialisation avec le Node local
-    static void begin(Node* node);
+    // Initialisation avec le Canton local
+    static void begin(Canton *canton);
 
     // À appeler régulièrement dans la loop() du SA
     static void loop();
@@ -48,11 +48,11 @@ public:
     static void notifierRebootEXSA();
 
 private:
-    static Node* s_node;          // Canton supervisé
-    static bool  s_rebootDetecte; // Flag : reboot EXSA détecté
+    static Canton *s_canton;     // Canton supervisé
+    static bool s_rebootDetecte; // Flag : reboot EXSA détecté
 
     // 🔥 Timer anti‑faux‑positifs
-    static uint16_t s_incoherenceTimer;   // compteur interne
+    static uint16_t s_incoherenceTimer;             // compteur interne
     static const uint16_t INCOHERENCE_TIMEOUT = 40; // ~2 secondes
 
     // Vérifie toutes les règles de cohérence

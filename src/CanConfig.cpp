@@ -4,7 +4,7 @@
 */
 
 #include "CanConfig.h"
-#include "debug_sa.h"   // ← système de log Discovery 2026
+#include "debug_sa.h" // ← système de log Exploration 2026
 
 void CanConfig::setup()
 {

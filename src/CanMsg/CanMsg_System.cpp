@@ -6,7 +6,7 @@
     - tester le bus CAN
     - attribuer un ID au SA
     - activer/désactiver WiFi
-    - activer/désactiver Discovery
+    - activer/désactiver Exploration
     - sauvegarder settings.json
 */
 
@@ -17,13 +17,13 @@
  * --------------------------------------------------------------------------
  * @param commande         → code CAN (CMD_SAT_TEST_BUS_REPLY à CMD_SAVE_ALL)
  * @param frameIn          → trame CAN reçue
- * @param node             → canton local
+ * @param canton             → canton local
  * @param idSatExpediteur  → ID du satellite expéditeur
  *
  * Ce handler ne modifie JAMAIS la topologie ni l’exploitation.
  * Il agit uniquement sur les paramètres système.
  */
-void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node, uint16_t idSatExpediteur)
+void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Canton *canton, uint16_t idSatExpediteur)
 {
   (void)idSatExpediteur; // non utilisé dans ces commandes
 
@@ -47,8 +47,8 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
      * Lorsqu’un SA démarre sans ID (UNUSED_ID), il demande un ID au Main.
      * Le Main répond avec cette commande.
      **************************************************************************/
-    if (node->ID() == UNUSED_ID)
-      node->ID(frameIn.data[0]);
+    if (canton->ID() == UNUSED_ID)
+      canton->ID(frameIn.data[0]);
     break;
 
   case CMD_RESTART_ALL:
@@ -70,32 +70,32 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
      * Après modification → sauvegarde → reboot.
      **************************************************************************/
     Settings::wifiOn(frameIn.data[0]);
-    Settings::writeFile(Settings::node);
+    Settings::writeFile(Settings::canton);
     delay(1000);
     ESP.restart();
     break;
 
-  case CMD_DISCOVERY_ON_OFF:
+  case CMD_EXPLORATION_ON_OFF:
     /**************************************************************************
-     * CMD_DISCOVERY_ON_OFF — Activation / désactivation du mode Discovery
+     * CMD_EXPLORATION_ON_OFF — Activation / désactivation du mode Exploration
      * ------------------------------------------------------------------------
-     * Discovery = apprentissage automatique de la topologie SP/SM.
+     * Exploration = apprentissage automatique de la topologie SP/SM.
      *
      * Si ON → reboot pour entrer en mode apprentissage.
-     * Si OFF → arrêt immédiat du processus Discovery.
+     * Si OFF → arrêt immédiat du processus Exploration.
      **************************************************************************/
     if (frameIn.data[0])
     {
-      Settings::discoveryOn(true);
-      Settings::writeFile(Settings::node);
+      Settings::explorationOn(true);
+      Settings::writeFile(Settings::canton);
       delay(1000);
       ESP.restart();
     }
     else
     {
-      Settings::discoveryOn(false);
-      Discovery::stopProcess(true);
-      Settings::writeFile(Settings::node);
+      Settings::explorationOn(false);
+      Exploration::stopProcess(true);
+      Settings::writeFile(Settings::canton);
     }
     break;
 
@@ -106,7 +106,7 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Node *node
      * Permet au Main d’imposer une sauvegarde immédiate.
      **************************************************************************/
 #ifdef SAUV_BY_MAIN
-    Settings::writeFile(Settings::node);
+    Settings::writeFile(Settings::canton);
 #else
     SA_LOG("Sauvegarde automatique désactivée.\n");
 #endif

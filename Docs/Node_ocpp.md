@@ -1,8 +1,8 @@
 /*
  * ============================================================================
- *  Node.cpp — Version 2026
+ *  Canton.cpp — Version 2026
  *  --------------------------------------------------------------------------
- *  Le Node représente un CANTON dans le SA (Satellite d’Aiguillage).
+ *  Le Canton représente un CANTON dans le SA (Satellite d’Aiguillage).
  *
  *  Il contient :
  *    - la topologie SP/SM (voisins amont/aval)
@@ -20,17 +20,17 @@
  * ============================================================================
  */
 
-#include "Node.h"
+#include "Canton.h"
 #include "ConsoCourant.h"
 #include "SatTopologieUART.h"   // pour envoyerServoMove() vers EXSA
 
 
 /* ============================================================================
- *                           NodePeriph
+ *                           CantonPeriph
  *  --------------------------------------------------------------------------
  *  Représente un "voisin" dans la topologie :
  *    - SP1 / SP2 / SM1 / SM2
- *    - Chaque NodePeriph correspond à un canton adjacent.
+ *    - Chaque CantonPeriph correspond à un canton adjacent.
  *
  *  Il stocke :
  *    - ID du voisin
@@ -42,9 +42,9 @@
  * ============================================================================
  */
 
-uint8_t NodePeriph::comptInst = 0;   // compteur d’instances (debug)
+uint8_t CantonPeriph::comptInst = 0;   // compteur d’instances (debug)
 
-NodePeriph::NodePeriph()
+CantonPeriph::CantonPeriph()
     : m_id(UNUSED_ID),
       m_busy(false),
       m_reserved(0),
@@ -56,36 +56,36 @@ NodePeriph::NodePeriph()
   ++comptInst;
 }
 
-NodePeriph::~NodePeriph()
+CantonPeriph::~CantonPeriph()
 {
   --comptInst;
 }
 
 // --- Getters / Setters simples ---
-void NodePeriph::ID(uint8_t id) { m_id = id; }
-uint8_t NodePeriph::ID() { return m_id; }
+void CantonPeriph::ID(uint8_t id) { m_id = id; }
+uint8_t CantonPeriph::ID() { return m_id; }
 
-void NodePeriph::busy(bool busy) { m_busy = busy; }
-bool NodePeriph::busy() { return m_busy; }
+void CantonPeriph::busy(bool busy) { m_busy = busy; }
+bool CantonPeriph::busy() { return m_busy; }
 
-void NodePeriph::reserved(uint16_t locoAddr) { m_reserved = locoAddr; }
-uint16_t NodePeriph::reserved() { return m_reserved; }
+void CantonPeriph::reserved(uint16_t locoAddr) { m_reserved = locoAddr; }
+uint16_t CantonPeriph::reserved() { return m_reserved; }
 
-void NodePeriph::acces(bool acces) { m_acces = acces; }
-bool NodePeriph::acces() { return m_acces; }
+void CantonPeriph::acces(bool acces) { m_acces = acces; }
+bool CantonPeriph::acces() { return m_acces; }
 
-void NodePeriph::locoAddr(uint16_t addr) { m_locoAddr = addr; }
-uint16_t NodePeriph::locoAddr() { return m_locoAddr; }
+void CantonPeriph::locoAddr(uint16_t addr) { m_locoAddr = addr; }
+uint16_t CantonPeriph::locoAddr() { return m_locoAddr; }
 
-void NodePeriph::masqueAig(byte masqueAig) { m_masqueAig = masqueAig; }
-byte NodePeriph::masqueAig() { return m_masqueAig; }
+void CantonPeriph::masqueAig(byte masqueAig) { m_masqueAig = masqueAig; }
+byte CantonPeriph::masqueAig() { return m_masqueAig; }
 
 
 
 /* ============================================================================
- *                                 Node
+ *                                 Canton
  *  --------------------------------------------------------------------------
- *  Le Node est le cœur du SA :
+ *  Le Canton est le cœur du SA :
  *
  *    - Il représente un canton complet.
  *    - Il contient les voisins SP/SM.
@@ -94,19 +94,19 @@ byte NodePeriph::masqueAig() { return m_masqueAig; }
  *    - Il contient les capteurs ponctuels.
  *    - Il contient l’occupation logique (via ConsoCourant).
  *
- *  Le Node ne pilote plus les servos :
+ *  Le Canton ne pilote plus les servos :
  *    → il envoie des commandes à EXSA via RS485.
  *
  * ============================================================================
  */
 
-Node::Node()
+Canton::Canton()
     : m_id(UNUSED_ID),
       m_busy(false),          // Occupation logique (mise à jour par ConsoCourant)
       m_reserved(0),          // Loco réservée dans ce canton
       m_masqueAig(0x00),      // Aiguilles bloquantes SP1/SM1
-      m_SP1_idx(0),           // Index du voisin SP1 dans nodeP[]
-      m_SM1_idx(0),           // Index du voisin SM1 dans nodeP[]
+      m_SP1_idx(0),           // Index du voisin SP1 dans cantonP[]
+      m_SM1_idx(0),           // Index du voisin SM1 dans cantonP[]
       m_SP2_acces(true),      // SP2 accessible ?
       m_SP2_busy(false),      // SP2 occupé ?
       m_SM2_acces(true),      // SM2 accessible ?
@@ -119,8 +119,8 @@ Node::Node()
       occupation(nullptr)
 {
   // --- Initialisation des tableaux internes ---
-  for (byte i = 0; i < nodePsize; i++)
-    nodeP[i] = nullptr;
+  for (byte i = 0; i < cantonPsize; i++)
+    cantonP[i] = nullptr;
 
   for (byte i = 0; i < aigSize; i++)
     aig[i] = nullptr;
@@ -139,54 +139,54 @@ Node::Node()
   occupation->startReceptionUART();
 }
 
-Node::~Node()
+Canton::~Canton()
 {
   delete occupation;
 }
 
 
 // --- Getters / Setters simples ---
-void Node::ID(uint16_t id) { m_id = id; }
-uint16_t Node::ID() { return m_id; }
+void Canton::ID(uint16_t id) { m_id = id; }
+uint16_t Canton::ID() { return m_id; }
 
-void Node::busy(bool busy) { m_busy = busy; }
-bool Node::busy() { return m_busy; }
+void Canton::busy(bool busy) { m_busy = busy; }
+bool Canton::busy() { return m_busy; }
 
-void Node::reserved(uint16_t add_loco) { m_reserved = add_loco; }
-uint16_t Node::reserved() { return m_reserved; }
+void Canton::reserved(uint16_t add_loco) { m_reserved = add_loco; }
+uint16_t Canton::reserved() { return m_reserved; }
 
-void Node::masqueAig(byte masqueAig) { m_masqueAig = masqueAig; }
-byte Node::masqueAig() { return m_masqueAig; }
+void Canton::masqueAig(byte masqueAig) { m_masqueAig = masqueAig; }
+byte Canton::masqueAig() { return m_masqueAig; }
 
-void Node::masqueAigSP2(byte v) { m_masqueAigSP2 = v; }
-byte Node::masqueAigSP2() { return m_masqueAigSP2; }
+void Canton::masqueAigSP2(byte v) { m_masqueAigSP2 = v; }
+byte Canton::masqueAigSP2() { return m_masqueAigSP2; }
 
-void Node::masqueAigSM2(byte v) { m_masqueAigSM2 = v; }
-byte Node::masqueAigSM2() { return m_masqueAigSM2; }
+void Canton::masqueAigSM2(byte v) { m_masqueAigSM2 = v; }
+byte Canton::masqueAigSM2() { return m_masqueAigSM2; }
 
-void Node::SP1_idx(uint8_t idx) { m_SP1_idx = idx; }
-uint8_t Node::SP1_idx() { return m_SP1_idx; }
+void Canton::SP1_idx(uint8_t idx) { m_SP1_idx = idx; }
+uint8_t Canton::SP1_idx() { return m_SP1_idx; }
 
-void Node::SM1_idx(uint8_t idx) { m_SM1_idx = idx; }
-uint8_t Node::SM1_idx() { return m_SM1_idx; }
+void Canton::SM1_idx(uint8_t idx) { m_SM1_idx = idx; }
+uint8_t Canton::SM1_idx() { return m_SM1_idx; }
 
-void Node::SP2_acces(bool v) { m_SP2_acces = v; }
-bool Node::SP2_acces() { return m_SP2_acces; }
+void Canton::SP2_acces(bool v) { m_SP2_acces = v; }
+bool Canton::SP2_acces() { return m_SP2_acces; }
 
-void Node::SP2_busy(bool v) { m_SP2_busy = v; }
-bool Node::SP2_busy() { return m_SP2_busy; }
+void Canton::SP2_busy(bool v) { m_SP2_busy = v; }
+bool Canton::SP2_busy() { return m_SP2_busy; }
 
-void Node::SM2_acces(bool v) { m_SM2_acces = v; }
-bool Node::SM2_acces() { return m_SM2_acces; }
+void Canton::SM2_acces(bool v) { m_SM2_acces = v; }
+bool Canton::SM2_acces() { return m_SM2_acces; }
 
-void Node::SM2_busy(bool v) { m_SM2_busy = v; }
-bool Node::SM2_busy() { return m_SM2_busy; }
+void Canton::SM2_busy(bool v) { m_SM2_busy = v; }
+bool Canton::SM2_busy() { return m_SM2_busy; }
 
-void Node::maxSpeed(uint8_t v) { m_maxSpeed = v; }
-uint8_t Node::maxSpeed() { return m_maxSpeed; }
+void Canton::maxSpeed(uint8_t v) { m_maxSpeed = v; }
+uint8_t Canton::maxSpeed() { return m_maxSpeed; }
 
-void Node::sensMarche(uint8_t v) { m_sensMarche = v; }
-uint8_t Node::sensMarche() { return m_sensMarche; }
+void Canton::sensMarche(uint8_t v) { m_sensMarche = v; }
+uint8_t Canton::sensMarche() { return m_sensMarche; }
 
 
 
@@ -207,7 +207,7 @@ uint8_t Node::sensMarche() { return m_sensMarche; }
  * ============================================================================
  */
 
-void Node::aigRun(byte idx)
+void Canton::aigRun(byte idx)
 {
     /**************************************************************************
      * Cette fonction NE pilote PLUS les servos localement.
@@ -226,7 +226,7 @@ void Node::aigRun(byte idx)
     uint8_t exsaAdresse = 0;
 
     // Si l’aiguille pointe vers SP1 → EXSA horaire
-    if (aig[idx]->nodePdroitIdx() == SP1_idx())
+    if (aig[idx]->cantonPdroitIdx() == SP1_idx())
         exsaAdresse = 0;
     else
         exsaAdresse = 1;
@@ -242,7 +242,7 @@ void Node::aigRun(byte idx)
  * ============================================================================
  */
 
-void Node::aigGoTo(void *p)
+void Canton::aigGoTo(void *p)
 {
     // Ancien système → supprimé
     vTaskDelete(NULL);
@@ -265,21 +265,21 @@ void Node::aigGoTo(void *p)
  * ============================================================================
  */
 
-void Node::setRole(CantonRole role)
+void Canton::setRole(CantonRole role)
 {
   m_role = role;
 
-  SA_LOG("[Node %d] setRole() → rôle ferroviaire = %d\n", m_id, m_role);
+  SA_LOG("[Canton %d] setRole() → rôle ferroviaire = %d\n", m_id, m_role);
 
   applyRoleDefaults();
 }
 
-void Node::applyRoleDefaults()
+void Canton::applyRoleDefaults()
 {
   if (signal[0] == nullptr || signal[1] == nullptr)
   {
 
-    SA_LOG("[Node %d] applyRoleDefaults() ignoré : signaux non initialisés\n", m_id);
+    SA_LOG("[Canton %d] applyRoleDefaults() ignoré : signaux non initialisés\n", m_id);
 
     return;
   }
@@ -288,7 +288,7 @@ void Node::applyRoleDefaults()
   uint8_t ah = signal[1]->type();
 
 
-  SA_LOG("[Node %d] applyRoleDefaults() type=%d | H=%d AH=%d\n",
+  SA_LOG("[Canton %d] applyRoleDefaults() type=%d | H=%d AH=%d\n",
                m_id, m_role, h, ah);
 
 
@@ -334,10 +334,10 @@ void Node::applyRoleDefaults()
  */
 
 
-void Node::debugTopologieEtAiguilles()
+void Canton::debugTopologieEtAiguilles()
 {
     SA_LOG("==============================================");
-    SA_LOG("[Node %d] Diagnostic topologie & aiguilles\n", m_id);
+    SA_LOG("[Canton %d] Diagnostic topologie & aiguilles\n", m_id);
     SA_LOG("==============================================");
 
     // --- SP1 / SM1 ---
@@ -361,29 +361,29 @@ void Node::debugTopologieEtAiguilles()
 
         SA_LOG(" - Aig[%d] : droit=%d devie=%d | estDroit=%d\n",
                      i,
-                     a->nodePdroitIdx(),
-                     a->nodePdevieIdx(),
+                     a->cantonPdroitIdx(),
+                     a->cantonPdevieIdx(),
                      a->estDroit());
 
         // Déduction automatique du côté H / AH
-        if (a->nodePdroitIdx() == SP1_idx() || a->nodePdevieIdx() == SP1_idx())
+        if (a->cantonPdroitIdx() == SP1_idx() || a->cantonPdevieIdx() == SP1_idx())
             SA_LOG("     → Cette aiguille est côté HORAIRE (SP)");
-        else if (a->nodePdroitIdx() == SM1_idx() || a->nodePdevieIdx() == SM1_idx())
+        else if (a->cantonPdroitIdx() == SM1_idx() || a->cantonPdevieIdx() == SM1_idx())
             SA_LOG("     → Cette aiguille est côté ANTI-HORAIRE (SM)");
         else
             SA_LOG("     → ⚠️ Aiguille non reliée à SP1 ni SM1 !");
     }
 
     SA_LOG("----------------------------------------------");
-    SA_LOG("Voisins (nodeP[]) :");
+    SA_LOG("Voisins (cantonP[]) :");
 
-    for (uint8_t i = 0; i < nodePsize; i++)
+    for (uint8_t i = 0; i < cantonPsize; i++)
     {
-        NodePeriph* p = nodeP[i];
+        CantonPeriph* p = cantonP[i];
         if (!p)
             continue;
 
-        SA_LOG(" - nodeP[%d] : ID=%d busy=%d acces=%d reserved=%d\n",
+        SA_LOG(" - cantonP[%d] : ID=%d busy=%d acces=%d reserved=%d\n",
                      i,
                      p->ID(),
                      p->busy(),

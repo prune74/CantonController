@@ -1,8 +1,8 @@
 #include "CompteurEssieuxUart.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "Settings.h"
 #include "SatEXSA_Link.h"
-#include "Node.h"
+#include "Canton.h"
 #include "debug_sa.h"
 
 /*
@@ -11,7 +11,7 @@
  * ============================================================
  */
 
-static int s_compteurH  = 0;
+static int s_compteurH = 0;
 static int s_compteurAH = 0;
 
 /*
@@ -22,12 +22,12 @@ static int s_compteurAH = 0;
 
 void CompteurEssieuxUart::reset()
 {
-    s_compteurH  = 0;
+    s_compteurH = 0;
     s_compteurAH = 0;
 }
 
-int CompteurEssieuxUart::compteurH()      { return s_compteurH; }
-int CompteurEssieuxUart::compteurAH()     { return s_compteurAH; }
+int CompteurEssieuxUart::compteurH() { return s_compteurH; }
+int CompteurEssieuxUart::compteurAH() { return s_compteurAH; }
 int CompteurEssieuxUart::compteurGlobal() { return s_compteurH + s_compteurAH; }
 
 /*

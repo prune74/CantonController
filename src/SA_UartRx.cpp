@@ -1,6 +1,6 @@
 #include "SA_UartRx.h"
 #include "SA_RS485.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 
 #include "Sensor.h"
 #include "ConsoCourant.h"
@@ -23,19 +23,18 @@ void SA_UartRx::begin()
         nullptr,
         1,
         &s_uartTask,
-        1
-    );
+        1);
 
     SA_LOG_INFO("[SA_UartRx] Tâche UART RS485 lancée\n");
 }
 
 void SA_UartRx::uartTask(void *param)
 {
-    uint8_t step     = 0;
-    uint8_t opcode   = 0;
-    uint8_t index    = 0;
+    uint8_t step = 0;
+    uint8_t opcode = 0;
+    uint8_t index = 0;
     uint8_t data[8];
-    uint8_t dataPos  = 0;
+    uint8_t dataPos = 0;
     uint8_t expected = 0;
 
     for (;;)
@@ -67,15 +66,33 @@ void SA_UartRx::uartTask(void *param)
 
             switch (opcode)
             {
-            case PROTO_03_PONCTUEL:          expected = 1; break;
-            case PROTO_04_OCCUPATION:        expected = 1; break;
-            case PROTO_05_DELTA_AXE:         expected = 1; break;
-            case PROTO_06_POSITION_AIGUILLE: expected = 3; break;
-            case PROTO_07_BOOSTER:           expected = 4; break;
-            case PROTO_08_RAILCOM_ADRESSE:   expected = 2; break;
-            case PROTO_09_CALIB_BOOSTER:     expected = 4; break;
-            case PROTO_PONG:                 expected = 0; break;
-            default:                         expected = 0; break;
+            case PROTO_03_PONCTUEL:
+                expected = 1;
+                break;
+            case PROTO_04_OCCUPATION:
+                expected = 1;
+                break;
+            case PROTO_05_DELTA_AXE:
+                expected = 1;
+                break;
+            case PROTO_06_POSITION_AIGUILLE:
+                expected = 3;
+                break;
+            case PROTO_07_BOOSTER:
+                expected = 4;
+                break;
+            case PROTO_08_RAILCOM_ADRESSE:
+                expected = 2;
+                break;
+            case PROTO_09_CALIB_BOOSTER:
+                expected = 4;
+                break;
+            case PROTO_PONG:
+                expected = 0;
+                break;
+            default:
+                expected = 0;
+                break;
             }
 
             if (expected == 0)

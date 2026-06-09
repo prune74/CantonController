@@ -2,8 +2,8 @@
 #include "FeuxDirection.h"
 #include "SatTopologieUART.h"
 #include "CanMsg.h"
-#include "Discovery_Protocol.h" // pour ExsaAspect (enum)
-#include "DeductionAspect.h"    // déduction SNCF (version enum)
+#include "Exploration_Protocol.h" // pour ExsaAspect (enum)
+#include "DeductionAspect.h"      // déduction SNCF (version enum)
 
 /*************************************************************************************
  *  Module AspectSignal — Version ENUM (Option A)
@@ -24,7 +24,7 @@ const TickType_t tempoEnvoi = pdMS_TO_TICKS(300);
 /*************************************************************************************
  *  Fonction principale : mettreAJourAspectSignal()
  *************************************************************************************/
-void mettreAJourAspectSignal(Node *node, uint8_t *signalValue)
+void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
 {
     TickType_t now = xTaskGetTickCount();
 
@@ -35,10 +35,10 @@ void mettreAJourAspectSignal(Node *node, uint8_t *signalValue)
     ExsaAspect aspectAvalAH = ASPECT_CARRE; // côté anti-horaire
 
     /**************************************************************************
-     * 2) Récupération des voisins SP1 / SM1 via getters Discovery 2026
+     * 2) Récupération des voisins SP1 / SM1 via getters Exploration 2026
      **************************************************************************/
-    NodePeriph *sp1 = node->getNodeP(node->SP1_idx());
-    NodePeriph *sm1 = node->getNodeP(node->SM1_idx());
+    CantonPeriph *sp1 = canton->getCantonP(canton->SP1_idx());
+    CantonPeriph *sm1 = canton->getCantonP(canton->SM1_idx());
 
     if (sp1)
         aspectAval = static_cast<ExsaAspect>(sp1->aspectRecu[0]);
@@ -46,10 +46,10 @@ void mettreAJourAspectSignal(Node *node, uint8_t *signalValue)
         aspectAvalAH = static_cast<ExsaAspect>(sm1->aspectRecu[1]);
 
     /**************************************************************************
-     * 3) Vérification des aiguilles via getters Discovery 2026
+     * 3) Vérification des aiguilles via getters Exploration 2026
      **************************************************************************/
-    Aig *aigSP1 = node->getAig(0); // côté horaire
-    Aig *aigSM1 = node->getAig(3); // côté anti-horaire
+    Aig *aigSP1 = canton->getAig(0); // côté horaire
+    Aig *aigSM1 = canton->getAig(3); // côté anti-horaire
 
     bool voieDevieSP1 = (aigSP1 && !aigSP1->estDroit());
     bool voieDevieSM1 = (aigSM1 && !aigSM1->estDroit());
@@ -64,16 +64,16 @@ void mettreAJourAspectSignal(Node *node, uint8_t *signalValue)
         deduireAspectDepuisAval(aspectAvalAH, voieDevieSM1));
 
     /**************************************************************************
-     * 5) Calcul des feux directionnels (nouvelle architecture Discovery 2026)
+     * 5) Calcul des feux directionnels (nouvelle architecture Exploration 2026)
      **************************************************************************/
 
-    // Mise à jour interne du Node (code-barres + aiguilles + occupation)
-    node->updateFeuDirection(SensHoraire);
-    node->updateFeuDirection(SensAntiHoraire);
+    // Mise à jour interne du Canton (code-barres + aiguilles + occupation)
+    canton->updateFeuDirection(SensHoraire);
+    canton->updateFeuDirection(SensAntiHoraire);
 
     // Lecture du résultat (0..4)
-    uint8_t dirValue0 = node->getFeuDirection(SensHoraire);     // H
-    uint8_t dirValue1 = node->getFeuDirection(SensAntiHoraire); // AH
+    uint8_t dirValue0 = canton->getFeuDirection(SensHoraire);     // H
+    uint8_t dirValue1 = canton->getFeuDirection(SensAntiHoraire); // AH
 
     /**************************************************************************
      * 6) Envoi conditionnel (anti-spam + changement)
@@ -93,7 +93,7 @@ void mettreAJourAspectSignal(Node *node, uint8_t *signalValue)
             oldSignalValue0 = signalValue[0];
 
             CanMsg::sendMsg(
-                1, PROTO_E6_ASPECT_HORAIRE, 0, node->ID(),
+                1, PROTO_E6_ASPECT_HORAIRE, 0, canton->ID(),
                 0, 0,
                 signalValue[0], 0);
         }
@@ -107,7 +107,7 @@ void mettreAJourAspectSignal(Node *node, uint8_t *signalValue)
             oldSignalValue1 = signalValue[1];
 
             CanMsg::sendMsg(
-                1, PROTO_E7_ASPECT_ANTIHORAIRE, 0, node->ID(),
+                1, PROTO_E7_ASPECT_ANTIHORAIRE, 0, canton->ID(),
                 1, 1,
                 signalValue[1], 0);
         }

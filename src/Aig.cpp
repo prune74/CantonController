@@ -19,17 +19,17 @@
    Constructeur
    Initialise toutes les valeurs LOGIQUES d’une aiguille.
 --------------------------------------------------------------*/
-Aig::Aig() :
-    m_id(0),
-    m_posDroit(1500),
-    m_posDevie(1500),
-    m_minPos(800),
-    m_maxPos(2400),
-    m_estDroit(true),
-    m_curPos(1500),
-    m_nodePdroitIdx(0),
-    m_nodePdevieIdx(0)
-{}
+Aig::Aig() : m_id(0),
+             m_posDroit(1500),
+             m_posDevie(1500),
+             m_minPos(800),
+             m_maxPos(2400),
+             m_estDroit(true),
+             m_curPos(1500),
+             m_cantonPdroitIdx(0),
+             m_cantonPdevieIdx(0)
+{
+}
 
 /*-------------------------------------------------------------
    Destructeur
@@ -53,14 +53,14 @@ bool Aig::estDroit() const { return m_estDroit; }
 --------------------------------------------------------------*/
 void Aig::posDroit(uint16_t pos)
 {
-  if (pos > m_minPos && pos < m_maxPos)
-    m_posDroit = pos;
+   if (pos > m_minPos && pos < m_maxPos)
+      m_posDroit = pos;
 }
 
 void Aig::posDevie(uint16_t pos)
 {
-  if (pos > m_minPos && pos < m_maxPos)
-    m_posDevie = pos;
+   if (pos > m_minPos && pos < m_maxPos)
+      m_posDevie = pos;
 }
 
 uint16_t Aig::posDroit() const { return m_posDroit; }
@@ -72,8 +72,8 @@ uint16_t Aig::posDevie() const { return m_posDevie; }
 --------------------------------------------------------------*/
 void Aig::curPos(uint16_t pos)
 {
-  if (pos > m_minPos && pos < m_maxPos)
-    m_curPos = pos;
+   if (pos > m_minPos && pos < m_maxPos)
+      m_curPos = pos;
 }
 
 uint16_t Aig::curPos() const { return m_curPos; }
@@ -81,14 +81,14 @@ uint16_t Aig::curPos() const { return m_curPos; }
 /*-------------------------------------------------------------
    Index EXSA côté H (SP1)
 --------------------------------------------------------------*/
-void Aig::nodePdroitIdx(uint8_t idx) { m_nodePdroitIdx = idx; }
-uint8_t Aig::nodePdroitIdx() const { return m_nodePdroitIdx; }
+void Aig::cantonPdroitIdx(uint8_t idx) { m_cantonPdroitIdx = idx; }
+uint8_t Aig::cantonPdroitIdx() const { return m_cantonPdroitIdx; }
 
 /*-------------------------------------------------------------
    Index EXSA côté AH (SM1)
 --------------------------------------------------------------*/
-void Aig::nodePdevieIdx(uint8_t idx) { m_nodePdevieIdx = idx; }
-uint8_t Aig::nodePdevieIdx() const { return m_nodePdevieIdx; }
+void Aig::cantonPdevieIdx(uint8_t idx) { m_cantonPdevieIdx = idx; }
+uint8_t Aig::cantonPdevieIdx() const { return m_cantonPdevieIdx; }
 /* ------------------------------------------------------------
   Fin de Aig.cpp
   ------------------------------------------------------------

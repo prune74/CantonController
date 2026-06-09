@@ -3,7 +3,7 @@ TopologieSat.h - Déclaration des fonctions de mise à jour de la topologie des 
 */
 
 #pragma once
-#include "Node.h"
+#include "Canton.h"
 #include "SensEnum.h"
 
-void mettreAJourTopologie(Node* node);
+void mettreAJourTopologie(Canton *canton);

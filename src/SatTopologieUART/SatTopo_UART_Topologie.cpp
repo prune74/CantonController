@@ -16,7 +16,7 @@
 
 #include "SatTopologieUART.h"
 #include "Config.h"
-#include "Discovery_Protocol.h"
+#include "Exploration_Protocol.h"
 #include "debug_sa.h"
 
 #include <SPIFFS.h>
@@ -47,7 +47,7 @@ static bool tousLesVoisinsSontConnus()
     return false;
   }
 
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<4096> doc;
   DeserializationError error = deserializeJson(doc, file);
   file.close();
 
@@ -91,7 +91,7 @@ void envoyerTopologieDepuisSettings()
     return;
   }
 
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<4095> doc;
   DeserializationError error = deserializeJson(doc, file);
   file.close();
 
@@ -101,7 +101,7 @@ void envoyerTopologieDepuisSettings()
     return;
   }
 
-  uint8_t idLocal = doc["idNode"] | UNUSED_ID;
+  uint8_t idLocal = doc["idCanton"] | UNUSED_ID;
 
   std::vector<uint8_t> precedents;
   for (const char *cle : {"m00", "m01", "m10", "m11"})

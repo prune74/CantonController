@@ -1,11 +1,11 @@
 /*
  * Sensor.cpp — Gestion des capteurs ponctuels (EXSA → SA)
- * Version Discovery 2026
+ * Version Exploration 2026
  */
 
 #include "Sensor.h"
-#include "Discovery_Protocol.h"
-#include "Node.h"
+#include "Exploration_Protocol.h"
+#include "Canton.h"
 #include "debug_sa.h"
 
 /*
@@ -79,12 +79,12 @@ void Sensor::onPonctuel(uint8_t index_exsa, uint8_t code)
     }
 
     // ============================================================
-    // Récupération du Node unique du SA
+    // Récupération du Canton unique du SA
     // ============================================================
-    Node* node = Node::s_instance;
-    if (!node)
+    Canton *canton = Canton::s_instance;
+    if (!canton)
     {
-        SA_LOG_ERROR("[Sensor] Node::s_instance nul\n");
+        SA_LOG_ERROR("[Sensor] Canton::s_instance nul\n");
         return;
     }
 
@@ -95,9 +95,9 @@ void Sensor::onPonctuel(uint8_t index_exsa, uint8_t code)
         (index_exsa == 0) ? SensHoraire : SensAntiHoraire;
 
     // ============================================================
-    // Mise à jour du capteur via l’API publique du Node
+    // Mise à jour du capteur via l’API publique du Canton
     // ============================================================
-    node->overrideCapteur(sens, actif);
+    canton->overrideCapteur(sens, actif);
 
     SA_LOG_TRACE("[Sensor] EXSA=%u → capteur %s = %s\n",
                  index_exsa,

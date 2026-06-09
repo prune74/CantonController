@@ -7,16 +7,16 @@
  *  Ce module gère :
  *
  *    - la réception CAN (tâche FreeRTOS dédiée)
- *    - le décodage des trames Discovery 2026
+ *    - le décodage des trames Exploration 2026
  *    - le dispatch vers les handlers :
  *          * System (0xB3–CMD_SAVE_ALL)
- *          * Discovery (0xC0–0xC1)
+ *          * Exploration (0xC0–0xC1)
  *          * Exploitation ferroviaire (0xE0–0xE9)
  *
  *    - l’envoi CAN via une API simplifiée :
  *          sendMsg(prio, cmde, resp, id, data…)
  *
- *  Le protocole CAN Discovery utilise un ID étendu (29 bits) structuré ainsi :
+ *  Le protocole CAN Exploration utilise un ID étendu (29 bits) structuré ainsi :
  *
  *      [ 2 bits priorité ]   bits 26..25
  *      [ 8 bits commande ]   bits 24..17
@@ -40,9 +40,9 @@
 #include <ACAN_ESP32.h>
 
 #include "Config.h"
-#include "Node.h"
+#include "Canton.h"
 #include "Settings.h"
-#include "Discovery.h"
+#include "Exploration.h"
 
 /*
  * ============================================================================
@@ -72,15 +72,15 @@ class CanMsg
 {
 public:
   // -------------------------------------------------------------------------
-  // setup(node)
+  // setup(canton)
   // -------------------------------------------------------------------------
   // Initialise le module CAN :
   //   - crée la tâche FreeRTOS canReceiveMsg()
-  //   - passe le Node local en paramètre
+  //   - passe le Canton local en paramètre
   //
   // Cette fonction doit être appelée UNE SEULE FOIS dans setup().
   // -------------------------------------------------------------------------
-  static void setup(Node *node);
+  static void setup(Canton *canton);
 
   // -------------------------------------------------------------------------
   // sendMsg(CANMessage&)
@@ -97,19 +97,19 @@ public:
   // manuellement un CANMessage.
   //
   // Exemple :
-  //     CanMsg::sendMsg(1, 0xE7, 0, node->ID(), aspect);
+  //     CanMsg::sendMsg(1, 0xE7, 0, canton->ID(), aspect);
   //
-  // Toutes utilisent le format Discovery 2026 (ID étendu).
+  // Toutes utilisent le format Exploration 2026 (ID étendu).
   // -------------------------------------------------------------------------
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisNodeId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6, byte data7);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6);
+  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6, byte data7);
 
 #ifdef TEST_MEMORY_TASK
   // -------------------------------------------------------------------------
@@ -136,7 +136,7 @@ private:
   //        * bit response
   //   - route vers :
   //        * handleSystemCommand()
-  //        * handleDiscoveryCommand()
+  //        * handleExplorationCommand()
   //        * handleExploitCommand()
   //
   // Cette fonction tourne en permanence (10 ms).

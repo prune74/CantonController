@@ -9,9 +9,9 @@ Déduit les aspects dynamiques à afficher en fonction des cantons aval (SP1 / S
 ## 🔧 API
 
 ```cpp
-void mettreAJourAspectSignal(Node* node, uint8_t* signalValue);
+void mettreAJourAspectSignal(Canton* canton, uint8_t* signalValue);
 ```
-- `node` : pointeur vers le nœud courant
+- `canton` : pointeur vers le nœud courant
 - `signalValue` : tableau des aspects à afficher (0 = horaire, 1 = anti-horaire)*
 
 ---
@@ -22,7 +22,7 @@ void mettreAJourAspectSignal(Node* node, uint8_t* signalValue);
 
 ```cpp
 // À placer dans loopTask après supervision cantonale
-mettreAJourAspectSignal(node, signalValue);
+mettreAJourAspectSignal(canton, signalValue);
 ```
 
 ---
@@ -31,6 +31,6 @@ mettreAJourAspectSignal(node, signalValue);
 
 ---
 
-**Node.h** : structure du nœud
+**Canton.h** : structure du nœud
 **DeductionAspect.h** : fonction deduireAspectDepuisAval(...)
 **CanMsg.h** : envoi des trames CAN

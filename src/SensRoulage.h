@@ -1,9 +1,9 @@
-/* 
-SensRoulage.h - Déduction du sens de roulage 
+/*
+SensRoulage.h - Déduction du sens de roulage
 */
 
 #pragma once
-#include "Node.h"
+#include "Canton.h"
 #include "SensEnum.h"
 
-void deduireSensRoulage(Node* node);
+void deduireSensRoulage(Canton *canton);

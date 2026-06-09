@@ -1,8 +1,9 @@
 /*
- * Node_Logic.cpp — Logique métier du canton (accès, sécurité, cohérence)
+ * Canton_Logic.cpp — Logique métier du canton (accès, sécurité, cohérence)
  */
 
-#include "Node_Internal.h"
+#include "Canton.h"
+#include "Config.h"
 #include "debug_sa.h"
 
 /* ============================================================================
@@ -10,65 +11,59 @@
  * ============================================================================
  */
 
-bool Node::estAccesAutorise(SensDeMarche sens)
+bool Canton::estAccesAutorise(SensDeMarche sens)
 {
-    // 🔥 STOP global Discovery 2026 : aucun accès autorisé
+    // 🔥 STOP global Exploration 2026 : aucun accès autorisé
     if (isStopActive())
     {
-        SA_LOG_WARN("[Node %u] Accès %s BLOQUE (STOP actif)\n",
+        SA_LOG_WARN("[Canton %u] Accès %s BLOQUE (STOP actif)\n",
                     m_id,
                     (sens == SensHoraire ? "H" : "AH"));
         return false;
     }
 
-    NodePeriph *v = nullptr;
-    byte masque = 0;
+    CantonPeriph *v = nullptr;
+    byte masque = m_masqueAig;
 
     if (sens == SensHoraire)
-    {
         v = voisinSP1();
-        masque = m_masqueAig;
-    }
-    else // SensAntiHoraire
-    {
+    else
         v = voisinSM1();
-        masque = m_masqueAig;
-    }
 
     const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
     // 1) Le rôle doit autoriser l’accès
     if (!roleAutoriseAcces(sens))
     {
-        SA_LOG_TRACE("[Node %u] Accès %s refusé (rôle)\n", m_id, sensStr);
+        SA_LOG_TRACE("[Canton %u] Accès %s refusé (rôle)\n", m_id, sensStr);
         return false;
     }
 
     // 2) Le voisin doit exister
     if (!v)
     {
-        SA_LOG_WARN("[Node %u] Accès %s refusé (voisin inexistant)\n", m_id, sensStr);
+        SA_LOG_WARN("[Canton %u] Accès %s refusé (voisin inexistant)\n", m_id, sensStr);
         return false;
     }
 
     // 3) Le voisin doit être accessible
     if (!v->acces())
     {
-        SA_LOG_TRACE("[Node %u] Accès %s refusé (acces=0)\n", m_id, sensStr);
+        SA_LOG_TRACE("[Canton %u] Accès %s refusé (acces=0)\n", m_id, sensStr);
         return false;
     }
 
     // 4) Le voisin ne doit pas être occupé ou réservé
     if (v->busy() || v->reserved() != 0)
     {
-        SA_LOG_TRACE("[Node %u] Accès %s refusé (voisin occupé/réservé)\n", m_id, sensStr);
+        SA_LOG_TRACE("[Canton %u] Accès %s refusé (voisin occupé/réservé)\n", m_id, sensStr);
         return false;
     }
 
     // 5) Vérification des masques d’aiguilles
     if (!aiguillesConformes(masque))
     {
-        SA_LOG_TRACE("[Node %u] Accès %s refusé (masque aiguilles)\n", m_id, sensStr);
+        SA_LOG_TRACE("[Canton %u] Accès %s refusé (masque aiguilles)\n", m_id, sensStr);
         return false;
     }
 
@@ -80,7 +75,7 @@ bool Node::estAccesAutorise(SensDeMarche sens)
  * ============================================================================
  */
 
-bool Node::aiguillesConformes(byte masque)
+bool Canton::aiguillesConformes(byte masque)
 {
     for (uint8_t i = 0; i < 4; i++)
     {
@@ -93,7 +88,7 @@ bool Node::aiguillesConformes(byte masque)
 
         if (!a->estDroit())
         {
-            SA_LOG_TRACE("[Node %u] Aiguille %u non conforme au masque\n", m_id, i);
+            SA_LOG_TRACE("[Canton %u] Aiguille %u non conforme au masque\n", m_id, i);
             return false;
         }
     }
@@ -106,12 +101,9 @@ bool Node::aiguillesConformes(byte masque)
  * ============================================================================
  */
 
-NodePeriph *Node::prochainVoisin(SensDeMarche sens)
+CantonPeriph *Canton::prochainVoisin(SensDeMarche sens)
 {
-    if (sens == SensHoraire)
-        return voisinSP1();
-
-    return voisinSM1();
+    return (sens == SensHoraire) ? voisinSP1() : voisinSM1();
 }
 
 /* ============================================================================
@@ -119,12 +111,12 @@ NodePeriph *Node::prochainVoisin(SensDeMarche sens)
  * ============================================================================
  */
 
-bool Node::peutEntrerDansVoisin(SensDeMarche sens)
+bool Canton::peutEntrerDansVoisin(SensDeMarche sens)
 {
-    // 🔥 STOP global Discovery 2026 : aucune entrée autorisée
+    // 🔥 STOP global Exploration 2026 : aucune entrée autorisée
     if (m_stopActive)
     {
-        SA_LOG_WARN("[Node %u] Entrée %s BLOQUEE (STOP actif)\n",
+        SA_LOG_WARN("[Canton %u] Entrée %s BLOQUEE (STOP actif)\n",
                     m_id,
                     (sens == SensHoraire ? "H" : "AH"));
         return false;
@@ -133,7 +125,7 @@ bool Node::peutEntrerDansVoisin(SensDeMarche sens)
     if (!estAccesAutorise(sens))
         return false;
 
-    NodePeriph *v = prochainVoisin(sens);
+    CantonPeriph *v = prochainVoisin(sens);
     if (!v)
         return false;
 
@@ -148,12 +140,12 @@ bool Node::peutEntrerDansVoisin(SensDeMarche sens)
  * ============================================================================
  */
 
-bool Node::estSortiePossible(SensDeMarche sens)
+bool Canton::estSortiePossible(SensDeMarche sens)
 {
-    // 🔥 STOP global Discovery 2026 : aucune sortie autorisée
+    // 🔥 STOP global Exploration 2026 : aucune sortie autorisée
     if (m_stopActive)
     {
-        SA_LOG_WARN("[Node %u] Sortie %s BLOQUEE (STOP actif)\n",
+        SA_LOG_WARN("[Canton %u] Sortie %s BLOQUEE (STOP actif)\n",
                     m_id,
                     (sens == SensHoraire ? "H" : "AH"));
         return false;

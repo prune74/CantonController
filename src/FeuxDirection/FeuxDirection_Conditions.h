@@ -18,7 +18,7 @@
  *   - Ce module NE connaît PAS les voisins.
  *
  * Il fait uniquement :
- *   géométrie (code-barres)  ↔  aiguilles physiques (Node/EXSA)
+ *   géométrie (code-barres)  ↔  aiguilles physiques (Canton/EXSA)
  *
  * La décision finale du feu est faite dans FeuxDirection.cpp.
  * ------------------------------------------------------------
@@ -38,12 +38,12 @@ namespace FeuxDirection
      * d’interroger les positions réelles des aiguilles.
      *
      * Le SA (GestionReseau) fournira une implémentation concrète
-     * basée sur Node/EXSA.
+     * basée sur Canton/EXSA.
      *
      * Exemple d’implémentation :
-     *   class AigFromNode : public IAiguillesPhysiques {
+     *   class AigFromCanton : public IAiguillesPhysiques {
      *       uint8_t getPositionAig(uint8_t idx) const override {
-     *           return node->getAigPosition(idx);
+     *           return canton->getAigPosition(idx);
      *       }
      *   };
      *
@@ -66,7 +66,6 @@ namespace FeuxDirection
          */
         virtual uint8_t getPositionAig(uint8_t indexAig) const = 0;
     };
-
 
     // --------------------------------------------------------
     // Classe Conditions
@@ -107,9 +106,9 @@ namespace FeuxDirection
          *   "Le chemin physique vers la voie N est-il ouvert ?"
          * --------------------------------------------------------
          */
-        static bool voieOuverte(const CodeBarreDecoded& cb,
+        static bool voieOuverte(const CodeBarreDecoded &cb,
                                 uint8_t voie,
-                                const IAiguillesPhysiques& aiguilles);
+                                const IAiguillesPhysiques &aiguilles);
     };
 }
 /* ------------------------------------------------------------
