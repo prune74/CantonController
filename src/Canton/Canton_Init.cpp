@@ -66,7 +66,6 @@ Canton::Canton()
     // ----------------------------------------------------------------------
     signal[0] = new Signal(); // AH
     signal[1] = new Signal(); // H
-    // Pas de setActive() en 2026 : les signaux sont neutres par défaut
 
     // ----------------------------------------------------------------------
     // Capteurs ponctuels virtuels (EXSA → SA)

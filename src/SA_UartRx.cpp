@@ -1,10 +1,10 @@
 #include "SA_UartRx.h"
 #include "SA_RS485.h"
 #include "Exploration_Protocol.h"
+#include "Canton.h"
 
 #include "Sensor.h"
 #include "ConsoCourant.h"
-#include "CompteurEssieuxUart.h"
 #include "SupervisionAiguilles.h"
 #include "SatEXSA_Link.h"
 #include "Railcom.h"
@@ -66,13 +66,16 @@ void SA_UartRx::uartTask(void *param)
 
             switch (opcode)
             {
-            case PROTO_03_PONCTUEL:
+            case PROTO_03_H_PONCTUEL:
+                expected = 1;
+                break;
+            case PROTO_03_AH_PONCTUEL:
                 expected = 1;
                 break;
             case PROTO_04_OCCUPATION:
                 expected = 1;
                 break;
-            case PROTO_05_DELTA_AXE:
+            case PROTO_05_COMPTEUR_ESSIEUX:
                 expected = 1;
                 break;
             case PROTO_06_POSITION_AIGUILLE:
@@ -123,16 +126,21 @@ void SA_UartRx::dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t l
 {
     switch (opcode)
     {
-    case PROTO_03_PONCTUEL:
-        Sensor::onPonctuel(index, data[0]);
+    case PROTO_03_H_PONCTUEL:
+        Sensor::onPonctuelH(data[0]);
+        break;
+
+    case PROTO_03_AH_PONCTUEL:
+        Sensor::onPonctuelAH(data[0]);
         break;
 
     case PROTO_04_OCCUPATION:
         ConsoCourant::onOccupation(index, data[0]);
         break;
 
-    case PROTO_05_DELTA_AXE:
-        CompteurEssieuxUart::onDelta(index, data[0]);
+    case PROTO_05_COMPTEUR_ESSIEUX:
+        Canton::s_instance->setCompteurEssieux(data[0]);
+        SA_LOG_TRACE("[SA_UartRx] Compteur essieux mis à jour : %d\n", data[0]);
         break;
 
     case PROTO_06_POSITION_AIGUILLE:

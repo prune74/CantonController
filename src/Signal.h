@@ -17,7 +17,8 @@ enum SignalProfil : uint8_t
     SIG_MANOEUVRE = 4, // Carré violet + blanc
     SIG_BAL = 5,       // BAL (VL clignotant possible)
     SIG_ENTREE = 6,    // Entrée de gare (souvent 3x3)
-    SIG_SORTIE = 7     // Sortie de gare (souvent 3x3)
+    SIG_SORTIE = 7,     // Sortie de gare (souvent 3x3)
+    SIG_ABSENT = 255  // 
 };
 
 class Signal

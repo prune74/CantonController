@@ -83,13 +83,14 @@ enum ExsaAspect : uint8_t
  * ============================================================
  */
 
-#define PROTO_03_PONCTUEL 0x03          // Retour ponctuel H/AH
-#define PROTO_04_OCCUPATION 0x04        // Occupation canton
-#define PROTO_05_DELTA_AXE 0x05         // Variation aiguille
-#define PROTO_06_POSITION_AIGUILLE 0x06 // Position réelle
-#define PROTO_07_BOOSTER 0x07           // État booster
-#define PROTO_08_RAILCOM_ADRESSE 0x08   // Adresse RailCom
-#define PROTO_09_CALIB_BOOSTER 0x09     // Seuils calibrés
+#define PROTO_03_H_PONCTUEL 0x03            // Retour ponctuel H
+#define PROTO_03_AH_PONCTUEL 0x04           // Retour ponctuel AH
+#define PROTO_04_OCCUPATION 0x05            // Occupation canton
+#define PROTO_05_COMPTEUR_ESSIEUX 0x06      // Compteur d'essieux
+#define PROTO_06_POSITION_AIGUILLE 0x07     // Position réelle
+#define PROTO_07_BOOSTER 0x08               // État booster
+#define PROTO_08_RAILCOM_ADRESSE 0x09       // Adresse RailCom
+#define PROTO_09_CALIB_BOOSTER 0x0A         // Seuils calibrés
 
 /* ============================================================
  *  🟪 Codes associés EXSA → SA
@@ -105,10 +106,6 @@ enum ExsaAspect : uint8_t
 /* --- Occupation --- */
 #define PROTO_OCC_ACTIVE 0x30
 #define PROTO_OCC_LIBRE 0x31
-
-/* --- Delta axe --- */
-#define PROTO_DELTA_PLUS_UN 0x01
-#define PROTO_DELTA_MOINS_UN 0xFF
 
 /* --- Position aiguille --- */
 #define PROTO_POS_DROIT 0x00

@@ -54,14 +54,24 @@ void envoyerConfigurationSignauxDepuisSettings()
     return;
   }
 
-  uint8_t type0 = doc["sign0type"] | 0;
-  uint8_t type1 = doc["sign1type"] | 0;
-  uint8_t pos0 = doc["sign0position"] | 0;
-  uint8_t pos1 = doc["sign1position"] | 0;
+  // ---------------------------------------------------------
+  // Détection des mâts absents
+  // ---------------------------------------------------------
+  bool sign0Absent = doc["sign0"].isNull();
+  bool sign1Absent = doc["sign1"].isNull();
 
-  SA_LOG_TRACE("[TopoUART] signaux : T0=%u T1=%u P0=%u P1=%u\n",
-               type0, type1, pos0, pos1);
+  uint8_t type0 = sign0Absent ? SIG_ABSENT : (uint8_t)(doc["sign0type"] | 0);
+  uint8_t type1 = sign1Absent ? SIG_ABSENT : (uint8_t)(doc["sign1type"] | 0);
 
+  uint8_t pos0  = sign0Absent ? 0 : (uint8_t)(doc["sign0position"] | 0);
+  uint8_t pos1  = sign1Absent ? 0 : (uint8_t)(doc["sign1position"] | 0);
+
+  SA_LOG_TRACE("[TopoUART] signaux : T0=%u T1=%u P0=%u P1=%u (abs0=%d abs1=%d)\n",
+               type0, type1, pos0, pos1, sign0Absent, sign1Absent);
+
+  // ---------------------------------------------------------
+  // Envoi E5
+  // ---------------------------------------------------------
   Serial1.write(PROTO_SYNC_BYTE);
   Serial1.write(PROTO_E5_CONFIG_SIGNAUX);
   Serial1.write(type0);

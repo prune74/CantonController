@@ -1,13 +1,13 @@
 #include "SA_RS485.h"
 #include "Config.h"
-#include "Settings.h"   // ⬅️ Correction indispensable
+#include "Settings.h"
 
 static HardwareSerial& uart = Settings::uart();
 
 void SA_RS485::begin()
 {
     pinMode(RS485_DE_RE, OUTPUT);
-    digitalWrite(RS485_DE_RE, LOW); // réception par défaut
+    digitalWrite(RS485_DE_RE, LOW);
 
     uart.begin(UART_BAUDRATE, SERIAL_8N1, UART_RX_SATELLITE, UART_TX_SATELLITE);
 }

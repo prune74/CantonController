@@ -2,8 +2,8 @@
 #include "FeuxDirection.h"
 #include "SatTopologieUART.h"
 #include "CanMsg.h"
-#include "Exploration_Protocol.h" // pour ExsaAspect (enum)
-#include "DeductionAspect.h"      // déduction SNCF (version enum)
+#include "Exploration_Protocol.h"
+#include "DeductionAspect.h"
 
 /*************************************************************************************
  *  Module AspectSignal — Version ENUM (Option A)

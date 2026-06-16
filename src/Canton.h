@@ -191,6 +191,12 @@ public:
         return loco;
     }
 
+    /* Compteur d'essieux */
+    void setCompteurEssieux(int v) { m_compteurEssieux = v; }
+    int compteurEssieux() const { return m_compteurEssieux; }
+    void resetCompteurEssieux() { m_compteurEssieux = 0; }
+    void updateCompteurDepuisTrame(uint8_t code, uint8_t valeur);
+
     /* STOP global Exploration 2026 */
     void setStopActive(bool v);
     bool isStopActive() const { return m_stopActive; }
@@ -233,4 +239,6 @@ private:
     class ConsoCourant *occupation;
 
     bool m_stopActive = false;
+
+    int m_compteurEssieux = 0;
 };

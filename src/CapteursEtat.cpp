@@ -10,10 +10,10 @@ void mettreAJourCapteurs(Canton *canton)
     if (!canton->busy())
     {
         // Capteurs ponctuels remis à zéro
-        // index_exsa = 0 → capteur H
-        // index_exsa = 1 → capteur AH
-        canton->getSensor(0)->overrideState(false); // capteur H
-        canton->getSensor(1)->overrideState(false); // capteur AH
+        // Sensor[1] = H
+        // Sensor[0] = AH
+        canton->getSensor(1)->overrideState(false); // capteur H
+        canton->getSensor(0)->overrideState(false); // capteur AH
 
         // Reset de la loco
         canton->getLoco()->speed(0);

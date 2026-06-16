@@ -1,5 +1,4 @@
 #include "SupervisionEssieux.h"
-#include "CompteurEssieuxUart.h"
 #include "Canton.h"
 #include "debug_sa.h"
 
@@ -20,10 +19,10 @@ void SupervisionEssieux::begin(Canton *canton)
     SA_LOG_INFO("[Essieux] Supervision initialisée pour Canton %d\n", canton->ID());
 }
 
-void SupervisionEssieux::notifierRebootEXSA()
+void SupervisionEssieux::notifierRebootEXCC()
 {
     s_rebootDetecte = true;
-    SA_LOG_WARN("[Essieux] Reboot EXSA détecté → compteur invalide\n");
+    SA_LOG_WARN("[Essieux] Reboot EXCC détecté → compteur invalide\n");
 }
 
 void SupervisionEssieux::loop()
@@ -39,8 +38,8 @@ void SupervisionEssieux::verifierCoherence()
     // ------------------------------------------------------------------------
     // Récupération des états ferroviaires
     // ------------------------------------------------------------------------
-    int compteur = CompteurEssieuxUart::compteurGlobal();
-    bool occLocal = s_canton->busy(); // Occupation logique du canton local
+    int compteur = s_canton->compteurEssieux();   // ⬅️ NOUVEAU
+    bool occLocal = s_canton->busy();
     bool occAmont = false;
     bool occAval = s_canton->SP2_busy() || s_canton->SM2_busy();
 
@@ -54,15 +53,15 @@ void SupervisionEssieux::verifierCoherence()
         occAmont |= sm1->busy();
 
     /* ========================================================================
-       1) Reboot EXSA → reset immédiat
+       1) Reboot EXCC → reset immédiat
        ======================================================================== */
     if (s_rebootDetecte)
     {
-        CompteurEssieuxUart::reset();
+        s_canton->resetCompteurEssieux();   // ⬅️ NOUVEAU
         s_rebootDetecte = false;
         s_incoherenceTimer = 0;
 
-        SA_LOG_WARN("[Essieux] Reset compteur (reboot EXSA)\n");
+        SA_LOG_WARN("[Essieux] Reset compteur (reboot EXCC)\n");
         return;
     }
 
@@ -71,7 +70,7 @@ void SupervisionEssieux::verifierCoherence()
        ======================================================================== */
     if (compteur < 0)
     {
-        CompteurEssieuxUart::reset();
+        s_canton->resetCompteurEssieux();   // ⬅️ NOUVEAU
         s_incoherenceTimer = 0;
 
         SA_LOG_ERROR("[Essieux] Reset compteur (compteur < 0)\n");
@@ -92,7 +91,7 @@ void SupervisionEssieux::verifierCoherence()
 
         if (s_incoherenceTimer >= INCOHERENCE_TIMEOUT)
         {
-            CompteurEssieuxUart::reset();
+            s_canton->resetCompteurEssieux();   // ⬅️ NOUVEAU
             s_incoherenceTimer = 0;
 
             SA_LOG_ERROR("[Essieux] Reset compteur (incohérence persistante)\n");
@@ -115,7 +114,7 @@ void SupervisionEssieux::verifierCoherence()
 
         if (s_incoherenceTimer >= INCOHERENCE_TIMEOUT)
         {
-            CompteurEssieuxUart::reset();
+            s_canton->resetCompteurEssieux();   // ⬅️ NOUVEAU
             s_incoherenceTimer = 0;
 
             SA_LOG_ERROR("[Essieux] Reset compteur (incohérence faible persistante)\n");

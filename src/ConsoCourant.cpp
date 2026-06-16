@@ -16,7 +16,6 @@
 
 #include "ConsoCourant.h"
 #include "Exploration_Protocol.h"
-#include "CompteurEssieuxUart.h"
 #include "Canton.h"
 #include "debug_sa.h"
 
@@ -51,7 +50,7 @@ void ConsoCourant::updateEtat(bool occupePhysique)
         return;
     }
 
-    int compteur = CompteurEssieuxUart::compteurGlobal();
+    int compteur = Canton::s_instance->compteurEssieux();
     bool occupeLogique = occupePhysique || (compteur > 0);
 
     m_canton->busy(occupeLogique);

@@ -1,5 +1,5 @@
 /*
- * Sensor.cpp — Gestion des capteurs ponctuels (EXSA → SA)
+ * Sensor.cpp — Gestion des capteurs ponctuels (EXCC → SA)
  * Version Exploration 2026
  */
 
@@ -51,36 +51,14 @@ void Sensor::overrideState(bool state)
 }
 
 /*
- * onPonctuel() — callback appelé par SA_UartRx
- *
- * index_exsa :
- *   0 = Horaire
- *   1 = AntiHoraire
+ * ============================================================
+ *  onPonctuelH() — Ponctuel côté H (Horaire)
+ * ============================================================
  */
-void Sensor::onPonctuel(uint8_t index_exsa, uint8_t code)
+void Sensor::onPonctuelH(uint8_t code)
 {
-    bool actif = false;
+    bool actif = (code == PROTO_PONCT_H_ACTIVE);
 
-    switch (code)
-    {
-    case PROTO_PONCT_H_ACTIVE:
-    case PROTO_PONCT_AH_ACTIVE:
-        actif = true;
-        break;
-
-    case PROTO_PONCT_H_INACTIVE:
-    case PROTO_PONCT_AH_INACTIVE:
-        actif = false;
-        break;
-
-    default:
-        SA_LOG_WARN("[Sensor] Code ponctuel inconnu : %02X\n", code);
-        return;
-    }
-
-    // ============================================================
-    // Récupération du Canton unique du SA
-    // ============================================================
     Canton *canton = Canton::s_instance;
     if (!canton)
     {
@@ -88,19 +66,28 @@ void Sensor::onPonctuel(uint8_t index_exsa, uint8_t code)
         return;
     }
 
-    // ============================================================
-    // Conversion EXSA → sens ferroviaire
-    // ============================================================
-    SensDeMarche sens =
-        (index_exsa == 0) ? SensHoraire : SensAntiHoraire;
+    canton->overrideCapteur(SensHoraire, actif);
 
-    // ============================================================
-    // Mise à jour du capteur via l’API publique du Canton
-    // ============================================================
-    canton->overrideCapteur(sens, actif);
+    SA_LOG_TRACE("[Sensor] H = %s\n", actif ? "ACTIF" : "LIBRE");
+}
 
-    SA_LOG_TRACE("[Sensor] EXSA=%u → capteur %s = %s\n",
-                 index_exsa,
-                 (sens == SensHoraire) ? "H" : "AH",
-                 actif ? "ACTIF" : "LIBRE");
+/*
+ * ============================================================
+ *  onPonctuelAH() — Ponctuel côté AH (Anti‑Horaire)
+ * ============================================================
+ */
+void Sensor::onPonctuelAH(uint8_t code)
+{
+    bool actif = (code == PROTO_PONCT_AH_ACTIVE);
+
+    Canton *canton = Canton::s_instance;
+    if (!canton)
+    {
+        SA_LOG_ERROR("[Sensor] Canton::s_instance nul\n");
+        return;
+    }
+
+    canton->overrideCapteur(SensAntiHoraire, actif);
+
+    SA_LOG_TRACE("[Sensor] AH = %s\n", actif ? "ACTIF" : "LIBRE");
 }
