@@ -27,8 +27,8 @@ public:
 
     // Notification EXCC : mise à jour d’une aiguille
     static void onPosition(uint8_t idAig,
-                           uint8_t etat,
-                           uint8_t masque /* ignoré en 2026 */);
+                           uint8_t pos,
+                           uint8_t etat);
 
 private:
     static Canton *s_canton; // Canton supervisé

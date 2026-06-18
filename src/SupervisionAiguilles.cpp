@@ -36,8 +36,8 @@ void SupervisionAiguilles::begin(Canton *canton)
 // Mise à jour d’une aiguille suite à une notification EXCC
 // ---------------------------------------------------------------------------
 void SupervisionAiguilles::onPosition(uint8_t idAig,
-                                      uint8_t etat,
-                                      uint8_t masque /* ignoré en 2026 */)
+                                      uint8_t pos,
+                                      uint8_t etat)
 {
     if (!s_canton)
         return;
@@ -49,10 +49,48 @@ void SupervisionAiguilles::onPosition(uint8_t idAig,
         return;
     }
 
-    bool droit = (etat == 1);
-    aig->estDroit(droit);
+    // --- Sécurité : état envoyé par l’EXCC ---
+    if (etat == PROTO_ETAT_BLOQUE)
+    {
+        CC_LOG_ERROR("[Aiguilles][CC] Aig %u BLOQUÉ → STOP GLOBAL !\n", idAig);
+        s_canton->setStopActive(true);
+        return;
+    }
 
-    CC_LOG_INFO("[Aiguilles][CC] Aig %u = %s\n",
-                idAig,
-                droit ? "DROIT" : "DEVIE");
+    if (etat == PROTO_ETAT_ERREUR)
+    {
+        CC_LOG_ERROR("[Aiguilles][CC] Aig %u ERREUR SWITCH → STOP GLOBAL !\n", idAig);
+        s_canton->setStopActive(true);
+        return;
+    }
+
+    // --- Position physique ---
+    switch (pos)
+    {
+    case PROTO_POS_DROIT:
+        aig->estDroit(true);
+        CC_LOG_INFO("[Aiguilles][CC] Aig %u = DROIT\n", idAig);
+        break;
+
+    case PROTO_POS_DEVIE:
+        aig->estDroit(false);
+        CC_LOG_INFO("[Aiguilles][CC] Aig %u = DEVIE\n", idAig);
+        break;
+
+    case PROTO_POS_INDET:
+        CC_LOG_ERROR("[Aiguilles][CC] Aig %u = INDET → STOP GLOBAL !\n", idAig);
+        s_canton->setStopActive(true);
+        break;
+
+    case PROTO_POS_INCOHERENT:
+        CC_LOG_ERROR("[Aiguilles][CC] Aig %u = INCOHERENT → STOP GLOBAL !\n", idAig);
+        s_canton->setStopActive(true);
+        break;
+
+    default:
+        CC_LOG_ERROR("[Aiguilles][CC] Aig %u = valeur invalide (%u) → STOP GLOBAL !\n",
+                     idAig, pos);
+        s_canton->setStopActive(true);
+        break;
+    }
 }
