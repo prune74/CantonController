@@ -35,8 +35,7 @@ void SupervisionAiguilles::begin(Canton *canton)
 // onPosition()
 // Mise à jour d’une aiguille suite à une notification EXCC
 // ---------------------------------------------------------------------------
-void SupervisionAiguilles::onPosition(uint8_t index_excc,
-                                      uint8_t idAig,
+void SupervisionAiguilles::onPosition(uint8_t idAig,
                                       uint8_t etat,
                                       uint8_t masque /* ignoré en 2026 */)
 {
@@ -46,19 +45,14 @@ void SupervisionAiguilles::onPosition(uint8_t index_excc,
     Aig *aig = s_canton->getAig(idAig);
     if (!aig)
     {
-        CC_LOG_WARN("[Aiguilles][CC] Aiguille %u inconnue (EXCC %u)\n",
-                    idAig, index_excc);
+        CC_LOG_WARN("[Aiguilles][CC] Aiguille %u inconnue\n", idAig);
         return;
     }
 
     bool droit = (etat == 1);
     aig->estDroit(droit);
 
-    // En 2026 : aucun masque n’est maintenu côté Canton
-    // Le paramètre 'masque' est ignoré volontairement.
-
-    CC_LOG_INFO("[Aiguilles][CC] EXCC %u → Aig %u = %s\n",
-                index_excc,
+    CC_LOG_INFO("[Aiguilles][CC] Aig %u = %s\n",
                 idAig,
                 droit ? "DROIT" : "DEVIE");
 }

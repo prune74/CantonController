@@ -20,6 +20,11 @@
  *
  * Ce module ne contient aucune logique métier :
  *   → il distribue simplement les messages reçus.
+ *
+ * NOTE 2026 :
+ *   - les trames EXCC contiennent toujours un INDEX_EXCC
+ *   - certains modules n’utilisent plus cet index (occupation, railcom, booster…)
+ *   - mais il reste indispensable pour EXCC_Link (PING/PONG, supervision)
  */
 
 class CC_UartRx

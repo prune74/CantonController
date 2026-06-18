@@ -133,7 +133,8 @@ void EXCC_Link::onBooster(uint8_t index,
         return;
     }
 
-    Booster::onBooster(index, tension, courant, etat, present);
+    // 🔥 Correction 2026 : suppression de index_excc dans Booster::onBooster()
+    Booster::onBooster(tension, courant, etat, present);
 
     if (present == 1)
     {

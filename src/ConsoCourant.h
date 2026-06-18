@@ -42,10 +42,9 @@ public:
 
     // -----------------------------------------------------------------------
     // onOccupation() — callback appelé par CC_UartRx (PROTO_04)
-    //   index_excc : 0 = côté Horaire, 1 = côté Anti‑Horaire
-    //   code       : PROTO_OCC_ACTIVE / PROTO_OCC_LIBRE
+    //   code : PROTO_OCC_ACTIVE / PROTO_OCC_LIBRE
     // -----------------------------------------------------------------------
-    static void onOccupation(uint8_t index_excc, uint8_t code);
+    static void onOccupation(uint8_t code);
 
     // -----------------------------------------------------------------------
     // updateEtat() — fusion occupation physique + compteur d’essieux

@@ -4,15 +4,7 @@
  * Module de fusion occupation physique (EXCC) + compteur d’essieux.
  *
  * Trame reçue depuis EXCC :
- *   [SYNC][0x04][index_excc][code]
- *
- * index_excc :
- *   0 = côté Horaire
- *   1 = côté Anti‑Horaire
- *
- * Rappel :
- *   - un CC = un canton
- *   - cette information concerne TOUJOURS le canton local
+ *   [SYNC][0x04][code]
  *
  * Rôle :
  *   - recevoir l’occupation physique (PROTO_OCC_ACTIVE / LIBRE)
@@ -76,7 +68,7 @@ void ConsoCourant::updateEtat(bool occupePhysique)
 // ---------------------------------------------------------------------------
 // onOccupation() — callback appelé par CC_UartRx
 // ---------------------------------------------------------------------------
-void ConsoCourant::onOccupation(uint8_t index_excc, uint8_t code)
+void ConsoCourant::onOccupation(uint8_t code)
 {
     bool occPhys = false;
 

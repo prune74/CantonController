@@ -30,8 +30,7 @@ uint16_t Booster::s_seuilOccupe  = 0;
 // ---------------------------------------------------------------------------
 // Mise à jour Booster (tension / courant / état / présence)
 // ---------------------------------------------------------------------------
-void Booster::onBooster(uint8_t index_excc,
-                        uint8_t tension,
+void Booster::onBooster(uint8_t tension,
                         uint8_t courant,
                         uint8_t etat,
                         uint8_t present)
@@ -41,15 +40,14 @@ void Booster::onBooster(uint8_t index_excc,
     s_etat    = etat;
     s_present = present;
 
-    CC_LOG_INFO("[Booster][CC] EXCC %u → U=%u  I=%u  etat=%u  present=%u\n",
-                index_excc, tension, courant, etat, present);
+    CC_LOG_INFO("[Booster][CC] U=%u  I=%u  etat=%u  present=%u\n",
+                tension, courant, etat, present);
 }
 
 // ---------------------------------------------------------------------------
 // Calibration Booster (seuils libre / occupé)
 // ---------------------------------------------------------------------------
-void Booster::onCalib(uint8_t index_excc,
-                      uint8_t libre_L,
+void Booster::onCalib(uint8_t libre_L,
                       uint8_t libre_H,
                       uint8_t occupe_L,
                       uint8_t occupe_H)
@@ -60,8 +58,8 @@ void Booster::onCalib(uint8_t index_excc,
     s_seuilLibre  = libre;
     s_seuilOccupe = occupe;
 
-    CC_LOG_INFO("[Booster][CC] Calib EXCC=%u → libre=%u  occupé=%u\n",
-                index_excc, libre, occupe);
+    CC_LOG_INFO("[Booster][CC] Calib → libre=%u  occupé=%u\n",
+                libre, occupe);
 
     // Mise à jour interne Settings
     Settings::setBoosterSeuilLibre(libre);

@@ -6,10 +6,11 @@
  * Rôle :
  *   - recevoir les positions d’aiguilles envoyées par l’EXCC
  *   - mettre à jour l’état logique des aiguilles dans le CC
- *   - mettre à jour le masque global des aiguilles
  *
- * Ce module reflète l’état réel remonté par l’Extension
- * Canton Controller (EXCC). Il ne pilote pas les servos.
+ * IMPORTANT 2026 :
+ *   - aucun masque d’aiguilles n’est maintenu côté Canton
+ *   - ce module ne pilote pas les servos
+ *   - il reflète uniquement l’état réel remonté par l’EXCC
  */
 
 #pragma once
@@ -25,10 +26,9 @@ public:
     static void begin(Canton *canton);
 
     // Notification EXCC : mise à jour d’une aiguille
-    static void onPosition(uint8_t index_excc,
-                           uint8_t idAig,
+    static void onPosition(uint8_t idAig,
                            uint8_t etat,
-                           uint8_t masque);
+                           uint8_t masque /* ignoré en 2026 */);
 
 private:
     static Canton *s_canton; // Canton supervisé

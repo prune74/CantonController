@@ -21,8 +21,7 @@ public:
     // -----------------------------------------------------------------------
     // PROTO_07 — État booster (EXCC → CC)
     // -----------------------------------------------------------------------
-    static void onBooster(uint8_t index_excc,
-                          uint8_t tension,
+    static void onBooster(uint8_t tension,
                           uint8_t courant,
                           uint8_t etat,
                           uint8_t present);
@@ -30,8 +29,7 @@ public:
     // -----------------------------------------------------------------------
     // PROTO_09 — Seuils calibrés (EXCC → CC)
     // -----------------------------------------------------------------------
-    static void onCalib(uint8_t index_excc,
-                        uint8_t libre_L,
+    static void onCalib(uint8_t libre_L,
                         uint8_t libre_H,
                         uint8_t occupe_L,
                         uint8_t occupe_H);

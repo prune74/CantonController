@@ -28,7 +28,7 @@ public:
     static uint16_t address();
 
     // Callback appelé par CC_UartRx lors d’une trame RailCom
-    static void onRailcom(uint8_t index_excc, uint8_t low, uint8_t high);
+    static void onRailcom(uint8_t low, uint8_t high);
 
 private:
     static volatile uint16_t s_address;  // Dernière adresse RailCom reçue

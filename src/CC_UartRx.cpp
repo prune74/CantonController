@@ -92,7 +92,7 @@ void CC_UartRx::uartTask(void *param)
             step = 2;
             break;
 
-        case 2: // INDEX EXCC
+        case 2: // INDEX EXCC (toujours présent dans la trame 2026)
             index = byte;
             dataPos = 0;
 
@@ -150,7 +150,7 @@ void CC_UartRx::dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t l
         break;
 
     case PROTO_04_OCCUPATION:
-        ConsoCourant::onOccupation(index, data[0]);
+        ConsoCourant::onOccupation(data[0]);
         break;
 
     case PROTO_05_COMPTEUR_ESSIEUX:
@@ -159,7 +159,7 @@ void CC_UartRx::dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t l
         break;
 
     case PROTO_06_POSITION_AIGUILLE:
-        SupervisionAiguilles::onPosition(index, data[0], data[1], data[2]);
+        SupervisionAiguilles::onPosition(data[0], data[1], data[2]);
         break;
 
     case PROTO_07_BOOSTER:
@@ -167,11 +167,11 @@ void CC_UartRx::dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t l
         break;
 
     case PROTO_08_RAILCOM_ADRESSE:
-        Railcom::onRailcom(index, data[0], data[1]);
+        Railcom::onRailcom(data[0], data[1]);
         break;
 
     case PROTO_09_CALIB_BOOSTER:
-        Booster::onCalib(index, data[0], data[1], data[2], data[3]);
+        Booster::onCalib(data[0], data[1], data[2], data[3]);
         break;
 
     case PROTO_PONG:

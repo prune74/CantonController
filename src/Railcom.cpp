@@ -40,11 +40,10 @@ uint16_t Railcom::address()
 // ---------------------------------------------------------------------------
 // Callback : réception d’une adresse RailCom depuis EXCC
 // ---------------------------------------------------------------------------
-void Railcom::onRailcom(uint8_t index_excc, uint8_t low, uint8_t high)
+void Railcom::onRailcom(uint8_t low, uint8_t high)
 {
     uint16_t adr = (uint16_t(high) << 8) | low;
     s_address = adr;
 
-    CC_LOG_INFO("[Railcom][CC] EXCC %u → adresse RailCom = %u\n",
-                index_excc, adr);
+    CC_LOG_INFO("[Railcom][CC] Adresse RailCom = %u\n", adr);
 }
