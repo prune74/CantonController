@@ -25,7 +25,6 @@
  *   - STOP global
  *
  * IMPORTANT 2026 :
- *   - Les rôles ferroviaires ont été supprimés.
  *   - Toute la logique métier dépend désormais uniquement de la topologie.
  */
 
@@ -120,7 +119,6 @@ public:
     // -----------------------------------------------------------------------
     // Signaux (H / AH)
     // -----------------------------------------------------------------------
-    void applyRoleDefaults();  // désormais vide
     uint8_t transitionH();
     uint8_t transitionAH();
     uint8_t transitionAspect(SensDeMarche sens);
@@ -138,7 +136,6 @@ public:
     // Logique métier ferroviaire
     // -----------------------------------------------------------------------
     bool estAccesAutorise(SensDeMarche sens);
-    bool aiguillesConformes(uint8_t masque);
     CantonPeriph *prochainVoisin(SensDeMarche sens);
     bool peutEntrerDansVoisin(SensDeMarche sens);
     bool estSortiePossible(SensDeMarche sens);

@@ -7,8 +7,6 @@
  *   - détecter les voisins via les boutons physiques (MCP23017)
  *   - construire la topologie SP1 / SP2 / SM1 / SM2
  *   - créer les aiguilles LOGIQUES (Aig) en fonction des voisins détectés
- *   - déduire automatiquement le rôle du canton (computeRole)
- *   - appliquer les types de signaux par défaut (applyRoleDefaults)
  *   - sauvegarder settings.json
  *   - envoyer la topologie vers l’Extension Canton Controller (EXCC)
  *

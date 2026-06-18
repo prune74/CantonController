@@ -64,19 +64,6 @@ bool Canton::estAccesAutorise(SensDeMarche sens)
         return false;
     }
 
-    // ✔ 2026 : plus de masque interne → test supprimé
-
-    return true;
-}
-
-/* ============================================================================
- *  aiguillesConformes() — OBSOLÈTE en 2026
- * ---------------------------------------------------------------------------
- *  Conservé uniquement pour compatibilité, mais n’est plus utilisé.
- * ==========================================================================*/
-bool Canton::aiguillesConformes(byte masque)
-{
-    // Fonction obsolète : toujours conforme
     return true;
 }
 

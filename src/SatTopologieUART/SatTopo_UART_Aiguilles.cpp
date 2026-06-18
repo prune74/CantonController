@@ -42,7 +42,7 @@ void envoyerAiguillesDepuisEtatCourant()
         // -------------------------------------------------------------------
         // F0 = mouvement réel
         // -------------------------------------------------------------------
-        envoyerServoMove(idx, direction);
+        aigRun(idx);
 
         CC_LOG_INFO("[TopoUART][CC] F0 → servo=%u direction=%u (estDroit=%u)\n",
                     idx, direction, aig->estDroit());
