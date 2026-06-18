@@ -30,19 +30,7 @@
  * =============================================================================
  */
 
-/**
- * @brief Envoie la topologie SP/SM à EXCC (opcode E4).
- *
- * Lit settings.json, extrait les voisins précédents et suivants,
- * construit la trame E4, puis l’envoie telle quelle à EXCC.
- */
 void envoyerTopologieDepuisSettings();
-
-/**
- * @brief Déclenche automatiquement l’envoi de la topologie dès qu’elle est prête.
- *
- * À appeler régulièrement. Une fois envoyée (E4 + E5), la fonction se désactive.
- */
 void envoyerTopologieSiPret();
 
 /* =============================================================================
@@ -50,19 +38,8 @@ void envoyerTopologieSiPret();
  * =============================================================================
  */
 
-/**
- * @brief Envoie la configuration des signaux (opcode E5).
- */
 void envoyerConfigurationSignauxDepuisSettings();
-
-/**
- * @brief Envoie l’aspect SNCF horaire (opcode E6).
- */
 void envoyerAspectSignalHoraire(uint8_t aspect);
-
-/**
- * @brief Envoie l’aspect SNCF anti‑horaire (opcode E7).
- */
 void envoyerAspectSignalAntiHoraire(uint8_t aspect);
 
 /* =============================================================================
@@ -70,19 +47,8 @@ void envoyerAspectSignalAntiHoraire(uint8_t aspect);
  * =============================================================================
  */
 
-/**
- * @brief Envoie les feux directionnels calculés (opcode E8 + E9).
- */
 void envoyerFeuxDepuisEtatCourant();
-
-/**
- * @brief Envoie le feu directionnel horaire (opcode E8).
- */
 void envoyerFeuDirectionHoraire(uint8_t code);
-
-/**
- * @brief Envoie le feu directionnel anti‑horaire (opcode E9).
- */
 void envoyerFeuDirectionAntiHoraire(uint8_t code);
 
 /* =============================================================================
@@ -90,9 +56,6 @@ void envoyerFeuDirectionAntiHoraire(uint8_t code);
  * =============================================================================
  */
 
-/**
- * @brief Envoie l’état logique des aiguilles (opcode F0).
- */
 void envoyerAiguillesDepuisEtatCourant();
 
 /* =============================================================================
@@ -102,19 +65,20 @@ void envoyerAiguillesDepuisEtatCourant();
 
 /**
  * @brief Envoie une commande de mouvement réel du servo (opcode F0).
+ * @param servoIndex Index du servo (0..5)
+ * @param direction  0 = droit, 1 = dévié
  */
-void envoyerServoMove(uint8_t exsaAdresse, uint8_t servoIndex);
+void envoyerServoMove(uint8_t servoIndex, uint8_t direction);
 
 /**
- * @brief Envoie la configuration des servos (opcode F1).
+ * @brief Envoie la configuration des servos (opcode F1) depuis settings.json.
  */
 void envoyerConfigurationServosDepuisSettings();
 
 /**
  * @brief Envoie une configuration servo individuelle (opcode F1).
  */
-void envoyerServoConfig(uint8_t exsaAdresse,
-                        uint8_t servoIndex,
+void envoyerServoConfig(uint8_t servoIndex,
                         uint16_t posDroit,
                         uint16_t posDevie,
                         uint16_t speed);
@@ -122,21 +86,14 @@ void envoyerServoConfig(uint8_t exsaAdresse,
 /**
  * @brief Envoie une commande de test servo (opcode F2).
  */
-void envoyerServoTest(uint8_t exsaAdresse, uint8_t servoIndex);
+void envoyerServoTest(uint8_t servoIndex);
 
 /* =============================================================================
  *  SECTION 6 — OCCUPATION (EA)
  * =============================================================================
  */
 
-/**
- * @brief Envoie l’occupation SP1 / SM1 (opcode EA).
- */
 void envoyerOccupationDepuisEtatCourant();
-
-/**
- * @brief Envoie directement la valeur d’occupation (2 bits).
- */
 void envoyerOccupationVoisins(uint8_t valeur);
 
 /* =============================================================================
@@ -144,7 +101,4 @@ void envoyerOccupationVoisins(uint8_t valeur);
  * =============================================================================
  */
 
-/**
- * @brief Envoie les aspects SNCF calculés (opcode E6 + E7).
- */
 void envoyerAspectsDepuisEtatCourant();

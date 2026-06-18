@@ -4,7 +4,6 @@
  * Gestion des réglages d’aiguilles via l’interface Web :
  *   - mise à jour des positions logiques droite / déviée
  *   - mise à jour de la vitesse logique (slider 0–10)
- *   - détermination de l’EXCC concerné (H / AH)
  *   - envoi RS485 F1 (servoConfig) et F2 (servoTest)
  *
  * Le CC ne pilote aucun servo :
@@ -25,8 +24,8 @@
 // ---------------------------------------------------------------------------
 void WebHandler::handleServoSettings(JsonDocument &doc)
 {
-    const char *servoId   = doc["servoSettings"][0];
-    const uint16_t value  = doc["servoSettings"][1];
+    const char *servoId     = doc["servoSettings"][0];
+    const uint16_t value    = doc["servoSettings"][1];
     const uint8_t servoName = doc["servoSettings"][2];
 
     Aig *aig = canton->getAig(servoName);
@@ -73,19 +72,14 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
     uint16_t speed = 11000 - (speedSlider * 1000);
 
     // -----------------------------------------------------------------------
-    // 3) Détermination EXCC H/AH
+    // 3) EXCC unique : plus d’adresse 0/1, plus de logique H/AH
     // -----------------------------------------------------------------------
-    uint8_t exccAdresse =
-        (aig->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
-
-    CC_LOG_TRACE("[Aiguilles][CC] EXCC sélectionné = %u pour aiguille %u\n",
-                 exccAdresse, servoName);
+    CC_LOG_TRACE("[Aiguilles][CC] EXCC unique pour aiguille %u\n", servoName);
 
     // -----------------------------------------------------------------------
     // 4) Envoi RS485 F1 : servoConfig
     // -----------------------------------------------------------------------
     envoyerServoConfig(
-        exccAdresse,
         servoName,
         posDroit,
         posDevie,
@@ -107,11 +101,8 @@ void WebHandler::handleServoTest(JsonDocument &doc)
         return;
     }
 
-    uint8_t exccAdresse =
-        (aig->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
+    CC_LOG_INFO("[Aiguilles][CC] Test aiguille %u via EXCC unique\n",
+                servoName);
 
-    CC_LOG_INFO("[Aiguilles][CC] Test aiguille %u via EXCC %u\n",
-                servoName, exccAdresse);
-
-    envoyerServoTest(exccAdresse, servoName);
+    envoyerServoTest(servoName);
 }

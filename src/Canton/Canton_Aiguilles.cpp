@@ -4,11 +4,10 @@
  * Pilotage des aiguilles via EXCC (RS485).
  *
  * Rôle :
- *   - envoyer une commande F0 (servoMove) à l’EXCC concerné
- *   - déterminer automatiquement si l’aiguille appartient au côté H ou AH
+ *   - envoyer une commande F0 (servoMove) à l’EXCC
  *
  * IMPORTANT 2026 :
- *   - Le SA ne pilote plus les servos localement.
+ *   - Le CC ne pilote plus les servos localement.
  *   - Toute commande d’aiguille est envoyée à EXCC via RS485.
  *   - EXCC pilote physiquement les servos.
  *
@@ -58,41 +57,24 @@ void Canton::aigRun(byte idx)
     }
 
     // ------------------------------------------------------------------------
-    // Détermination de l’adresse EXCC :
-    //   - EXCC 0 = côté horaire (SP1)
-    //   - EXCC 1 = côté anti‑horaire (SM1)
+    // EXCC unique : plus de distinction H/AH, plus d’adresse 0/1
+    // On envoie simplement :
+    //    - l’index du servo
+    //    - la direction logique (0=droit, 1=devie)
     // ------------------------------------------------------------------------
-    uint8_t exccAdresse = 0;
+    uint8_t direction = aig[idx]->estDroit() ? 0 : 1;
 
-    if (aig[idx]->cantonPdroitIdx() == m_SP1_idx ||
-        aig[idx]->cantonPdevieIdx() == m_SP1_idx)
-    {
-        exccAdresse = 0; // côté horaire
-    }
-    else
-    {
-        exccAdresse = 1; // côté anti‑horaire
-    }
-
-    CC_LOG_INFO("[Canton %u][Aiguilles][CC] aigRun() → EXCC=%u, aiguille=%u\n",
-                m_id, exccAdresse, idx);
+    CC_LOG_INFO("[Canton %u][Aiguilles][CC] aigRun() → servo=%u direction=%u\n",
+                m_id, idx, direction);
 
     // ------------------------------------------------------------------------
     // Envoi de la commande F0 (servoMove)
     // ------------------------------------------------------------------------
-    envoyerServoMove(exccAdresse, idx);
+    envoyerServoMove(idx, direction);
 }
 
 /* ============================================================================
  *  getAiguillePosition() — Lecture logique de l’aiguille
- * ---------------------------------------------------------------------------
- *  Retourne :
- *    - 0 si l’aiguille est en position DROITE
- *    - 1 si l’aiguille est en position DEVIÉE
- *
- *  NOTE :
- *    Ce n’est PAS la position physique du servo.
- *    C’est la position logique stockée dans Aig.cpp.
  * ==========================================================================*/
 uint8_t Canton::getAiguillePosition(uint8_t idx) const
 {

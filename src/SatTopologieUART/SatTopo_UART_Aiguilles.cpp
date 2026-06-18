@@ -1,23 +1,12 @@
 /*
  * SatTopo_UART_Aiguilles.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Envoi des mouvements réels d’aiguilles vers les EXCC via UART (commande F0).
- *
- * Rôle :
- *   - pour chaque aiguille logique (0..5)
- *       • déterminer quel EXCC la pilote (côté H ou AH)
- *       • envoyer F0 pour déclencher le mouvement réel
+ * Envoi des mouvements réels d’aiguilles vers l’EXCC via UART (commande F0).
  *
  * IMPORTANT :
- *   - ce module ne décide PAS de la position (droit/dévié)
- *   - ce module ne lit PAS les positions servo
- *   - ce module ne calcule PAS la topologie
- *
- * Toute la logique métier (estDroit(), posDroit(), posDevie(), etc.)
- * est gérée dans Aig.cpp et Canton_Aiguilles.cpp.
- *
- * Ici, on se contente d’envoyer :
- *      “Bouge l’aiguille X selon son état logique actuel”
+ *   - EXCC est unique → plus de côté H/AH
+ *   - aucune adresse 0/1 n’est envoyée
+ *   - on envoie seulement : servoIndex + direction logique
  */
 
 #include "SatTopologieUART.h"
@@ -46,18 +35,17 @@ void envoyerAiguillesDepuisEtatCourant()
             continue;
 
         // -------------------------------------------------------------------
-        // Déterminer quel EXCC pilote cette aiguille
+        // EXCC unique : direction = état logique de l’aiguille
         // -------------------------------------------------------------------
-        uint8_t exccAdresse =
-            (aig->cantonPdroitIdx() == Settings::canton->SP1_idx()) ? 0 : 1;
+        uint8_t direction = aig->estDroit() ? 0 : 1;
 
         // -------------------------------------------------------------------
         // F0 = mouvement réel
         // -------------------------------------------------------------------
-        envoyerServoMove(exccAdresse, idx);
+        envoyerServoMove(idx, direction);
 
-        CC_LOG_INFO("[TopoUART][CC] F0 → EXCC %u, aiguille %u (estDroit=%u)\n",
-                    exccAdresse, idx, aig->estDroit());
+        CC_LOG_INFO("[TopoUART][CC] F0 → servo=%u direction=%u (estDroit=%u)\n",
+                    idx, direction, aig->estDroit());
     }
 
     CC_LOG_INFO("[TopoUART][CC] Aiguilles renvoyées (F0) après reboot EXCC\n");

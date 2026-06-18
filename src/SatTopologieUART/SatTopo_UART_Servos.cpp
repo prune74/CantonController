@@ -1,7 +1,7 @@
 /*
  * SatTopo_UART_Servos.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Transmission des commandes servo vers les EXCC via UART.
+ * Transmission des commandes servo vers l’EXCC via UART.
  *
  * OpCodes :
  *   - F0 : mouvement réel (servoMove)
@@ -40,20 +40,22 @@ extern HardwareSerial Serial1;
 
 /* ============================================================================
  *  F0 — Mouvement réel du servo
+ *  EXCC attend : data[0] = servoIndex, data[1] = direction (0=droit, 1=devie)
  * ==========================================================================*/
-void envoyerServoMove(uint8_t exccAdresse, uint8_t servoIndex)
+void envoyerServoMove(uint8_t servoIndex, uint8_t direction)
 {
-    CC_LOG_INFO("[ServoUART][CC] Move : excc=%u servo=%u\n",
-                exccAdresse, servoIndex);
+    CC_LOG_INFO("[ServoUART][CC] Move : servo=%u direction=%u\n",
+                servoIndex, direction);
 
     Serial1.write(PROTO_SYNC_BYTE);
     Serial1.write(PROTO_F0_SERVO_MOVE);
-    Serial1.write(exccAdresse);
     Serial1.write(servoIndex);
+    Serial1.write(direction);
 }
 
 /* ============================================================================
  *  Envoi de la configuration des servos depuis settings.json (F1)
+ *  EXCC attend : idx, posDroit, posDevie, speed
  * ==========================================================================*/
 void envoyerConfigurationServosDepuisSettings()
 {
@@ -89,12 +91,6 @@ void envoyerConfigurationServosDepuisSettings()
             continue;
 
         // -------------------------------------------------------------------
-        // Déterminer quel EXCC pilote ce servo
-        // -------------------------------------------------------------------
-        uint8_t exccAdresse =
-            (aig->cantonPdroitIdx() == Settings::canton->SP1_idx()) ? 0 : 1;
-
-        // -------------------------------------------------------------------
         // Lecture JSON (source de vérité)
         // -------------------------------------------------------------------
         char keyPosDroit[16];
@@ -115,12 +111,12 @@ void envoyerConfigurationServosDepuisSettings()
         uint16_t speed = 11000 - (speedSlider * 1000);
 
         // -------------------------------------------------------------------
-        // Envoi F1
+        // Envoi F1 (EXCC unique, pas d’adresse)
         // -------------------------------------------------------------------
-        envoyerServoConfig(exccAdresse, servo, posDroit, posDevie, speed);
+        envoyerServoConfig(servo, posDroit, posDevie, speed);
 
-        CC_LOG_INFO("[ServoUART][CC] F1 → EXCC %u, servo %u (D:%u V:%u S:%u)\n",
-                    exccAdresse, servo, posDroit, posDevie, speed);
+        CC_LOG_INFO("[ServoUART][CC] F1 → servo %u (D:%u V:%u S:%u)\n",
+                    servo, posDroit, posDevie, speed);
     }
 
     CC_LOG_INFO("[ServoUART][CC] Configuration servos envoyée\n");
@@ -129,18 +125,16 @@ void envoyerConfigurationServosDepuisSettings()
 /* ============================================================================
  *  F1 — Configuration servo
  * ==========================================================================*/
-void envoyerServoConfig(uint8_t exccAdresse,
-                        uint8_t servoIndex,
+void envoyerServoConfig(uint8_t servoIndex,
                         uint16_t posDroit,
                         uint16_t posDevie,
                         uint16_t speed)
 {
-    CC_LOG_INFO("[ServoUART][CC] Config : excc=%u servo=%u droit=%u devie=%u speed=%u\n",
-                exccAdresse, servoIndex, posDroit, posDevie, speed);
+    CC_LOG_INFO("[ServoUART][CC] Config : servo=%u droit=%u devie=%u speed=%u\n",
+                servoIndex, posDroit, posDevie, speed);
 
     Serial1.write(PROTO_SYNC_BYTE);
     Serial1.write(PROTO_F1_SERVO_CONFIG);
-    Serial1.write(exccAdresse);
     Serial1.write(servoIndex);
 
     Serial1.write(posDroit >> 8);
@@ -156,13 +150,11 @@ void envoyerServoConfig(uint8_t exccAdresse,
 /* ============================================================================
  *  F2 — Test servo
  * ==========================================================================*/
-void envoyerServoTest(uint8_t exccAdresse, uint8_t servoIndex)
+void envoyerServoTest(uint8_t servoIndex)
 {
-    CC_LOG_INFO("[ServoUART][CC] Test : excc=%u servo=%u\n",
-                exccAdresse, servoIndex);
+    CC_LOG_INFO("[ServoUART][CC] Test : servo=%u\n", servoIndex);
 
     Serial1.write(PROTO_SYNC_BYTE);
     Serial1.write(PROTO_F2_SERVO_TEST);
-    Serial1.write(exccAdresse);
     Serial1.write(servoIndex);
 }
