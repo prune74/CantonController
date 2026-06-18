@@ -1,20 +1,33 @@
 /*
- * Canton_Occupation.cpp — Gestion de l’occupation du canton
+ * Canton_Occupation.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Gestion de l’occupation logique du canton :
+ *   - busy()      : occupation physique (EXCC / courant)
+ *   - reserved()  : réservation logique (adresse loco)
+ *   - estOccupe() : synthèse occupation + réservation
+ *   - maxSpeed()  : limitation locale de vitesse
+ *   - sensMarche(): sens logique de circulation
+ *
+ * IMPORTANT :
+ *   - aucune logique métier ici
+ *   - aucune décision ferroviaire
+ *   - ce module ne fait que stocker et exposer des états internes
  */
 
 #include "Canton.h"
 #include "Config.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 /* ============================================================================
- * busy()
- * ============================================================================
- */
-
+ *  busy() — Occupation physique
+ * ---------------------------------------------------------------------------
+ *  v = true  → canton occupé (courant détecté)
+ *  v = false → canton libre
+ * ==========================================================================*/
 void Canton::busy(bool v)
 {
     m_busy = v;
-    SA_LOG_TRACE("[Canton %u] busy() = %d\n", m_id, m_busy);
+    CC_LOG_TRACE("[Canton %u][Occ][CC] busy = %d\n", m_id, m_busy);
 }
 
 bool Canton::busy()
@@ -23,14 +36,15 @@ bool Canton::busy()
 }
 
 /* ============================================================================
- * reserved()
- * ============================================================================
- */
-
+ *  reserved() — Réservation logique
+ * ---------------------------------------------------------------------------
+ *  addr = adresse DCC de la loco réservant le canton
+ *  addr = 0 → aucune réservation
+ * ==========================================================================*/
 void Canton::reserved(uint16_t addr)
 {
     m_reserved = addr;
-    SA_LOG_TRACE("[Canton %u] reserved() = %u\n", m_id, m_reserved);
+    CC_LOG_TRACE("[Canton %u][Occ][CC] reserved = %u\n", m_id, m_reserved);
 }
 
 uint16_t Canton::reserved()
@@ -39,24 +53,26 @@ uint16_t Canton::reserved()
 }
 
 /* ============================================================================
- * estOccupe()
- * ============================================================================
- */
-
+ *  estOccupe() — Synthèse occupation + réservation
+ * ---------------------------------------------------------------------------
+ *  Retourne true si :
+ *    - courant détecté (busy)
+ *    - OU réservation active (reserved != 0)
+ * ==========================================================================*/
 bool Canton::estOccupe()
 {
     return (m_busy || m_reserved != 0);
 }
 
 /* ============================================================================
- * maxSpeed()
- * ============================================================================
- */
-
+ *  maxSpeed() — Limitation locale de vitesse
+ * ---------------------------------------------------------------------------
+ *  Valeur utilisée par la supervision pour brider la loco.
+ * ==========================================================================*/
 void Canton::maxSpeed(uint8_t v)
 {
     m_maxSpeed = v;
-    SA_LOG_TRACE("[Canton %u] maxSpeed() = %u\n", m_id, m_maxSpeed);
+    CC_LOG_TRACE("[Canton %u][Occ][CC] maxSpeed = %u\n", m_id, m_maxSpeed);
 }
 
 uint8_t Canton::maxSpeed()
@@ -65,14 +81,15 @@ uint8_t Canton::maxSpeed()
 }
 
 /* ============================================================================
- * sensMarche() — Version Exploration 2026
- * ============================================================================
- */
-
+ *  sensMarche() — Sens logique de circulation (Exploration 2026)
+ * ---------------------------------------------------------------------------
+ *  SensHoraire / SensAntiHoraire
+ * ==========================================================================*/
 void Canton::sensMarche(SensDeMarche v)
 {
     m_sensMarche = v;
-    SA_LOG_TRACE("[Canton %u] sensMarche() = %u\n", m_id, (uint8_t)m_sensMarche);
+    CC_LOG_TRACE("[Canton %u][Occ][CC] sensMarche = %u\n",
+                 m_id, (uint8_t)m_sensMarche);
 }
 
 SensDeMarche Canton::sensMarche()

@@ -1,52 +1,142 @@
 {
+  // Mode autonome (pas de Carte-Maitresse-Exploration-Reseau)
   "standalone": true,
+
+  // Identifiant du canton (255 = non configuré)
   "idCanton": 255,
+
+  // WiFi activé ou non
   "wifi_on": true,
+
+  // Identifiants WiFi
   "ssid": "Bbox-E51CC95D",
   "password": "53DA477752646293F62EEEDD9F21D2",
+
+  // Exploration (scan des voisins)
   "exploration_on": false,
+
+  // Booster activé
   "booster_on": true,
+
+  // Seuils du booster (libre / occupé)
   "booster_seuil_libre": 50,
   "booster_seuil_occupe": 200,
-  "p00": 255,
-  "p01": 255,
-  "p10": 255,
-  "p11": 255,
-  "m00": 255,
-  "m01": 255,
-  "m10": 255,
-  "m11": 255,
+
+  // Voisins EXCC (p00…m11)
+  // "null" = pas de voisin
+  "p00": "null",
+  "p01": "null",
+  "p10": "null",
+  "p11": "null",
+  "m00": "null",
+  "m01": "null",
+  "m10": "null",
+  "m11": "null",
+
+  // Indices des voisins principaux
   "SP1_idx": 0,
   "SM1_idx": 0,
+
+  // Accès secondaires autorisés
   "SP2_acces": true,
   "SM2_acces": true,
-  "comptAig": 0,
+
+  // Masques d’aiguilles
   "masqueAig": 0,
+  "masqueAigSP2": 0,
+  "masqueAigSM2": 0,
+
+  // Nombre d’aiguilles
+  "comptAig": 0,
+
+  // Aiguilles (aig0…aig5)
+  // "null" = aucune aiguille configurée
+  "aig0": "null",
+  "aig1": "null",
+  "aig2": "null",
+  "aig3": "null",
+  "aig4": "null",
+  "aig5": "null",
+
+  // Identifiants des aiguilles
+  "aig0id": 0,
+  "aig1id": 0,
+  "aig2id": 0,
+  "aig3id": 0,
+  "aig4id": 0,
+  "aig5id": 0,
+
+  // Positions servo (voie droite)
   "aig0posDroit": 0,
   "aig1posDroit": 0,
   "aig2posDroit": 0,
   "aig3posDroit": 0,
   "aig4posDroit": 0,
   "aig5posDroit": 0,
+
+  // Positions servo (voie déviée)
   "aig0posDevie": 0,
   "aig1posDevie": 0,
   "aig2posDevie": 0,
   "aig3posDevie": 0,
   "aig4posDevie": 0,
   "aig5posDevie": 0,
+
+  // Vitesse des servos
   "aig0speed": 0,
   "aig1speed": 0,
   "aig2speed": 0,
   "aig3speed": 0,
   "aig4speed": 0,
   "aig5speed": 0,
+
+  // Indices des cantons voisins selon la position de l’aiguille
+  "aig0cantonPdroitIdx": 0,
+  "aig1cantonPdroitIdx": 0,
+  "aig2cantonPdroitIdx": 0,
+  "aig3cantonPdroitIdx": 0,
+  "aig4cantonPdroitIdx": 0,
+  "aig5cantonPdroitIdx": 0,
+
+  "aig0cantonPdevieIdx": 0,
+  "aig1cantonPdevieIdx": 0,
+  "aig2cantonPdevieIdx": 0,
+  "aig3cantonPdevieIdx": 0,
+  "aig4cantonPdevieIdx": 0,
+  "aig5cantonPdevieIdx": 0,
+
+  // Rôle ferroviaire (0 = pleine voie)
   "role": 0,
+
+  // Vitesse max autorisée
   "maxSpeed": 128,
+
+  // Sens de marche (0 = normal)
   "sensMarche": 0,
+
+  // Signaux (null = aucun)
   "sign0": "null",
   "sign1": "null",
+
+  // Type de signal (0 = aucun)
   "sign0type": 0,
   "sign1type": 0,
+
+  // Position du signal (0 = par défaut)
   "sign0position": 0,
-  "sign1position": 0
+  "sign1position": 0,
+
+  // Feux directionnels
+  "direction": {
+    "H": {
+      "active": false,
+      "codeBarre": "",
+      "voieDuVoisin": {}
+    },
+    "AH": {
+      "active": false,
+      "codeBarre": "",
+      "voieDuVoisin": {}
+    }
+  }
 }

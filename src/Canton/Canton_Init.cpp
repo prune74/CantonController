@@ -1,18 +1,30 @@
 /*
- * Canton_Init.cpp — Initialisation du canton (Canton)
+ * Canton_Init.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
+ * Initialisation complète du canton :
+ *   - création des structures internes (CantonPeriph, Aig, Signal, Loco)
+ *   - initialisation du capteur d’occupation (ConsoCourant)
+ *   - configuration du MCP23017 (si présent)
+ *
+ * IMPORTANT :
+ *   - aucune logique métier ici
+ *   - aucune décision ferroviaire
+ *   - uniquement la mise en place des objets internes
  */
 
 #include "Canton.h"
 #include "Config.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include "ConsoCourant.h"
 
-// ---------------------------------------------------------------------------
-// Définition du singleton Canton (un seul canton par SA)
-// ---------------------------------------------------------------------------
+/* ============================================================================
+ *  Singleton Canton (un seul canton par CC)
+ * ==========================================================================*/
 Canton *Canton::s_instance = nullptr;
 
+/* ============================================================================
+ *  Constructeur
+ * ==========================================================================*/
 Canton::Canton()
     : m_id(UNUSED_ID),
       m_busy(false),
@@ -36,64 +48,59 @@ Canton::Canton()
       loco(nullptr),
       occupation(nullptr)
 {
-    // ----------------------------------------------------------------------
-    // 🔥 Initialisation du singleton
-    // ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
+     *  Singleton
+     * ------------------------------------------------------------------------ */
     s_instance = this;
 
-    SA_LOG_TRACE("[Canton] Construction du canton (ID=%u)\n", m_id);
+    CC_LOG_TRACE("[Canton %u][Init][CC] Construction du canton\n", m_id);
 
-    // ----------------------------------------------------------------------
-    // Création des CantonPeriph (voisins)
-    // ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
+     *  Création des CantonPeriph (voisins)
+     * ------------------------------------------------------------------------ */
     for (uint8_t i = 0; i < cantonPsize; i++)
     {
         cantonP[i] = new CantonPeriph();
         cantonP[i]->ID(UNUSED_ID); // par défaut : absent
     }
 
-    // ----------------------------------------------------------------------
-    // Création des aiguilles logiques
-    // ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
+     *  Création des aiguilles logiques
+     * ------------------------------------------------------------------------ */
     for (uint8_t i = 0; i < aigSize; i++)
-    {
         aig[i] = new Aig();
-        // Aig est déjà correctement initialisée dans son constructeur
-    }
 
-    // ----------------------------------------------------------------------
-    // Création des signaux (AH = 0, H = 1)
-    // ----------------------------------------------------------------------
-    signal[0] = new Signal(); // AH
-    signal[1] = new Signal(); // H
+    /* ------------------------------------------------------------------------
+     *  Création des signaux (AH = 0, H = 1)
+     * ------------------------------------------------------------------------ */
+    signal[0] = new Signal(); // anti‑horaire
+    signal[1] = new Signal(); // horaire
 
-    // ----------------------------------------------------------------------
-    // Capteurs ponctuels virtuels (EXSA → SA)
-    // ----------------------------------------------------------------------
-    // ⚠️ En Exploration 2026, les capteurs sont VIRTUELS (PROTO_03)
-    // → Pas de GPIO
-    // → Pas de Sensor::setup()
-    // → L’état est mis à jour via SA_UartRx
+    /* ------------------------------------------------------------------------
+     *  Capteurs ponctuels virtuels (EXCC → CC)
+     *  → Pas de GPIO, pas de setup matériel
+     * ------------------------------------------------------------------------ */
 
-    // ----------------------------------------------------------------------
-    // Loco interne
-    // ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
+     *  Loco interne
+     * ------------------------------------------------------------------------ */
     loco = new Loco();
 
-    // ----------------------------------------------------------------------
-    // Capteur d’occupation (courant) — EXSA UART
-    // ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
+     *  Capteur d’occupation (courant) — EXCC UART
+     * ------------------------------------------------------------------------ */
     occupation = new ConsoCourant;
     occupation->setup(this);
 
-    SA_LOG_TRACE("[Canton] CantonPeriph + Aig + Signal + Loco + ConsoCourant initialisés\n");
+    CC_LOG_TRACE("[Canton %u][Init][CC] CantonPeriph + Aig + Signal + Loco + ConsoCourant initialisés\n",
+                 m_id);
 }
 
+/* ============================================================================
+ *  Destructeur
+ * ==========================================================================*/
 Canton::~Canton()
 {
-    // ----------------------------------------------------------------------
-    // 🔥 Destruction propre (jamais en cours d’exécution FreeRTOS)
-    // ----------------------------------------------------------------------
     for (uint8_t i = 0; i < cantonPsize; i++)
         delete cantonP[i];
 
@@ -106,13 +113,26 @@ Canton::~Canton()
     delete occupation;
     delete loco;
 
-    SA_LOG_TRACE("[Canton] Destruction du canton (ID=%u)\n", m_id);
+    CC_LOG_TRACE("[Canton %u][Init][CC] Destruction du canton\n", m_id);
 }
 
-// ---------------------------------------------------------------------------
-// Identité du canton (ID Canton)
-// ---------------------------------------------------------------------------
+/* ============================================================================
+ *  Initialisation du MCP23017 (GPIO expander)
+ * ==========================================================================*/
+void Canton::initMCP()
+{
+    if (!mcp.begin_I2C(0x20))   // adresse par défaut
+    {
+        CC_LOG_ERROR("[Canton %u][Init][CC] MCP23017 introuvable !\n", m_id);
+        return;
+    }
 
+    CC_LOG_INFO("[Canton %u][Init][CC] MCP23017 initialisé\n", m_id);
+}
+
+/* ============================================================================
+ *  Identité du canton
+ * ==========================================================================*/
 void Canton::ID(uint16_t id)
 {
     m_id = id;
@@ -123,59 +143,62 @@ uint16_t Canton::ID()
     return m_id;
 }
 
-// ---------------------------------------------------------------------------
-// Validation de la topologie (SP1_idx / SM1_idx)
-// ---------------------------------------------------------------------------
+/* ============================================================================
+ *  Validation de la topologie (SP1_idx / SM1_idx)
+ * ==========================================================================*/
 void Canton::validateTopology()
 {
     if (m_SP1_idx >= cantonPsize)
     {
-        SA_LOG_WARN("[Canton %u] SP1_idx invalide (%u) → remis à 0\n",
+        CC_LOG_WARN("[Canton %u][Init][CC] SP1_idx invalide (%u) → remis à 0\n",
                     m_id, m_SP1_idx);
         m_SP1_idx = 0;
     }
 
     if (m_SM1_idx >= cantonPsize)
     {
-        SA_LOG_WARN("[Canton %u] SM1_idx invalide (%u) → remis à 0\n",
+        CC_LOG_WARN("[Canton %u][Init][CC] SM1_idx invalide (%u) → remis à 0\n",
                     m_id, m_SM1_idx);
         m_SM1_idx = 0;
     }
 }
 
-// ---------------------------------------------------------------------------
-// Détection du sens de marche initial à partir des capteurs virtuels
-// ---------------------------------------------------------------------------
+/* ============================================================================
+ *  Détection du sens de marche initial
+ * ==========================================================================*/
 void Canton::detectInitialDirection()
 {
     bool ah = sensor[IDX_CAPT_ANTIHORAIRE].state();
-    bool h = sensor[IDX_CAPT_HORAIRE].state();
+    bool h  = sensor[IDX_CAPT_HORAIRE].state();
 
     if (ah && !h)
     {
         m_sensMarche = SensAntiHoraire;
-        SA_LOG_INFO("[Canton %u] Sens initial détecté : anti‑horaire\n", m_id);
+        CC_LOG_INFO("[Canton %u][Init][CC] Sens initial : anti‑horaire\n", m_id);
     }
     else if (h && !ah)
     {
         m_sensMarche = SensHoraire;
-        SA_LOG_INFO("[Canton %u] Sens initial détecté : horaire\n", m_id);
+        CC_LOG_INFO("[Canton %u][Init][CC] Sens initial : horaire\n", m_id);
     }
     else
     {
-        SA_LOG_TRACE("[Canton %u] Sens initial indéterminé\n", m_id);
+        CC_LOG_TRACE("[Canton %u][Init][CC] Sens initial indéterminé\n", m_id);
     }
 }
 
+/* ============================================================================
+ *  logInitialState() — Diagnostic de démarrage
+ * ==========================================================================*/
 void Canton::logInitialState()
 {
-    SA_LOG_INFO("==============================================\n");
-    SA_LOG_INFO("[Canton %u] Démarrage du canton\n", m_id);
-    SA_LOG_INFO("Rôle ferroviaire : %u\n", m_role);
-    SA_LOG_INFO("SP1_idx=%u | SM1_idx=%u\n", m_SP1_idx, m_SM1_idx);
-    SA_LOG_INFO("Capteur AH=%d | H=%d\n",
+    CC_LOG_INFO("============================================================\n");
+    CC_LOG_INFO("[Canton %u][Init][CC] Démarrage du canton\n", m_id);
+    CC_LOG_INFO("Rôle ferroviaire : %u\n", m_role);
+    CC_LOG_INFO("SP1_idx=%u | SM1_idx=%u\n", m_SP1_idx, m_SM1_idx);
+    CC_LOG_INFO("Capteur AH=%d | H=%d\n",
                 sensor[IDX_CAPT_ANTIHORAIRE].state(),
                 sensor[IDX_CAPT_HORAIRE].state());
-    SA_LOG_INFO("Occupation initiale : %d\n", m_busy);
-    SA_LOG_INFO("==============================================\n");
+    CC_LOG_INFO("Occupation initiale : %d\n", m_busy);
+    CC_LOG_INFO("============================================================\n");
 }

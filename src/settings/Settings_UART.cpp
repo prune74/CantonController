@@ -1,62 +1,54 @@
 /*
- * Settings_UART.cpp — Gestion UART RS485 (SA → EXSA)
+ * Settings_UART.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Rôle :
- *   - Initialiser l’UART matériel utilisé pour communiquer avec les EXSA
- *   - Fournir un accès centralisé via Settings::uart()
- *   - Assurer une initialisation robuste et loggée
+ * Gestion de l’UART RS485 utilisé pour communiquer avec le EXCC.
  *
- * Ce module est totalement indépendant :
+ * Rôle :
+ *   - initialiser l’UART matériel (baudrate, format, broches)
+ *   - fournir un accès centralisé via Settings::uart()
+ *   - assurer une initialisation robuste et loggée
+ *
+ * Module indépendant :
  *   - pas de JSON
  *   - pas de SPIFFS
  *   - pas de CAN
  *
- * Il est appelé depuis Settings::setup().
+ * Appelé depuis Settings::setup().
  */
 
 #include "Settings.h"
 #include "Config.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include <HardwareSerial.h>
 
-// UART matériel partagé entre EXSA_H et EXSA_AH
-HardwareSerial Settings::SerialUART(1);
+// UART matériel du Canton Controller (port défini dans Config.h)
+HardwareSerial Settings::SerialUART(UART_PORT_NUM);
 
-/*
- * uart()
- * ---------------------------------------------------------------------------
- * Retourne une référence vers l’UART RS485 utilisé pour la communication
- * SA → EXSA.
- */
-HardwareSerial& Settings::uart()
+/* ============================================================================
+ *  uart() — Accès centralisé à l’UART RS485
+ * ==========================================================================*/
+HardwareSerial &Settings::uart()
 {
     return SerialUART;
 }
 
-/*
- * setupUART()
- * ---------------------------------------------------------------------------
- * Initialise l’UART matériel :
- *   - baudrate défini dans Config.h
- *   - format 8N1
- *   - broches RX/TX définies dans Config.h
- *
- * Cette fonction est appelée depuis Settings::setup().
- */
+/* ============================================================================
+ *  setupUART() — Initialisation de l’UART RS485
+ * ==========================================================================*/
 void Settings::setupUART()
 {
     SerialUART.begin(
         UART_BAUDRATE,
         SERIAL_8N1,
-        UART_RX_SATELLITE,
-        UART_TX_SATELLITE
+        UART_RX_CANTON,
+        UART_TX_CANTON
     );
 
-    Serial.printf(
-        "[Settings][UART] Initialisé sur UART%d à %lu bauds (RX=%d, TX=%d)\n",
+    CC_LOG_INFO(
+        "[Settings][UART][CC] Initialisé sur UART%d à %lu bauds (RX=%d, TX=%d)\n",
         UART_PORT_NUM,
         UART_BAUDRATE,
-        UART_RX_SATELLITE,
-        UART_TX_SATELLITE
+        UART_RX_CANTON,
+        UART_TX_CANTON
     );
 }

@@ -1,65 +1,90 @@
-div {
-    margin-top: 50px;
-    margin-bottom: 50px;
+/* ============================================================================
+ * Style Exploration 2026 — Interface Canton
+ * ==========================================================================*/
+
+/* --- Réinitialisation légère --- */
+body {
+    background: #f3f3f3;
+    font-family: "Segoe UI", Roboto, sans-serif;
 }
 
-.container {
-    position: relative;
-    padding-left: 35px;
-    margin-bottom: 12px;
-    cursor: pointer;
-    font-size: 22px;
-    user-select: none;
+/* --- Sections principales --- */
+section {
+    margin-top: 25px;
+    margin-bottom: 25px;
 }
 
-/* Hide the browser's default checkbox */
-.container input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
+/* --- Titres de section --- */
+section h4 {
+    margin-top: 0;
+    font-weight: 600;
+    color: #1a4a7a;
 }
 
-/* Create a custom checkbox */
-.checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 25px;
-    width: 25px;
-    background-color: #eee;
+/* --- Tables propres --- */
+table {
+    border-collapse: collapse;
 }
 
-/* On mouse-over, add a grey background color */
-.container:hover input ~ .checkmark {
-    background-color: #ccc;
+table td, table th {
+    padding: 6px 4px;
+    vertical-align: middle;
 }
 
-/* When the checkbox is checked, add a blue background */
-.container input:checked ~ .checkmark {
-    background-color: #2196F3;
+/* --- Inputs uniformisés --- */
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
-/* Create the checkmark/indicator (hidden when not checked) */
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
+/* Inputs readonly */
+input[readonly] {
+    background: #e9e9e9;
+    color: #555;
 }
 
-/* Show the checkmark when checked */
-.container input:checked ~ .checkmark:after {
-    display: block;
+/* --- Images des cibles --- */
+img.w3-image {
+    max-width: 120px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
 }
 
-/* Style the checkmark/indicator */
-.container .checkmark:after {
-    left: 9px;
-    top: 5px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 3px 3px 0;
-    transform: rotate(45deg);
+/* --- Boutons principaux --- */
+button.w3-button {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* --- Raw data --- */
+#rawData {
+    font-family: monospace;
+    background: #ffffff;
+    border-left: 4px solid #2196F3;
+    white-space: pre-wrap;
+}
+
+/* --- Booster --- */
+#booster_courant,
+#booster_tension,
+#booster_etat,
+#booster_occupation,
+#booster_present {
+    background: #fafafa;
+    font-weight: bold;
+}
+
+/* --- Servos --- */
+table input[type="number"] {
+    text-align: center;
+}
+
+/* --- Messages WebSocket --- */
+#messages {
+    font-size: 1.1em;
+    font-weight: bold;
 }

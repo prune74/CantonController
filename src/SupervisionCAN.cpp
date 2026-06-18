@@ -1,28 +1,47 @@
 /*
- * SupervisionCAN.cpp — Supervision du CAN Exploration 2026
+ * SupervisionCAN.cpp — Gestion Canton 2026
+ * ------------------------------------------------------------
+ * Supervision et émission des trames CAN pour le
+ * Canton Controller (CC).
+ *
+ * Rôle :
+ *   - transmettre l’état ferroviaire local au réseau CAN
+ *   - informer l’EXCC et les cantons voisins :
+ *       • occupation locale
+ *       • accessibilité SP1 / SM1
+ *       • occupation SP1 / SM1
+ *   - transmettre la réservation locomotive (trame 0xE3)
+ *
+ * Trames :
+ *   - 0xE0 : état ferroviaire du canton
+ *   - 0xE3 : réservation du canton suivant selon le sens
  */
 
 #include "SupervisionCAN.h"
 #include "CanMsg.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include "Canton.h"
 
+// ---------------------------------------------------------------------------
+// envoyerEtatCAN()
+// Envoie les trames 0xE0 et 0xE3 selon l’état du canton
+// ---------------------------------------------------------------------------
 void envoyerEtatCAN(Canton *canton)
 {
     // Récupération des voisins via l’API moderne
     CantonPeriph *sp1 = canton->getCantonP(canton->SP1_idx());
     CantonPeriph *sm1 = canton->getCantonP(canton->SM1_idx());
 
-    // Sécurité : si la topologie n’est pas encore prête
+    // Sécurité : topologie non prête
     if (!sp1 || !sm1)
     {
-        SA_LOG_WARN("[CAN] Topologie incomplète → trame 0xE0 ignorée\n");
+        CC_LOG_WARN("[CAN][CC] Topologie incomplète → trame 0xE0 ignorée\n");
         return;
     }
 
     // Log pédagogique
-    SA_LOG_TRACE(
-        "[CAN] Envoi 0xE0 : busy=%d SP1=%d SM1=%d accesSP1=%d busySP1=%d accesSM1=%d busySM1=%d\n",
+    CC_LOG_TRACE(
+        "[CAN][CC] Envoi 0xE0 : busy=%d SP1=%d SM1=%d accesSP1=%d busySP1=%d accesSM1=%d busySM1=%d\n",
         canton->busy(),
         sp1->ID(),
         sm1->ID(),
@@ -31,7 +50,9 @@ void envoyerEtatCAN(Canton *canton)
         sm1->acces(),
         sm1->busy());
 
-    // Envoi trame 0xE0
+    // -----------------------------------------------------------------------
+    // TRAME 0xE0 — État ferroviaire du canton
+    // -----------------------------------------------------------------------
     CanMsg::sendMsg(
         0, 0xE0, 0, canton->ID(),
         canton->busy(),
@@ -42,14 +63,11 @@ void envoyerEtatCAN(Canton *canton)
         sm1->acces(),
         sm1->busy());
 
-    SA_LOG_INFO("[CAN] Trame 0xE0 envoyée pour Canton %d\n", canton->ID());
+    CC_LOG_INFO("[CAN][CC] Trame 0xE0 envoyée pour Canton %d\n", canton->ID());
 
-    /*
-     * =========================================================================
-     *  TRAME 0xE3 — Réservation du canton suivant
-     * =========================================================================
-     */
-
+    // -----------------------------------------------------------------------
+    // TRAME 0xE3 — Réservation du canton suivant
+    // -----------------------------------------------------------------------
     Loco *loco = canton->getLoco();
     if (!loco)
         return;
@@ -57,12 +75,12 @@ void envoyerEtatCAN(Canton *canton)
     uint16_t addr = loco->address();
     if (addr == 0)
     {
-        SA_LOG_TRACE("[CAN] Pas de loco → trame 0xE3 non envoyée\n");
+        CC_LOG_TRACE("[CAN][CC] Pas de loco → trame 0xE3 non envoyée\n");
         return;
     }
 
     uint8_t addrHigh = (addr >> 8) & 0xFF;
-    uint8_t addrLow = addr & 0xFF;
+    uint8_t addrLow  = addr & 0xFF;
 
     SensDeMarche sens = loco->sens();
 
@@ -71,7 +89,7 @@ void envoyerEtatCAN(Canton *canton)
     {
         uint8_t aval = sp1->ID();
 
-        SA_LOG_INFO("[CAN] Envoi 0xE3 (horaire) : aval=%d loco=%u\n",
+        CC_LOG_INFO("[CAN][CC] Envoi 0xE3 (horaire) : aval=%d loco=%u\n",
                     aval, addr);
 
         CanMsg::sendMsg(
@@ -79,12 +97,12 @@ void envoyerEtatCAN(Canton *canton)
             aval,
             addrHigh, addrLow);
     }
-    // Sens anti-horaire → SM1
+    // Sens anti‑horaire → SM1
     else if (sens == SensAntiHoraire)
     {
         uint8_t aval = sm1->ID();
 
-        SA_LOG_INFO("[CAN] Envoi 0xE3 (anti-horaire) : aval=%d loco=%u\n",
+        CC_LOG_INFO("[CAN][CC] Envoi 0xE3 (anti-horaire) : aval=%d loco=%u\n",
                     aval, addr);
 
         CanMsg::sendMsg(
@@ -94,7 +112,7 @@ void envoyerEtatCAN(Canton *canton)
     }
     else
     {
-        SA_LOG_WARN("[CAN] Loco présente mais sens invalide (%d) → trame 0xE3 ignorée\n",
+        CC_LOG_WARN("[CAN][CC] Loco présente mais sens invalide (%d) → trame 0xE3 ignorée\n",
                     static_cast<int>(sens));
     }
 }

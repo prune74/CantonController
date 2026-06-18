@@ -1,23 +1,37 @@
 /*
- * Settings_SPIFFS.cpp — Montage SPIFFS robuste (Exploration 2026)
+ * Settings_SPIFFS.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Montage robuste du système de fichiers SPIFFS.
+ *
+ * Rôle :
+ *   - monter SPIFFS au démarrage
+ *   - formater automatiquement en cas d’échec (option true)
+ *   - logguer clairement chaque étape
+ *
+ * Ce module ne contient aucune logique métier :
+ *   → il fournit simplement un accès fiable au stockage flash.
  */
 
 #include "Settings.h"
 #include <SPIFFS.h>
-#include "debug_sa.h"
+#include "debug_cc.h"
 
+// ---------------------------------------------------------------------------
+// mountSPIFFS()
+// ---------------------------------------------------------------------------
 bool Settings::mountSPIFFS()
 {
-    SA_LOG_INFO("[Settings][SPIFFS] Montage du système de fichiers...\n");
+    CC_LOG_INFO("[Settings][SPIFFS][CC] Montage du système de fichiers...\n");
 
-    if (!SPIFFS.begin(true)) // true = format si échec
+    // true = format automatique si montage impossible
+    if (!SPIFFS.begin(true))
     {
-        SA_LOG_ERROR("[Settings][SPIFFS] ❌ Erreur : impossible de monter SPIFFS\n");
-        SA_LOG_ERROR("[Settings][SPIFFS] SPIFFS.begin() a échoué\n");
+        CC_LOG_ERROR("[Settings][SPIFFS][CC] ❌ Erreur : impossible de monter SPIFFS\n");
+        CC_LOG_ERROR("[Settings][SPIFFS][CC] SPIFFS.begin() a échoué\n");
         return false;
     }
 
-    SA_LOG_INFO("[Settings][SPIFFS] ✔ SPIFFS monté avec succès (%u octets disponibles)\n",
+    CC_LOG_INFO("[Settings][SPIFFS][CC] ✔ SPIFFS monté (%u octets disponibles)\n",
                 SPIFFS.totalBytes());
 
     return true;

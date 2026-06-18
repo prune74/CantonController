@@ -1,35 +1,46 @@
 /*
- * Canton_FeuxDirection.cpp — Gestion des feux directionnels du canton (Canton)
+ * Canton_FeuxDirection.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Ce fichier regroupe la logique liée aux feux de direction (LED blanches),
- * distincte des signaux SNCF classiques.
+ * Gestion des feux directionnels (LED blanches) du canton.
  *
- * Il utilise désormais le module FeuxDirection (nouvelle architecture) :
- *   - FeuxDirection::compute()
+ * Rôle :
+ *   - récupérer la configuration directionnelle (H / AH)
+ *   - déterminer le voisin réel (SP1/SP2 ou SM1/SM2)
+ *   - identifier la voie demandée
+ *   - lire l’occupation du canton
+ *   - fournir l’accès aux aiguilles physiques
+ *   - déléguer la décision finale à FeuxDirection::compute()
+ *
+ * IMPORTANT :
+ *   - aucune logique métier ici
+ *   - aucune interprétation du code‑barres
+ *   - aucune décision d’ouverture de voie
+ *
+ * Toute la logique directionnelle est dans :
  *   - FeuxDirection_CodeBarre
  *   - FeuxDirection_Conditions
+ *   - FeuxDirection::compute()
  */
 
 #include "Canton.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 #include "FeuxDirection/FeuxDirection_Types.h"
 #include "FeuxDirection/FeuxDirection_CodeBarre.h"
 #include "FeuxDirection/FeuxDirection_Conditions.h"
 #include "FeuxDirection.h"
 
-// ---------------------------------------------------------------------------
-// Implémentation concrète de IAiguillesPhysiques pour un Canton
-// ---------------------------------------------------------------------------
-
+/* ============================================================================
+ *  Implémentation IAiguillesPhysiques pour un Canton
+ * ==========================================================================*/
 class AiguillesPhysiquesFromCanton : public FeuxDirection::IAiguillesPhysiques
 {
 public:
-    explicit AiguillesPhysiquesFromCanton(const Canton *n) : m_canton(n) {}
+    explicit AiguillesPhysiquesFromCanton(const Canton *c) : m_canton(c) {}
 
     uint8_t getPositionAig(uint8_t indexAig) const override
     {
-        // Canton fournit la position physique (0=droit, 1=devie)
+        // Canton fournit la position logique (0=droit, 1=devie)
         return m_canton->getAiguillePosition(indexAig);
     }
 
@@ -37,43 +48,47 @@ private:
     const Canton *m_canton;
 };
 
-// ---------------------------------------------------------------------------
-// Fonction principale : mise à jour du feu directionnel pour un sens donné
-// ---------------------------------------------------------------------------
-
+/* ============================================================================
+ *  updateFeuDirection() — Mise à jour du feu directionnel pour un sens donné
+ * ==========================================================================*/
 void Canton::updateFeuDirection(SensDeMarche sens)
 {
-    // 1) Sélection du bloc directionnel (H ou AH)
+    /* ------------------------------------------------------------------------
+     * 1) Sélection du bloc directionnel (H ou AH)
+     * ------------------------------------------------------------------------ */
     const DirectionConfig &cfg =
         (sens == SensHoraire) ? direction.H : direction.AH;
 
-    // Si ce sens n'est pas actif → pas de feu
     if (!cfg.active)
     {
         setFeuDirection(sens, 0);
         return;
     }
 
-    // 2) Code-barres
+    /* ------------------------------------------------------------------------
+     * 2) Code‑barres (chaîne binaire brute)
+     * ------------------------------------------------------------------------ */
     const std::string &codeBarre = cfg.codeBarre;
 
-    // 3) Détermination du voisin réel (SP1/SP2 ou SM1/SM2)
+    /* ------------------------------------------------------------------------
+     * 3) Détermination du voisin réel (SP1/SP2 ou SM1/SM2)
+     * ------------------------------------------------------------------------ */
     CantonPeriph *voisin = nullptr;
 
     if (sens == SensHoraire)
     {
         voisin = voisinSP1();
-        if (!voisin)
-            voisin = voisinSP2();
+        if (!voisin) voisin = voisinSP2();
     }
     else
     {
         voisin = voisinSM1();
-        if (!voisin)
-            voisin = voisinSM2();
+        if (!voisin) voisin = voisinSM2();
     }
 
-    // 4) Détermination de la voie demandée
+    /* ------------------------------------------------------------------------
+     * 4) Détermination de la voie demandée
+     * ------------------------------------------------------------------------ */
     uint8_t voieDemandee = 0;
 
     if (voisin)
@@ -85,43 +100,52 @@ void Canton::updateFeuDirection(SensDeMarche sens)
             voieDemandee = it->second;
     }
 
-    // 5) Occupation du canton
+    /* ------------------------------------------------------------------------
+     * 5) Occupation du canton
+     * ------------------------------------------------------------------------ */
     bool occupe = estOccupe();
 
-    // 6) Accès aux aiguilles physiques
+    /* ------------------------------------------------------------------------
+     * 6) Accès aux aiguilles physiques
+     * ------------------------------------------------------------------------ */
     AiguillesPhysiquesFromCanton aiguilles(this);
 
-    // 7) Calcul du feu directionnel via la nouvelle API
+    /* ------------------------------------------------------------------------
+     * 7) Calcul du feu directionnel via FeuxDirection::compute()
+     * ------------------------------------------------------------------------ */
     FeuxDirection::DirectionState st =
         FeuxDirection::FeuxDirection::compute(codeBarre,
                                               voieDemandee,
                                               occupe,
                                               aiguilles);
 
-    // 8) Application du résultat
+    /* ------------------------------------------------------------------------
+     * 8) Application du résultat
+     * ------------------------------------------------------------------------ */
     setFeuDirection(sens, st.voieActive);
 
-    // 9) Logs
+    /* ------------------------------------------------------------------------
+     * 9) Logs
+     * ------------------------------------------------------------------------ */
     if (!st.ok)
     {
-        SA_LOG_ERROR("[Canton %u] FeuxDirection ERROR (%s) : %s\n",
+        CC_LOG_ERROR("[Canton %u][FeuxDir][CC] ERROR (%s) : %s\n",
                      m_id,
                      (sens == SensHoraire ? "H" : "AH"),
                      st.erreur.c_str());
     }
     else
     {
-        SA_LOG_TRACE("[Canton %u] FeuxDirection %s → voieActive=%u (ok)\n",
+        CC_LOG_TRACE("[Canton %u][FeuxDir][CC] %s → voieActive=%u\n",
                      m_id,
                      (sens == SensHoraire ? "H" : "AH"),
                      st.voieActive);
     }
 }
 
-// ---------------------------------------------------------------------------
-// Fonctions manquantes : setFeuDirection() et getFeuDirection()
-// ---------------------------------------------------------------------------
-
+/* ============================================================================
+ *  Accesseurs
+ * ==========================================================================*/
 uint8_t Canton::getFeuDirection(SensDeMarche sens) const
 {
     return m_feuDirection[sens];
@@ -131,8 +155,3 @@ void Canton::setFeuDirection(SensDeMarche sens, uint8_t valeur)
 {
     m_feuDirection[sens] = valeur;
 }
-
-/* ------------------------------------------------------------
-  Fin de Canton_FeuxDirection.cpp
-  ------------------------------------------------------------
-*/

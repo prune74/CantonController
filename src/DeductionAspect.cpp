@@ -1,19 +1,29 @@
 /*
-DeductionAspect.cpp - Gestion de la déduction d’aspect local depuis l’aspect aval
-*/
+ * DeductionAspect.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Déduction de l’aspect amont à partir de l’aspect aval.
+ *
+ * Règles SNCF appliquées :
+ *   - si l’aval est restrictif, l’amont doit l’être aussi
+ *   - si la voie est déviée, on limite l’ouverture (ralentissement → rappel)
+ *   - les aspects clignotants peuvent être conservés ou simplifiés
+ *     selon USE_CLIGNOTANTS (Config.h)
+ *
+ * Ce module est volontairement simple :
+ *   - aucune logique de voisinage
+ *   - aucune sécurité globale
+ *   - aucune interprétation de topologie
+ *   - 100 % déterministe
+ */
 
 #include "DeductionAspect.h"
-#include "Config.h"               // pour USE_CLIGNOTANTS
-#include "Exploration_Protocol.h" // pour ExsaAspect
+#include "Config.h"               // USE_CLIGNOTANTS
+#include "Exploration_Protocol.h" // ExccAspect
 
-/*************************************************************************************
- * Fonction de déduction d’aspect local depuis l’aspect aval
- * La logique respecte les règles SNCF :
- * - Si l’aval est restrictif, l’amont doit l’être aussi
- * - Si la voie est déviée, on limite l’ouverture
- * - Les aspects clignotants peuvent être conservés ou simplifiés selon USE_CLIGNOTANTS
- *************************************************************************************/
-ExsaAspect deduireAspectDepuisAval(ExsaAspect aval, bool voieDevie)
+// ---------------------------------------------------------------------------
+// Déduction d’aspect local depuis l’aspect aval
+// ---------------------------------------------------------------------------
+ExccAspect deduireAspectDepuisAval(ExccAspect aval, bool voieDevie)
 {
     switch (aval)
     {
@@ -21,7 +31,7 @@ ExsaAspect deduireAspectDepuisAval(ExsaAspect aval, bool voieDevie)
     case ASPECT_CARRE:
         return ASPECT_CARRE;
 
-    // 🟠 Sémaphore → avertissement
+    // 🔴 Sémaphore → avertissement
     case ASPECT_SEMAPHORE:
         return ASPECT_AVERTISSEMENT;
 
@@ -49,7 +59,7 @@ ExsaAspect deduireAspectDepuisAval(ExsaAspect aval, bool voieDevie)
     case ASPECT_VOIE_LIBRE:
         return ASPECT_VOIE_LIBRE;
 
-    // ⚪ Manœuvre → manœuvre
+    // 🔵 Manoeuvre → manoeuvre
     case ASPECT_MANOEUVRE:
         return ASPECT_MANOEUVRE;
 

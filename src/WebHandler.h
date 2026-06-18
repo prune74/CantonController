@@ -1,9 +1,23 @@
 /*
-   WebHandler.h — Exploration 2026
-   ------------------------------------------------------------
-   Gestion centralisée des interactions WebSocket et HTTP pour le SA.
-   Version alignée avec WebHandler.cpp (fusionné).
-*/
+ * WebHandler.h — Gestion Canton 2026
+ * ------------------------------------------------------------
+ * Gestion centralisée du serveur HTTP et du WebSocket pour le
+ * Canton Controller (CC).
+ *
+ * Le WebHandler assure :
+ *   - l’initialisation du serveur Web
+ *   - la gestion du WebSocket /ws
+ *   - la réception et le dispatch des commandes JSON
+ *   - l’envoi périodique de l’état du booster
+ *   - la notification complète de l’état du canton
+ *
+ * Les handlers spécialisés sont répartis dans :
+ *   - WebHandler_HandleData.cpp
+ *   - WebHandler_Aiguilles.cpp
+ *   - WebHandler_Settings.cpp
+ *   - WebHandler_Role.cpp
+ *   - WebHandler_Notify.cpp
+ */
 
 #pragma once
 
@@ -13,53 +27,51 @@
 
 #include "Canton.h"
 #include "Aig.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 class WebHandler
 {
 public:
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------------------
     // Constructeur
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------------------
     WebHandler();
 
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------------------
     // init()
-    // Initialise serveur HTTP + WebSocket + chargement settings
-    // ------------------------------------------------------------
+    // Initialise le serveur HTTP + WebSocket
+    // -----------------------------------------------------------------------
     void init(Canton *canton, uint16_t webPort);
 
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------------------
     // loop()
-    // Nettoyage WebSocket + envoi périodique Booster
-    // ------------------------------------------------------------
+    // Envoi périodique des informations Booster aux clients WebSocket
+    // -----------------------------------------------------------------------
     void loop();
 
 private:
-    AsyncWebServer *_server; // Serveur HTTP
-    AsyncWebSocket *_ws;     // WebSocket principal
-    Canton *canton;          // Structure logique du SA
+    AsyncWebServer *_server;   // Serveur HTTP
+    AsyncWebSocket *_ws;       // WebSocket principal
+    Canton *canton;            // Référence vers le Canton Controller (CC)
 
-    // ------------------------------------------------------------
-    // Configuration interne des servos
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Configuration interne des servos (positions + vitesse)
+    // -----------------------------------------------------------------------
     struct ServoConfig
     {
-        uint16_t posDroit; // Position droite (µs)
-        uint16_t posDevie; // Position déviée (µs)
-        uint16_t speed;    // Vitesse (µs/s)
+        uint16_t posDroit;   // Position droite (µs)
+        uint16_t posDevie;   // Position déviée (µs)
+        uint16_t speed;      // Vitesse (slider 0–10)
     };
 
-    ServoConfig servoCfg[6]; // 6 servos max
+    ServoConfig servoCfg[6];   // 6 servos maximum
 
-    // ------------------------------------------------------------
-    // ROUTES HTTP
-    // ------------------------------------------------------------
-    void route();
+    // -----------------------------------------------------------------------
+    // Déclaration des sous‑modules
+    // -----------------------------------------------------------------------
+    void route();  // Routes HTTP (défini dans WebHandler_Routes.cpp)
 
-    // ------------------------------------------------------------
-    // WebSocket Event Handler
-    // ------------------------------------------------------------
+    // Gestion des événements WebSocket
     void WsEvent(AsyncWebSocket *server,
                  AsyncWebSocketClient *client,
                  AwsEventType type,
@@ -67,26 +79,20 @@ private:
                  uint8_t *data,
                  size_t len);
 
-    // ------------------------------------------------------------
-    // Analyse JSON reçu → dispatch vers handlers spécialisés
-    // ------------------------------------------------------------
+    // Analyse JSON → dispatch vers les handlers spécialisés
     void handleWebSocketData(AsyncWebSocketClient *client,
                              uint8_t *data,
                              size_t len);
 
-    // ------------------------------------------------------------
-    // Envoi état complet SA + Booster à tous les clients
-    // ------------------------------------------------------------
+    // Envoi de l’état complet du canton (CC) aux clients WebSocket
     void notifyClients();
 
-    // ------------------------------------------------------------
-    // Envoi état Booster à un client (connexion)
-    // ------------------------------------------------------------
+    // Envoi de l’état du Booster à un client lors de la connexion
     void sendBoosterState(AsyncWebSocketClient *client);
 
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------------------
     // HANDLERS SPÉCIALISÉS
-    // ------------------------------------------------------------
+    // -----------------------------------------------------------------------
 
     // Aiguilles
     void handleServoSettings(JsonDocument &doc);

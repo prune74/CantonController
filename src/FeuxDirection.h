@@ -1,34 +1,37 @@
-
-/**
- * ------------------------------------------------------------
- * FeuxDirection.h
- * ------------------------------------------------------------
+/*
+ * FeuxDirection.h — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
  * API PUBLIQUE du module FeuxDirection.
  *
- * Ce fichier est le SEUL que GestionReseau doit inclure pour
- * utiliser les feux directionnels.
+ * Ce fichier est le SEUL que GestionReseau doit inclure pour utiliser
+ * les feux directionnels.
  *
  * Rôle :
  *   - recevoir :
- *       • le code-barres (string binaire)
+ *       • le code‑barres (string binaire décrivant la géométrie)
  *       • la voie demandée (1..4)
  *       • l’état d’occupation du canton
- *       • l’accès aux aiguilles physiques
+ *       • l’accès aux aiguilles physiques (interface IAiguillesPhysiques)
  *
  *   - renvoyer :
- *       • DirectionState (voieActive, ok, erreur, geometry)
+ *       • DirectionState :
+ *            - voieActive = 0 → aucun feu
+ *            - voieActive = N → feu de la voie N
+ *            - ok = false → erreur (code‑barres invalide, voie hors limites…)
+ *            - geometry → structure décodée du code‑barres
  *
- * Ce module :
- *   - NE décode PAS le code-barres (délégué à FeuxDirection_CodeBarre)
- *   - NE lit PAS les aiguilles physiques (délégué à Conditions)
- *   - NE gère PAS les voisins
+ * Ce module NE fait PAS :
+ *   - de logique de voisinage
+ *   - de SP/SM
+ *   - de sécurité globale
+ *   - d’interprétation d’image
  *
  * Il orchestre simplement :
- *   1. Décodage du code-barres
+ *   1. Décodage du code‑barres
  *   2. Vérification des aiguilles physiques
  *   3. Décision du feu (voieActive)
  *
- * ------------------------------------------------------------
+ * Il est 100 % déterministe.
  */
 
 #pragma once
@@ -43,35 +46,29 @@ namespace FeuxDirection
     class FeuxDirection
     {
     public:
-        /**
-         * --------------------------------------------------------
+        /*
          * compute()
-         * --------------------------------------------------------
+         * --------------------------------------------------------------------
          * Fonction principale appelée par GestionReseau.
          *
          * Paramètres :
          *   - codeBarre    : string binaire (ex : "01101001010000010")
-         *   - voieDemandee : 1..4 (choix utilisateur / voisin)
-         *   - cantonOccupe : true si le canton SA est occupé
-         *   - aiguilles    : accès aux positions physiques
+         *   - voieDemandee : 1..4 (choix utilisateur ou logique cantonale)
+         *   - cantonOccupe : true si un train est présent dans le canton
+         *   - aiguilles    : accès aux positions physiques des aiguilles
          *
          * Retour :
-         *   DirectionState :
-         *     - voieActive = 0 → aucun feu
-         *     - voieActive = N → feu de la voie N
-         *     - ok = false → erreur (code-barres invalide, etc.)
+         *   DirectionState (voieActive, ok, erreur, geometry)
          *
-         * Cette fonction est volontairement simple :
-         *   - elle ne fait aucune logique cachée
-         *   - elle ne modifie rien
-         *   - elle ne dépend que de ses paramètres
-         *
-         * Elle est 100% déterministe.
-         * --------------------------------------------------------
+         * Cette fonction :
+         *   - ne modifie rien
+         *   - ne dépend que de ses paramètres
+         *   - ne contient aucune logique cachée
+         *   - est totalement déterministe
          */
-        static DirectionState compute(const std::string& codeBarre,
+        static DirectionState compute(const std::string &codeBarre,
                                       uint8_t voieDemandee,
                                       bool cantonOccupe,
-                                      const IAiguillesPhysiques& aiguilles);
+                                      const IAiguillesPhysiques &aiguilles);
     };
 }

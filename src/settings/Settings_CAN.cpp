@@ -1,60 +1,60 @@
 /*
- * Settings_CAN.cpp — Dialogue CAN avec la carte Main (Exploration 2026)
+ * Settings_CAN.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Rôle :
- *   - Attendre que la carte Main signale qu’elle est prête (CMD_SAT_TEST_BUS_REPLY)
- *   - Demander un ID si le satellite n’en possède pas (CMD_SAT_REQUEST_ID)
- *   - Gérer les timeouts et redémarrer si nécessaire
- *   - Logguer proprement chaque étape
+ * Dialogue CAN initial avec la carte Main :
+ *
+ *   Étape 1 : attendre CMD_SAT_TEST_BUS_REPLY (MainBoard prête)
+ *   Étape 2 : demander un ID si le CC n’en possède pas (CMD_SAT_REQUEST_ID)
+ *   Étape 3 : gérer les timeouts (reboot si MainBoard absente)
  *
  * Ce module est totalement indépendant :
  *   - pas d’UART
  *   - pas de SPIFFS
  *   - pas de JSON
  *
- * Il est appelé depuis Settings::begin() (wrapper public).
+ * Appelé depuis Settings::begin() (wrapper public).
  */
 
 #include "Settings.h"
 #include "Canton.h"
 #include "CanMsg.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 /* ============================================================================
- *  Callback : la carte Exploration_Master_Board a envoyé CMD_SAT_TEST_BUS_REPLY (Exploration_Master_Board ready)
+ *  Callback : la carte Main a envoyé CMD_SAT_TEST_BUS_REPLY
  * ==========================================================================*/
 void Settings::sMainReady(bool val)
 {
     Settings::isMainReady = val;
-
-    // Log Exploration 2026 : on remplace SA_LOG par SA_LOG_INFO
-    SA_LOG_INFO("[Settings][CAN] Exploration_Master_Board ready = %d\n", val);
+    CC_LOG_INFO("[Settings][CAN][CC] MainBoard ready = %d\n", val);
 }
 
 /* ============================================================================
- *  beginCAN() — Dialogue CAN initial (implémentation interne)
+ *  beginCAN() — Dialogue CAN initial
  * ==========================================================================*/
 bool Settings::beginCAN()
 {
-    Serial.printf("[Settings][CAN] Attente de la carte Exploration_Master_Board (CMD_SAT_TEST_BUS_REPLY)...\n");
+    Serial.printf("[Settings][CAN][CC] Attente de la carte Main (CMD_SAT_TEST_BUS_REPLY)...\n");
 
     uint8_t countReset = 0;
 
-// Mode sans carte Master (pour tests Web)
-#if (SA_STANDALONE_MODE)
+    // -----------------------------------------------------------------------
+    // Mode autonome (tests Web sans carte Main)
+    // -----------------------------------------------------------------------
+#if (CC_STANDALONE_MODE)
     {
-        SA_LOG_WARN("[Settings][CAN] Mode standalone actif — handshake CAN ignoré");
+        CC_LOG_WARN("[Settings][CAN][CC] Mode standalone actif — handshake CAN ignoré");
 
-        // 🔥 Patch Bruno : autoriser la page web même si le SA est seul
+        // Autoriser la WebUI même sans MainBoard
         Settings::isMainReady = true;
 
         return true;
     }
 #endif
 
-    /*
-     * Étape 1 — Attente du message CMD_SAT_TEST_BUS_REPLY
-     */
+    // -----------------------------------------------------------------------
+    // Étape 1 — Attente du message CMD_SAT_TEST_BUS_REPLY
+    // -----------------------------------------------------------------------
     while (!isMainReady)
     {
         CanMsg::sendMsg(0, CMD_SAT_TEST_BUS, 0, canton->ID());
@@ -63,20 +63,20 @@ bool Settings::beginCAN()
 
         if (++countReset >= 10)
         {
-            Serial.printf("\n[Settings][CAN] ❌ Exploration_Master_Board ne répond pas → reboot dans 5s\n");
+            Serial.printf("\n[Settings][CAN][CC] ❌ MainBoard ne répond pas → reboot dans 5s\n");
             delay(5000);
             esp_restart();
         }
     }
 
-    Serial.printf("\n[Settings][CAN] ✔ Carte Exploration_Master_Board prête\n");
+    Serial.printf("\n[Settings][CAN][CC] ✔ Carte Main prête\n");
 
-    /*
-     * Étape 2 — Demande d’ID (CMD_SAT_REQUEST_ID) si nécessaire
-     */
+    // -----------------------------------------------------------------------
+    // Étape 2 — Demande d’ID si nécessaire
+    // -----------------------------------------------------------------------
     if (canton->ID() == UNUSED_ID)
     {
-        Serial.printf("[Settings][CAN] Le satellite n’a pas d’ID → demande CMD_SAT_REQUEST_ID\n");
+        Serial.printf("[Settings][CAN][CC] Le CC n’a pas d’ID → demande CMD_SAT_REQUEST_ID\n");
 
         while (canton->ID() == UNUSED_ID)
         {
@@ -85,11 +85,16 @@ bool Settings::beginCAN()
             Serial.print(".");
         }
 
-        Serial.printf("\n[Settings][CAN] ✔ ID attribué : %d\n", canton->ID());
-        writeFile(Settings::canton); // sauvegarde settings.json
+        Serial.printf("\n[Settings][CAN][CC] ✔ ID attribué : %d\n", canton->ID());
+
+        // Sauvegarde settings.json
+        writeFile(Settings::canton);
     }
 
-    Serial.printf("[Settings][CAN] ✔ Initialisation CAN terminée\n");
+    // -----------------------------------------------------------------------
+    // Fin du handshake CAN
+    // -----------------------------------------------------------------------
+    Serial.printf("[Settings][CAN][CC] ✔ Initialisation CAN terminée\n");
     Serial.printf("---------------------------------------------\n\n");
 
     return true;

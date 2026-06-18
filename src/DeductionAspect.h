@@ -1,15 +1,36 @@
 #pragma once
 #include <Arduino.h>
-#include "Exploration_Protocol.h" // pour ExsaAspect
+#include "Exploration_Protocol.h" // ExccAspect
 
-/*************************************************************************************
- * Aspects SNCF utilisés par le SA (version EXSA 2.1 simplifiée)
- * Ces aspects correspondent EXACTEMENT aux aspects que l’EXSA sait afficher.
- *************************************************************************************/
+/*
+ * DeductionAspect.h — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Déduction de l’aspect amont à partir de l’aspect aval.
+ *
+ * Rôle :
+ *   - appliquer les règles SNCF locales :
+ *        • si l’aval est restrictif, l’amont doit l’être aussi
+ *        • si la voie est déviée, on limite l’ouverture (ralentissement → rappel)
+ *        • gestion optionnelle des clignotants (USE_CLIGNOTANTS)
+ *
+ * Ce module ne contient :
+ *   - aucune logique de voisinage
+ *   - aucune logique de topologie
+ *   - aucune sécurité globale
+ *   - aucune dépendance au Canton
+ *
+ * Il est 100 % déterministe.
+ */
 
-using Aspect = ExsaAspect;
+// Alias pratique (optionnel mais cohérent avec ton code)
+using Aspect = ExccAspect;
 
-/*************************************************************************************
- * Déduction d’aspect (version Option A)
- *************************************************************************************/
-Aspect deduireAspectDepuisAval(ExsaAspect aval, bool voieDevie);
+/*
+ * Déduit l’aspect amont à partir :
+ *   - de l’aspect aval (enum ExccAspect)
+ *   - de l’état de la voie (voieDevie = true si déviation)
+ *
+ * Retour :
+ *   - un aspect SNCF cohérent avec les règles locales
+ */
+Aspect deduireAspectDepuisAval(ExccAspect aval, bool voieDevie);

@@ -2,23 +2,20 @@
 
 namespace FeuxDirection
 {
-    // ------------------------------------------------------------
-    // Fonction interne : détecte le type de faisceau à partir
-    // du suffixe (les 2 derniers bits du code-barres).
-    //
-    // 01 → V2
-    // 10 → V3
-    // 11 → V4
-    //
-    // Si autre chose → Invalide
-    // ------------------------------------------------------------
-    static FaisceauType detectTypeFromSuffix(const std::string& code)
+    /* =========================================================================
+     *  Détection du type de faisceau via le suffixe (2 derniers bits)
+     * -------------------------------------------------------------------------
+     *  01 → V2
+     *  10 → V3
+     *  11 → V4
+     * ========================================================================= */
+    static FaisceauType detectTypeFromSuffix(const std::string &code)
     {
         if (code.size() < 2)
             return FaisceauType::Invalide;
 
-        const char b1 = code[code.size() - 2]; // avant-dernier bit
-        const char b0 = code[code.size() - 1]; // dernier bit
+        const char b1 = code[code.size() - 2];
+        const char b0 = code[code.size() - 1];
 
         if (b1 == '0' && b0 == '1') return FaisceauType::V2;
         if (b1 == '1' && b0 == '0') return FaisceauType::V3;
@@ -27,31 +24,28 @@ namespace FeuxDirection
         return FaisceauType::Invalide;
     }
 
-
-    // ------------------------------------------------------------
-    // decode()
-    // ------------------------------------------------------------
-    // Décodage complet du code-barres.
-    //
-    // Étapes :
-    //   1. Vérifier que la chaîne est bien binaire
-    //   2. Détecter le type (V2/V3/V4)
-    //   3. Vérifier la longueur attendue
-    //   4. Découper les blocs voie (5 bits chacun)
-    //   5. Extraire P0/P1/P2/T1/T2 selon le type
-    //   6. Remplir CodeBarreDecoded
-    //
-    // En cas d’erreur :
-    //   - result.valide = false
-    //   - result.erreur contient un message explicite
-    // ------------------------------------------------------------
-    CodeBarreDecoded CodeBarre::decode(const std::string& code)
+    /* =========================================================================
+     *  decode() — Décodage complet du code‑barres directionnel
+     * -------------------------------------------------------------------------
+     *  Étapes :
+     *    1. Vérifier que la chaîne est binaire
+     *    2. Détecter le type (V2/V3/V4)
+     *    3. Vérifier la longueur attendue
+     *    4. Découper les blocs voie (5 bits)
+     *    5. Extraire P0/P1/P2/T1/T2 selon le type
+     *    6. Remplir CodeBarreDecoded
+     *
+     *  En cas d’erreur :
+     *    - result.valide = false
+     *    - result.erreur contient un message explicite
+     * ========================================================================= */
+    CodeBarreDecoded CodeBarre::decode(const std::string &code)
     {
         CodeBarreDecoded result;
 
-        // --------------------------------------------------------
-        // 1) Vérification que la chaîne est bien binaire
-        // --------------------------------------------------------
+        // ---------------------------------------------------------------------
+        // 1) Vérification binaire
+        // ---------------------------------------------------------------------
         for (char c : code)
         {
             if (c != '0' && c != '1')
@@ -61,9 +55,9 @@ namespace FeuxDirection
             }
         }
 
-        // --------------------------------------------------------
-        // 2) Détection du type de faisceau via le suffixe
-        // --------------------------------------------------------
+        // ---------------------------------------------------------------------
+        // 2) Détection du type via suffixe
+        // ---------------------------------------------------------------------
         result.type = detectTypeFromSuffix(code);
         if (result.type == FaisceauType::Invalide)
         {
@@ -71,27 +65,16 @@ namespace FeuxDirection
             return result;
         }
 
-        // --------------------------------------------------------
+        // ---------------------------------------------------------------------
         // 3) Vérification de la longueur attendue
-        // --------------------------------------------------------
+        // ---------------------------------------------------------------------
         size_t expectedLength = 0;
 
         switch (result.type)
         {
-            case FaisceauType::V2:
-                result.nbVoies = 2;
-                expectedLength = 12; // 2 blocs de 5 bits + suffixe 2 bits
-                break;
-
-            case FaisceauType::V3:
-                result.nbVoies = 3;
-                expectedLength = 17; // 3 blocs de 5 bits + suffixe 2 bits
-                break;
-
-            case FaisceauType::V4:
-                result.nbVoies = 4;
-                expectedLength = 22; // 4 blocs de 5 bits + suffixe 2 bits
-                break;
+            case FaisceauType::V2: result.nbVoies = 2; expectedLength = 12; break;
+            case FaisceauType::V3: result.nbVoies = 3; expectedLength = 17; break;
+            case FaisceauType::V4: result.nbVoies = 4; expectedLength = 22; break;
 
             default:
                 result.erreur = "Type de faisceau inconnu";
@@ -104,14 +87,9 @@ namespace FeuxDirection
             return result;
         }
 
-        // --------------------------------------------------------
-        // 4) Découpage des blocs voie (5 bits chacun)
-        //
-        // Format général :
-        //   [voieN][voieN-1]...[voie1][suffixe]
-        //
-        // On lit les blocs en partant de la fin (juste avant le suffixe).
-        // --------------------------------------------------------
+        // ---------------------------------------------------------------------
+        // 4) Découpage des blocs voie (5 bits)
+        // ---------------------------------------------------------------------
         const size_t suffixLen = 2;
         size_t offset = expectedLength - suffixLen;
 
@@ -129,19 +107,16 @@ namespace FeuxDirection
 
             VoieCodeBarre vb;
 
-            // ----------------------------------------------------
-            // 5) Extraction des bits selon le type de faisceau
-            // ----------------------------------------------------
+            // -----------------------------------------------------------------
+            // 5) Extraction des bits selon le type
+            // -----------------------------------------------------------------
             switch (result.type)
             {
                 case FaisceauType::V2:
                     // Format : 000 P0 0 0
                     // Index :  0 1 2 3 4
                     vb.P0 = (bloc[2] == '1');
-                    vb.P1 = 0;
-                    vb.P2 = 0;
-                    vb.T1 = 0;
-                    vb.T2 = 0;
+                    vb.P1 = vb.P2 = vb.T1 = vb.T2 = 0;
                     vb.active = true;
                     break;
 
@@ -176,9 +151,9 @@ namespace FeuxDirection
             result.voies[voieIdx] = vb;
         }
 
-        // --------------------------------------------------------
-        // 6) Décodage réussi
-        // --------------------------------------------------------
+        // ---------------------------------------------------------------------
+        // 6) Succès
+        // ---------------------------------------------------------------------
         result.valide = true;
         return result;
     }

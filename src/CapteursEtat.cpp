@@ -1,12 +1,38 @@
-#include "CapteursEtat.h"
+/*
+ * CapteursEtat.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Mise à jour des capteurs ponctuels et de l’état de la locomotive
+ * en fonction de l’occupation du canton.
+ *
+ * Règles :
+ *   - si le canton est libre :
+ *        • reset des capteurs ponctuels (H / AH)
+ *        • reset complet de la locomotive (vitesse, sens, adresse)
+ *
+ *   - si le canton est occupé :
+ *        • clamp de la vitesse si > maxSpeed()
+ *
+ * Ce module ne contient aucune logique ferroviaire globale :
+ *   → il applique uniquement les règles locales du canton.
+ */
 
-/*************************************************************************************
- * Occupation du canton
- * et état des capteurs
- ************************************************************************************/
+#include "CapteursEtat.h"
+#include "debug_cc.h"
+
+// ---------------------------------------------------------------------------
+// Mise à jour des capteurs et de la loco
+// ---------------------------------------------------------------------------
 void mettreAJourCapteurs(Canton *canton)
 {
-    // Si le canton n'est pas occupé → reset complet
+    if (!canton)
+    {
+        CC_LOG_ERROR("[CapteursEtat][CC] canton nul\n");
+        return;
+    }
+
+    // -----------------------------------------------------------------------
+    // Cas 1 : canton libre → reset complet
+    // -----------------------------------------------------------------------
     if (!canton->busy())
     {
         // Capteurs ponctuels remis à zéro
@@ -19,13 +45,17 @@ void mettreAJourCapteurs(Canton *canton)
         canton->getLoco()->speed(0);
         canton->getLoco()->sens(SensHoraire); // valeur neutre par défaut
         canton->getLoco()->address(0);
+
+        CC_LOG_TRACE("[CapteursEtat][CC] Reset capteurs + loco (canton libre)\n");
+        return;
     }
-    else
+
+    // -----------------------------------------------------------------------
+    // Cas 2 : canton occupé → clamp vitesse
+    // -----------------------------------------------------------------------
+    if (canton->getLoco()->speed() > canton->maxSpeed())
     {
-        // Si la loco dépasse la vitesse max du canton → clamp
-        if (canton->getLoco()->speed() > canton->maxSpeed())
-        {
-            canton->getLoco()->speed(canton->maxSpeed());
-        }
+        canton->getLoco()->speed(canton->maxSpeed());
+        CC_LOG_TRACE("[CapteursEtat][CC] Clamp vitesse à %u\n", canton->maxSpeed());
     }
 }

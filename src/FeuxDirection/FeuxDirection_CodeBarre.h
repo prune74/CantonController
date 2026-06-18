@@ -1,28 +1,28 @@
 #pragma once
 /**
- * ------------------------------------------------------------
- * FeuxDirection_CodeBarre.h
- * ------------------------------------------------------------
- * Ce fichier déclare la classe responsable du DÉCODAGE du
- * code-barres directionnel.
+ * ============================================================================
+ *  FeuxDirection_CodeBarre.h — Gestion Canton 2026
+ * ============================================================================
+ * Déclaration du décodeur de code‑barres directionnel.
  *
  * Rôle du décodeur :
  *   - lire une chaîne binaire (ex : "01101001010000010")
- *   - vérifier sa longueur
- *   - identifier le type de faisceau (V2 / V3 / V4)
+ *   - vérifier qu’elle est bien binaire
+ *   - identifier le type de faisceau (V2 / V3 / V4) via le suffixe
+ *   - vérifier la longueur attendue selon le type
  *   - découper les blocs voie (5 bits chacun)
  *   - extraire P0, P1, P2, T1, T2 pour chaque voie
- *   - remplir un CodeBarreDecoded
+ *   - remplir un CodeBarreDecoded complet
  *
  * IMPORTANT :
- *   - Ce module ne fait AUCUNE logique métier.
- *   - Il ne regarde PAS les aiguilles physiques.
- *   - Il ne décide PAS si un feu doit s’allumer.
- *   - Il ne connaît PAS les voisins.
+ *   - aucune logique métier
+ *   - aucune interaction avec les aiguilles physiques
+ *   - aucune décision d’allumage des feux
+ *   - aucune connaissance des voisins ou de la topologie
  *
- * Il fournit uniquement une représentation géométrique
- * complète et fiable du faisceau.
- * ------------------------------------------------------------
+ * Ce module fournit UNIQUEMENT une représentation géométrique
+ * fiable et complète du faisceau directionnel.
+ * ============================================================================
  */
 
 #include <string>
@@ -34,28 +34,24 @@ namespace FeuxDirection
     {
     public:
         /**
-         * --------------------------------------------------------
+         * --------------------------------------------------------------------
          * decode()
-         * --------------------------------------------------------
-         * Décode un code-barres binaire complet.
+         * --------------------------------------------------------------------
+         * Décode un code‑barres directionnel complet.
          *
          * Paramètre :
-         *   - code : string binaire (ex : "001000000001")
+         *   - code : chaîne binaire (ex : "001000000001")
          *
          * Retour :
          *   - CodeBarreDecoded :
-         *       .valide = true  → décodage OK
-         *       .valide = false → erreur (longueur, suffixe, etc.)
+         *       .valide = true  → décodage réussi
+         *       .valide = false → erreur (longueur, suffixe, caractère non binaire…)
+         *       .erreur contient alors un message explicite
          *
-         * En cas d’erreur :
-         *   - .erreur contient un message explicite
-         *   - .valide = false
-         *   - les autres champs ne doivent pas être utilisés
-         *
-         * Cette fonction est la SEULE porte d’entrée pour
-         * décoder un code-barres dans tout le module.
-         * --------------------------------------------------------
+         * Cette fonction est la SEULE porte d’entrée pour décoder un
+         * code‑barres dans tout le module FeuxDirection.
+         * --------------------------------------------------------------------
          */
-        static CodeBarreDecoded decode(const std::string& code);
+        static CodeBarreDecoded decode(const std::string &code);
     };
 }

@@ -1,24 +1,48 @@
 #include "Canton.h"
 #include "Config.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
+/*
+ * ============================================================================
+ *  debugTopologieEtAiguilles()
+ * ---------------------------------------------------------------------------
+ *  Diagnostic complet de la topologie locale :
+ *    - indices SP1 / SM1
+ *    - états SP2 / SM2
+ *    - aiguilles (géométrie + côté H/AH)
+ *    - voisins cantonP[]
+ *    - signaux
+ *
+ *  Ce diagnostic n’effectue AUCUNE logique métier.
+ *  Il affiche uniquement l’état interne du canton.
+ * ============================================================================
+ */
 void Canton::debugTopologieEtAiguilles()
 {
-    SA_LOG_INFO("==============================================\n");
-    SA_LOG_INFO("[Canton %u] Diagnostic topologie & aiguilles\n", m_id);
-    SA_LOG_INFO("==============================================\n");
+    CC_LOG_INFO("============================================================\n");
+    CC_LOG_INFO("[Canton %u][Debug][CC] Diagnostic topologie & aiguilles\n", m_id);
+    CC_LOG_INFO("============================================================\n");
 
-    SA_LOG_INFO("SP1_idx = %u\n", m_SP1_idx);
-    SA_LOG_INFO("SM1_idx = %u\n", m_SM1_idx);
+    /* ------------------------------------------------------------------------
+     *  Indices SP1 / SM1
+     * ------------------------------------------------------------------------ */
+    CC_LOG_INFO("SP1_idx = %u\n", m_SP1_idx);
+    CC_LOG_INFO("SM1_idx = %u\n", m_SM1_idx);
 
-    SA_LOG_INFO("SP2: acces=%d busy=%d masqueAig=0x%02X\n",
+    /* ------------------------------------------------------------------------
+     *  États SP2 / SM2
+     * ------------------------------------------------------------------------ */
+    CC_LOG_INFO("SP2 : acces=%d busy=%d masqueAig=0x%02X\n",
                 m_SP2_acces, m_SP2_busy, m_masqueAigSP2);
 
-    SA_LOG_INFO("SM2: acces=%d busy=%d masqueAig=0x%02X\n",
+    CC_LOG_INFO("SM2 : acces=%d busy=%d masqueAig=0x%02X\n",
                 m_SM2_acces, m_SM2_busy, m_masqueAigSM2);
 
-    SA_LOG_INFO("----------------------------------------------\n");
-    SA_LOG_INFO("Aiguilles :\n");
+    /* ------------------------------------------------------------------------
+     *  Aiguilles
+     * ------------------------------------------------------------------------ */
+    CC_LOG_INFO("------------------------------------------------------------\n");
+    CC_LOG_INFO("Aiguilles :\n");
 
     for (uint8_t i = 0; i < aigSize; i++)
     {
@@ -26,22 +50,31 @@ void Canton::debugTopologieEtAiguilles()
         if (!a)
             continue;
 
-        SA_LOG_INFO(" - Aig[%u] : droit=%u devie=%u | estDroit=%u\n",
+        CC_LOG_INFO(" - Aig[%u] : droit=%u devie=%u | estDroit=%u\n",
                     i,
                     a->cantonPdroitIdx(),
                     a->cantonPdevieIdx(),
                     a->estDroit());
 
         if (a->cantonPdroitIdx() == m_SP1_idx || a->cantonPdevieIdx() == m_SP1_idx)
-            SA_LOG_INFO("     → Côté HORAIRE (SP)\n");
+        {
+            CC_LOG_INFO("     → Côté HORAIRE (SP)\n");
+        }
         else if (a->cantonPdroitIdx() == m_SM1_idx || a->cantonPdevieIdx() == m_SM1_idx)
-            SA_LOG_INFO("     → Côté ANTI‑HORAIRE (SM)\n");
+        {
+            CC_LOG_INFO("     → Côté ANTI‑HORAIRE (SM)\n");
+        }
         else
-            SA_LOG_WARN("     → ⚠️ Aiguille non reliée à SP1 ni SM1 !\n");
+        {
+            CC_LOG_WARN("     → ⚠️ Aiguille non reliée à SP1 ni SM1 !\n");
+        }
     }
 
-    SA_LOG_INFO("----------------------------------------------\n");
-    SA_LOG_INFO("Voisins (cantonP[]) :\n");
+    /* ------------------------------------------------------------------------
+     *  Voisins cantonP[]
+     * ------------------------------------------------------------------------ */
+    CC_LOG_INFO("------------------------------------------------------------\n");
+    CC_LOG_INFO("Voisins (cantonP[]) :\n");
 
     for (uint8_t i = 0; i < cantonPsize; i++)
     {
@@ -49,7 +82,7 @@ void Canton::debugTopologieEtAiguilles()
         if (!p)
             continue;
 
-        SA_LOG_INFO(" - cantonP[%u] : ID=%u busy=%d acces=%d reserved=%u\n",
+        CC_LOG_INFO(" - cantonP[%u] : ID=%u busy=%d acces=%d reserved=%u\n",
                     i,
                     p->ID(),
                     p->busy(),
@@ -57,18 +90,21 @@ void Canton::debugTopologieEtAiguilles()
                     p->reserved());
     }
 
-    SA_LOG_INFO("----------------------------------------------\n");
-    SA_LOG_INFO("Signaux :\n");
+    /* ------------------------------------------------------------------------
+     *  Signaux
+     * ------------------------------------------------------------------------ */
+    CC_LOG_INFO("------------------------------------------------------------\n");
+    CC_LOG_INFO("Signaux :\n");
 
     if (signal[0])
-        SA_LOG_INFO(" - AH : type=%u\n", signal[0]->type());
+        CC_LOG_INFO(" - AH : type=%u\n", signal[0]->type());
     else
-        SA_LOG_WARN(" - AH : (non initialisé)\n");
+        CC_LOG_WARN(" - AH : (non initialisé)\n");
 
     if (signal[1])
-        SA_LOG_INFO(" - H  : type=%u\n", signal[1]->type());
+        CC_LOG_INFO(" - H  : type=%u\n", signal[1]->type());
     else
-        SA_LOG_WARN(" - H  : (non initialisé)\n");
+        CC_LOG_WARN(" - H  : (non initialisé)\n");
 
-    SA_LOG_INFO("==============================================\n");
+    CC_LOG_INFO("============================================================\n");
 }

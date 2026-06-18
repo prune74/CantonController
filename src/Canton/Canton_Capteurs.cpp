@@ -1,83 +1,86 @@
 /*
- * Canton_Capteurs.cpp — Gestion des capteurs ponctuels H / AH
+ * Canton_Capteurs.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Version Exploration 2026
+ * Gestion des capteurs ponctuels H / AH du canton.
+ *
+ * Rôle :
+ *   - lire l’état des capteurs ponctuels (H / AH)
+ *   - fournir un helper générique capteurActif()
+ *   - permettre un override manuel (mode debug)
+ *
+ * IMPORTANT :
+ *   - aucune logique métier
+ *   - aucune interprétation RailCom / essieux
+ *   - aucune décision de sécurité
+ *
+ * Ce module fournit UNIQUEMENT l’état brut des capteurs ponctuels.
  */
 
 #include "Canton.h"
 #include "Config.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 /* ============================================================================
- * readCapteurAH() / readCapteurH()
+ *  readCapteurAH() / readCapteurH()
  * ---------------------------------------------------------------------------
- * Lecture simple des capteurs ponctuels.
- * ============================================================================
- */
-
+ *  Lecture simple des capteurs ponctuels.
+ * ==========================================================================*/
 bool Canton::readCapteurAH()
 {
     bool v = sensor[IDX_CAPT_ANTIHORAIRE].state();
-    SA_LOG_TRACE("[Canton %u] Capteur AH = %d\n", m_id, v);
+    CC_LOG_TRACE("[Canton %u][Capteurs][CC] AH = %d\n", m_id, v);
     return v;
 }
 
 bool Canton::readCapteurH()
 {
     bool v = sensor[IDX_CAPT_HORAIRE].state();
-    SA_LOG_TRACE("[Canton %u] Capteur H = %d\n", m_id, v);
+    CC_LOG_TRACE("[Canton %u][Capteurs][CC] H = %d\n", m_id, v);
     return v;
 }
 
 /* ============================================================================
- * capteurActif() — Helper générique
+ *  capteurActif() — Helper générique
  * ---------------------------------------------------------------------------
- * Version Exploration 2026 :
- *   sens = SensHoraire     → capteur H
- *   sens = SensAntiHoraire → capteur AH
- * ============================================================================
- */
-
+ *  sens = SensHoraire     → capteur H
+ *  sens = SensAntiHoraire → capteur AH
+ * ==========================================================================*/
 bool Canton::capteurActif(SensDeMarche sens)
 {
-    if (sens == SensHoraire)
-        return readCapteurH();
-
-    return readCapteurAH();
+    return (sens == SensHoraire)
+           ? readCapteurH()
+           : readCapteurAH();
 }
 
 /* ============================================================================
- * overrideCapteur() — Mode debug
+ *  overrideCapteur() — Mode debug
  * ---------------------------------------------------------------------------
- * Permet de forcer l’état d’un capteur ponctuel.
- * ============================================================================
- */
-
+ *  Force l’état d’un capteur ponctuel.
+ *  Utilisé uniquement pour tests / diagnostics.
+ * ==========================================================================*/
 void Canton::overrideCapteur(SensDeMarche sens, bool etat)
 {
     if (sens == SensHoraire)
     {
         sensor[IDX_CAPT_HORAIRE].overrideState(etat);
-        SA_LOG_WARN("[Canton %u] Override capteur H → %d\n", m_id, etat);
+        CC_LOG_WARN("[Canton %u][Capteurs][CC] Override H → %d\n", m_id, etat);
     }
     else
     {
         sensor[IDX_CAPT_ANTIHORAIRE].overrideState(etat);
-        SA_LOG_WARN("[Canton %u] Override capteur AH → %d\n", m_id, etat);
+        CC_LOG_WARN("[Canton %u][Capteurs][CC] Override AH → %d\n", m_id, etat);
     }
 }
 
 /* ============================================================================
- * resetOverrideCapteurs()
+ *  resetOverrideCapteurs()
  * ---------------------------------------------------------------------------
- * Désactive tous les overrides.
- * ============================================================================
- */
-
+ *  Désactive tous les overrides.
+ * ==========================================================================*/
 void Canton::resetOverrideCapteurs()
 {
     sensor[IDX_CAPT_HORAIRE].overrideState(false);
     sensor[IDX_CAPT_ANTIHORAIRE].overrideState(false);
 
-    SA_LOG_TRACE("[Canton %u] Override capteurs réinitialisé\n", m_id);
+    CC_LOG_TRACE("[Canton %u][Capteurs][CC] Overrides réinitialisés\n", m_id);
 }

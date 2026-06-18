@@ -1,9 +1,18 @@
 /*
- * TopologieSat.cpp — Mise à jour de la topologie des satellites
+ * TopologieSat.cpp — Gestion Canton 2026
+ * ------------------------------------------------------------
+ * Mise à jour de la topologie des satellites voisins pour le
+ * Canton Controller (CC).
+ *
+ * Le CC détermine, en fonction des aiguilles locales, quels
+ * satellites sont connectés côté horaire (SP1) et côté
+ * anti‑horaire (SM1). Ces informations sont ensuite utilisées
+ * par l’Extension Canton Controller (EXCC) pour router les
+ * commandes et états.
  */
 
 #include "TopologieSat.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include "Canton.h"
 
 /*************************************************************************************
@@ -16,12 +25,19 @@ void mettreAJourTopologie(Canton *canton)
      * rechercheSat(satPos)
      * satPos = true  → côté horaire  (SP1)
      * satPos = false → côté anti‑horaire (SM1)
+     *
+     * Le calcul repose sur l’état des aiguilles locales :
+     * - Aiguille principale (idx 0 ou 3)
+     * - Aiguilles secondaires (idx 1–2 ou 4–5)
+     *
+     * Le résultat est un index virtuel 0–3 représentant le
+     * satellite voisin dans la direction donnée.
      */
     auto rechercheSat = [canton](bool satPos) -> uint8_t
     {
         // Index des aiguilles selon le côté
         uint8_t idxA = satPos ? 3 : 0; // aiguille principale
-        uint8_t idxS = satPos ? 4 : 0; // satellite de base (virtuel)
+        uint8_t idxS = satPos ? 4 : 0; // base topologique
         uint8_t idx = idxS;
 
         Aig *a0 = canton->getAig(idxA);
@@ -31,9 +47,9 @@ void mettreAJourTopologie(Canton *canton)
         // --------------------------------------------------------------------
         if (!a0)
         {
-            SA_LOG_WARN(
-                "[Topo] Aucun aiguillage côté %s → idx=%u (topologie simple)\n",
-                satPos ? "H" : "AH",
+            CC_LOG_WARN(
+                "[Topo][CC] Aucun aiguillage côté %s → idx=%u (topologie simple)\n",
+                satPos ? "Horaire" : "AntiHoraire",
                 idxS);
             return idxS;
         }
@@ -58,9 +74,9 @@ void mettreAJourTopologie(Canton *canton)
                 idx = a2->estDroit() ? idxS + 2 : idxS + 3;
         }
 
-        SA_LOG_TRACE(
-            "[Topo] rechercheSat(%s) → idxA=%u idxS=%u → idx=%u (masqueAig=0x%02X)\n",
-            satPos ? "H" : "AH",
+        CC_LOG_TRACE(
+            "[Topo][CC] rechercheSat(%s) → idxA=%u idxS=%u → idx=%u (masqueAig=0x%02X)\n",
+            satPos ? "Horaire" : "AntiHoraire",
             idxA,
             idxS,
             idx,
@@ -70,16 +86,16 @@ void mettreAJourTopologie(Canton *canton)
     };
 
     // -----------------------------------------------------------------------
-    // Calcul SP1 / SM1 avec les enums modernes
+    // Calcul SP1 / SM1 pour le Canton Controller
     // -----------------------------------------------------------------------
-    uint8_t sp1 = rechercheSat(true);  // SensHoraire
-    uint8_t sm1 = rechercheSat(false); // SensAntiHoraire
+    uint8_t sp1 = rechercheSat(true);   // côté horaire
+    uint8_t sm1 = rechercheSat(false);  // côté anti‑horaire
 
     canton->SP1_idx(sp1);
     canton->SM1_idx(sm1);
 
-    SA_LOG_INFO(
-        "[Canton %d] Topologie mise à jour : SP1_idx=%d  SM1_idx=%d  (masqueAig=0x%02X)\n",
+    CC_LOG_INFO(
+        "[Topo][CC][Canton %d] Topologie mise à jour : SP1_idx=%d  SM1_idx=%d  (masqueAig=0x%02X)\n",
         canton->ID(),
         sp1,
         sm1,

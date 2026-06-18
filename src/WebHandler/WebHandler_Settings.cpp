@@ -1,15 +1,20 @@
 /*
-   WebHandler_Settings.cpp — Exploration 2026 (FINAL & CLEAN)
-*/
+ * WebHandler_Settings.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Gestion des paramètres système reçus via WebSocket :
+ *   - activation WiFi
+ *   - activation Exploration
+ *   - sauvegarde settings.json
+ *   - redémarrage ESP32
+ *
+ * Ce module ne contient aucune logique métier :
+ *   → il met à jour Settings et déclenche les actions système associées.
+ */
 
 #include "WebHandler.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include "Settings.h"
 #include "Exploration.h"
-
-#include <SPIFFS.h>
-#include <FS.h>
-#include <ArduinoJson.h>
 
 // ---------------------------------------------------------------------------
 // handleWifi()
@@ -18,13 +23,12 @@ void WebHandler::handleWifi(JsonDocument &doc)
 {
     bool wifi_on = doc["wifi_on"];
 
-    SA_LOG_INFO("[Settings] wifi_on = %d\n", wifi_on);
+    CC_LOG_INFO("[Settings][CC] wifi_on = %d\n", wifi_on);
 
     Settings::wifiOn(wifi_on);
-    Settings::save();
 
-    // Si tu veux un reboot automatique :
-    // ESP.restart();
+    // Sauvegarde JSON 2026
+    Settings::writeFile(canton);
 }
 
 // ---------------------------------------------------------------------------
@@ -34,14 +38,16 @@ void WebHandler::handleExploration(JsonDocument &doc)
 {
     bool exploration_on = doc["exploration_on"];
 
-    SA_LOG_INFO("[Settings] exploration_on = %d\n", exploration_on);
+    CC_LOG_INFO("[Settings][CC] exploration_on = %d\n", exploration_on);
 
     Settings::explorationOn(exploration_on);
-    Settings::save();
+
+    // Sauvegarde JSON 2026
+    Settings::writeFile(canton);
 
     if (!exploration_on)
     {
-        SA_LOG_INFO("[Settings] Arrêt du processus Exploration\n");
+        CC_LOG_INFO("[Settings][CC] Arrêt du processus Exploration\n");
         Exploration::stopProcess(true);
     }
 }
@@ -49,71 +55,16 @@ void WebHandler::handleExploration(JsonDocument &doc)
 // ---------------------------------------------------------------------------
 // handleSave()
 // ---------------------------------------------------------------------------
-// Sauvegarde complète de settings.json, y compris servoCfg[] et Booster
+// Sauvegarde complète de settings.json via Settings::writeFile()
 // ---------------------------------------------------------------------------
 void WebHandler::handleSave()
 {
-    SA_LOG_INFO("[Settings] Sauvegarde settings.json (servos + booster + params)\n");
+    CC_LOG_INFO("[Settings][CC] Sauvegarde settings.json (servos + booster + params)\n");
 
-    if (!SPIFFS.begin(true))
-    {
-        SA_LOG_ERROR("[Settings] SPIFFS indisponible, impossible de sauvegarder\n");
-        return;
-    }
+    // Sauvegarde JSON 2026
+    Settings::writeFile(canton);
 
-    StaticJsonDocument<4096> doc;
-
-    // Charger l’existant
-    File file = SPIFFS.open("/settings.json", "r");
-    if (file)
-    {
-        DeserializationError err = deserializeJson(doc, file);
-        file.close();
-
-        if (err)
-            SA_LOG_WARN("[Settings] Erreur JSON existant : %s\n", err.c_str());
-    }
-
-    // ------------------------------------------------------------
-    // Sauvegarde des servos (slider 0–10)
-    // ------------------------------------------------------------
-    for (uint8_t i = 0; i < 6; ++i)
-    {
-        char keyPosDroit[16];
-        char keyPosDevie[16];
-        char keySpeed[16];
-
-        snprintf(keyPosDroit, sizeof(keyPosDroit), "aig%uposDroit", i);
-        snprintf(keyPosDevie, sizeof(keyPosDevie), "aig%uposDevie", i);
-        snprintf(keySpeed, sizeof(keySpeed), "aig%uspeed", i);
-
-        doc[keyPosDroit] = servoCfg[i].posDroit;
-        doc[keyPosDevie] = servoCfg[i].posDevie;
-
-        // On stocke le slider 0–10, pas la vitesse µs/s
-        doc[keySpeed] = servoCfg[i].speed;
-    }
-
-    // ------------------------------------------------------------
-    // Sauvegarde Booster (seuils)
-    // ------------------------------------------------------------
-    doc["booster_seuil_libre"] = Settings::boosterSeuilLibre();
-    doc["booster_seuil_occupe"] = Settings::boosterSeuilOccupe();
-
-    // ------------------------------------------------------------
-    // Écriture du JSON mis à jour
-    // ------------------------------------------------------------
-    file = SPIFFS.open("/settings.json", "w");
-    if (!file)
-    {
-        SA_LOG_ERROR("[Settings] Impossible d’ouvrir settings.json en écriture\n");
-        return;
-    }
-
-    serializeJsonPretty(doc, file);
-    file.close();
-
-    SA_LOG_INFO("[Settings] settings.json sauvegardé avec succès\n");
+    CC_LOG_INFO("[Settings][CC] settings.json sauvegardé avec succès\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -121,6 +72,6 @@ void WebHandler::handleSave()
 // ---------------------------------------------------------------------------
 void WebHandler::handleRestart()
 {
-    SA_LOG_WARN("[Settings] Redémarrage demandé\n");
+    CC_LOG_WARN("[Settings][CC] Redémarrage demandé\n");
     ESP.restart();
 }

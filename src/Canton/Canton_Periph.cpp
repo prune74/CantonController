@@ -1,33 +1,37 @@
 /*
- * Canton_Periph.cpp — Gestion des voisins d’un canton (CantonPeriph)
+ * Canton_Periph.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Rôle :
- *   CantonPeriph représente un "voisin" dans la topologie ferroviaire :
+ * Représentation d’un voisin ferroviaire dans la topologie locale :
  *
- *       SP1 / SP2 / SM1 / SM2
+ *     SP1 / SP2 / SM1 / SM2
  *
- *   Chaque CantonPeriph correspond à un canton adjacent et stocke :
- *     - son ID
- *     - son occupation logique (busy)
- *     - son autorisation d’accès (acces)
- *     - la loco réservée dans ce voisin (reserved)
- *     - l’adresse Railcom de la loco présente (locoAddr)
- *     - les aiguilles bloquantes pour accéder à ce voisin (masqueAig)
- *     - les aspects reçus depuis EXSA (aspectRecu[2])
+ * Un CantonPeriph correspond à un canton adjacent et stocke :
+ *   - ID du voisin
+ *   - occupation logique (busy)
+ *   - autorisation d’accès (acces)
+ *   - réservation (reserved)
+ *   - adresse RailCom de la loco présente (locoAddr)
+ *   - masque d’aiguilles bloquantes (masqueAig)
+ *   - aspects reçus depuis EXCC (aspectRecu[H/AH])
+ *
+ * IMPORTANT :
+ *   - aucune logique métier ici
+ *   - aucune décision ferroviaire
+ *   - uniquement un conteneur d’état pour la topologie
  */
 
 #include "Canton.h"
 #include "Config.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 // Compteur d’instances (debug)
 uint8_t CantonPeriph::comptInst = 0;
 
-/*
- * Constructeur
+/* ============================================================================
+ *  Constructeur
  * ---------------------------------------------------------------------------
- * Initialise toutes les valeurs internes à un état neutre.
- */
+ *  Initialise toutes les valeurs internes à un état neutre.
+ * ==========================================================================*/
 CantonPeriph::CantonPeriph()
     : m_id(NODE_UNUSED_ID),
       m_busy(false),
@@ -37,33 +41,30 @@ CantonPeriph::CantonPeriph()
       m_masqueAig(0x00),
       m_signal(0)
 {
-    // Aspects reçus depuis EXSA (H et AH)
-    aspectRecu[0] = 0;
-    aspectRecu[1] = 0;
+    aspectRecu[0] = 0; // AH
+    aspectRecu[1] = 0; // H
 
     ++comptInst;
-    SA_LOG_TRACE("[CantonPeriph] Nouvelle instance (total=%u)\n", comptInst);
-}
-
-/*
- * Destructeur
- * ---------------------------------------------------------------------------
- */
-CantonPeriph::~CantonPeriph()
-{
-    --comptInst;
-    SA_LOG_TRACE("[CantonPeriph] Destruction instance (restant=%u)\n", comptInst);
+    CC_LOG_TRACE("[CantonPeriph][CC] Nouvelle instance (total=%u)\n", comptInst);
 }
 
 /* ============================================================================
- * Getters / Setters
- * ============================================================================
- */
+ *  Destructeur
+ * ==========================================================================*/
+CantonPeriph::~CantonPeriph()
+{
+    --comptInst;
+    CC_LOG_TRACE("[CantonPeriph][CC] Destruction instance (restant=%u)\n", comptInst);
+}
+
+/* ============================================================================
+ *  Getters / Setters
+ * ==========================================================================*/
 
 void CantonPeriph::ID(uint8_t id)
 {
     m_id = id;
-    SA_LOG_TRACE("[CantonPeriph] ID défini = %u\n", m_id);
+    CC_LOG_TRACE("[CantonPeriph][CC] ID = %u\n", m_id);
 }
 
 uint8_t CantonPeriph::ID()

@@ -1,21 +1,27 @@
 /*
-  Exploration.h — Version 2026 (CLEAN)
-  ------------------------------------------------------------
-  Rôle du module Exploration :
-  - Détecter les satellites voisins via les boutons physiques.
-  - Construire la topologie SP1 / SP2 / SM1 / SM2.
-  - Créer les aiguilles LOGIQUES (Aig) en fonction des voisins.
-  - Associer chaque aiguille à un EXSA (H/AH).
-  - Déduire les signaux (cibles) en fonction de la topologie.
-  - Sauvegarder settings.json et envoyer la topologie à la carte Main.
-
-  Notes 2026 :
-  - Le SA ne pilote plus aucun servo.
-  - Les aiguilles sont 100 % logiques.
-  - EXSA pilote physiquement les servos via PCA9685.
-  - Exploration ne gère plus aucune pin d’aiguille.
-  ------------------------------------------------------------
-*/
+ * Exploration.h — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Module de découverte autonome du Canton Controller (CC).
+ *
+ * Rôle :
+ *   - détecter les voisins via les boutons physiques (MCP23017)
+ *   - construire la topologie SP1 / SP2 / SM1 / SM2
+ *   - créer les aiguilles LOGIQUES (Aig) en fonction des voisins détectés
+ *   - déduire automatiquement le rôle du canton (computeRole)
+ *   - appliquer les types de signaux par défaut (applyRoleDefaults)
+ *   - sauvegarder settings.json
+ *   - envoyer la topologie vers l’Extension Canton Controller (EXCC)
+ *
+ * Notes 2026 :
+ *   - le CC ne pilote plus aucun servo
+ *   - les aiguilles sont 100 % logiques
+ *   - EXCC pilote physiquement les servos via PCA9685
+ *   - Exploration ne manipule plus aucune GPIO ESP32
+ *   - boutons + LED Exploration → MCP23017
+ *
+ * Ce module ne contient aucune logique ferroviaire :
+ *   → il orchestre simplement la phase d’exploration.
+ */
 
 #pragma once
 
@@ -30,61 +36,77 @@
 class Exploration
 {
 private:
-  // Entrées physiques :
-  //  - BTN_SAT_MOINS
-  //  - BTN_SAT_PLUS
-  //  - INTER_DEV_2
-  //  - INTER_DEV_1
-  // Ces 4 entrées permettent de sélectionner les voisins SP/SM.
-  static const gpio_num_t m_pinIn[];
+    // -----------------------------------------------------------------------
+    // LED Exploration (via MCP23017)
+    // -----------------------------------------------------------------------
+    static const uint8_t m_pinLed = MCP_PIN_LED_EXPLORATION;
 
-  // LED d’état du Exploration (clignotement, validation…)
-  static const gpio_num_t m_pinLed;
+    // -----------------------------------------------------------------------
+    // Référence vers le Canton principal
+    // -----------------------------------------------------------------------
+    static Canton *canton;
 
-  // Référence vers le Canton principal (structure ferroviaire)
-  static Canton *canton;
+    // -----------------------------------------------------------------------
+    // Nombre d’aiguilles logiques détectées (0..6)
+    // -----------------------------------------------------------------------
+    static byte m_comptAig;
 
-  // Nombre d’aiguilles logiques détectées (0 à 6)
-  static byte m_comptAig;
+    // -----------------------------------------------------------------------
+    // ID du satellite voisin détecté via CAN (opcode 0xC0)
+    // -----------------------------------------------------------------------
+    static byte m_ID_satPeriph;
 
-  // ID du satellite voisin détecté via CAN (0xC0)
-  static byte m_ID_satPeriph;
+    // -----------------------------------------------------------------------
+    // État des boutons/switches (4 bits)
+    //   bit0 = SAT_MOINS
+    //   bit1 = SAT_PLUS
+    //   bit2 = DEV2
+    //   bit3 = DEV1
+    // -----------------------------------------------------------------------
+    static byte m_btnState;
 
-  // État des boutons/switches (4 bits)
-  static byte m_btnState;
-
-  // Indique que Exploration doit s’arrêter (fin de topologie)
-  static bool m_stopProcess;
+    // -----------------------------------------------------------------------
+    // Indique que l’exploration doit s’arrêter (topologie finalisée)
+    // -----------------------------------------------------------------------
+    static bool m_stopProcess;
 
 public:
-  // Classe statique → pas de constructeur
-  Exploration() = delete;
+    Exploration() = delete; // Classe statique
 
-  // Initialisation générale (boutons, LED, tâches FreeRTOS)
-  static void begin(Canton *);
+    // -----------------------------------------------------------------------
+    // begin() — initialisation générale (MCP, LED, tâches FreeRTOS)
+    // -----------------------------------------------------------------------
+    static void begin(Canton *);
 
-  // Tâche FreeRTOS : gestion des boutons + envoi CAN
-  static void process(void *);
+    // -----------------------------------------------------------------------
+    // process() — gestion des boutons + reset logique + notifications CAN
+    // -----------------------------------------------------------------------
+    static void process(void *);
 
-  // Tâche FreeRTOS : création aiguilles + signaux + topologie
-  static void createAigEtCibles(void *);
+    // -----------------------------------------------------------------------
+    // createAigEtCibles() — première passe au boot
+    // -----------------------------------------------------------------------
+    static void createAigEtCibles(void *);
 
-  // Gestion du compteur d’aiguilles
-  static void comptAig(byte);
-  static byte comptAig();
+    // -----------------------------------------------------------------------
+    // Accesseurs internes
+    // -----------------------------------------------------------------------
+    static void comptAig(byte);
+    static byte comptAig();
 
-  // Gestion de l’ID du satellite voisin détecté
-  static void ID_satPeriph(byte);
-  static byte ID_satPeriph();
+    static void ID_satPeriph(byte);
+    static byte ID_satPeriph();
 
-  // Gestion de l’état des boutons/switches
-  static void btnState(byte);
-  static byte btnState();
+    static void btnState(byte);
+    static byte btnState();
 
-  // Arrêt de l'Exploration (sauvegarde + envoi topologie + reboot)
-  static void stopProcess(bool);
+    // -----------------------------------------------------------------------
+    // stopProcess() — fin de l’exploration (topologie envoyée)
+    // -----------------------------------------------------------------------
+    static void stopProcess(bool);
 };
-/* ------------------------------------------------------------
-  Fin de Exploration.h
-  ------------------------------------------------------------
-*/
+
+/* ---------------------------------------------------------------------------
+ * Fin de Exploration.h
+ * ---------------------------------------------------------------------------
+ */

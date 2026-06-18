@@ -1,69 +1,83 @@
 /*
- * Canton_Logic.cpp — Logique métier du canton (accès, sécurité, cohérence)
+ * Canton_Logic.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Logique métier du canton :
+ *   - règles d’accès
+ *   - cohérence topologique
+ *   - sécurité (STOP, occupation, réservations)
+ *
+ * IMPORTANT :
+ *   - aucune logique d’aiguilles physiques ici
+ *   - aucune logique de signaux
+ *   - aucune logique directionnelle
+ *
+ * Ce module définit UNIQUEMENT les règles d’accès ferroviaires internes.
  */
 
 #include "Canton.h"
 #include "Config.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 /* ============================================================================
- * estAccesAutorise() — Règle générale d’accès
- * ============================================================================
- */
-
+ *  estAccesAutorise() — Règle générale d’accès
+ * ---------------------------------------------------------------------------
+ *  Conditions :
+ *    1. STOP global inactif
+ *    2. Le rôle ferroviaire autorise l’accès
+ *    3. Le voisin existe
+ *    4. Le voisin est accessible
+ *    5. Le voisin n’est ni occupé ni réservé
+ *    6. Les aiguilles sont conformes au masque
+ * ==========================================================================*/
 bool Canton::estAccesAutorise(SensDeMarche sens)
 {
-    // 🔥 STOP global Exploration 2026 : aucun accès autorisé
+    // 0) STOP global
     if (isStopActive())
     {
-        SA_LOG_WARN("[Canton %u] Accès %s BLOQUE (STOP actif)\n",
+        CC_LOG_WARN("[Canton %u][Logic][CC] Accès %s BLOQUE (STOP actif)\n",
                     m_id,
                     (sens == SensHoraire ? "H" : "AH"));
         return false;
     }
 
-    CantonPeriph *v = nullptr;
-    byte masque = m_masqueAig;
-
-    if (sens == SensHoraire)
-        v = voisinSP1();
-    else
-        v = voisinSM1();
-
+    CantonPeriph *v = (sens == SensHoraire) ? voisinSP1() : voisinSM1();
     const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
-    // 1) Le rôle doit autoriser l’accès
+    // 1) Rôle ferroviaire
     if (!roleAutoriseAcces(sens))
     {
-        SA_LOG_TRACE("[Canton %u] Accès %s refusé (rôle)\n", m_id, sensStr);
+        CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (rôle)\n", m_id, sensStr);
         return false;
     }
 
-    // 2) Le voisin doit exister
+    // 2) Voisin existant
     if (!v)
     {
-        SA_LOG_WARN("[Canton %u] Accès %s refusé (voisin inexistant)\n", m_id, sensStr);
+        CC_LOG_WARN("[Canton %u][Logic][CC] Accès %s refusé (voisin inexistant)\n",
+                    m_id, sensStr);
         return false;
     }
 
-    // 3) Le voisin doit être accessible
+    // 3) Voisin accessible
     if (!v->acces())
     {
-        SA_LOG_TRACE("[Canton %u] Accès %s refusé (acces=0)\n", m_id, sensStr);
+        CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (acces=0)\n", m_id, sensStr);
         return false;
     }
 
-    // 4) Le voisin ne doit pas être occupé ou réservé
+    // 4) Voisin libre
     if (v->busy() || v->reserved() != 0)
     {
-        SA_LOG_TRACE("[Canton %u] Accès %s refusé (voisin occupé/réservé)\n", m_id, sensStr);
+        CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (voisin occupé/réservé)\n",
+                     m_id, sensStr);
         return false;
     }
 
-    // 5) Vérification des masques d’aiguilles
-    if (!aiguillesConformes(masque))
+    // 5) Masque aiguilles
+    if (!aiguillesConformes(m_masqueAig))
     {
-        SA_LOG_TRACE("[Canton %u] Accès %s refusé (masque aiguilles)\n", m_id, sensStr);
+        CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (masque aiguilles)\n",
+                     m_id, sensStr);
         return false;
     }
 
@@ -71,10 +85,16 @@ bool Canton::estAccesAutorise(SensDeMarche sens)
 }
 
 /* ============================================================================
- * aiguillesConformes() — Vérifie les masques d’aiguilles
- * ============================================================================
- */
-
+ *  aiguillesConformes() — Vérifie les masques d’aiguilles
+ * ---------------------------------------------------------------------------
+ *  Pour chaque bit du masque :
+ *    - 1 → aiguille concernée → doit être DROITE
+ *    - 0 → aiguille ignorée
+ *
+ *  NOTE :
+ *    Ce test utilise la position LOGIQUE (Aig::estDroit()),
+ *    pas la position physique servo.
+ * ==========================================================================*/
 bool Canton::aiguillesConformes(byte masque)
 {
     for (uint8_t i = 0; i < 4; i++)
@@ -88,7 +108,8 @@ bool Canton::aiguillesConformes(byte masque)
 
         if (!a->estDroit())
         {
-            SA_LOG_TRACE("[Canton %u] Aiguille %u non conforme au masque\n", m_id, i);
+            CC_LOG_TRACE("[Canton %u][Logic][CC] Aiguille %u non conforme au masque\n",
+                         m_id, i);
             return false;
         }
     }
@@ -97,26 +118,27 @@ bool Canton::aiguillesConformes(byte masque)
 }
 
 /* ============================================================================
- * prochainVoisin() — Détermine le prochain canton selon le sens
- * ============================================================================
- */
-
+ *  prochainVoisin() — Détermine le prochain canton selon le sens
+ * ==========================================================================*/
 CantonPeriph *Canton::prochainVoisin(SensDeMarche sens)
 {
     return (sens == SensHoraire) ? voisinSP1() : voisinSM1();
 }
 
 /* ============================================================================
- * peutEntrerDansVoisin() — Vérifie si une loco peut entrer dans le voisin
- * ============================================================================
- */
-
+ *  peutEntrerDansVoisin() — Vérifie si une loco peut entrer dans le voisin
+ * ---------------------------------------------------------------------------
+ *  Conditions :
+ *    - STOP inactif
+ *    - accès autorisé
+ *    - voisin existant
+ *    - voisin libre
+ * ==========================================================================*/
 bool Canton::peutEntrerDansVoisin(SensDeMarche sens)
 {
-    // 🔥 STOP global Exploration 2026 : aucune entrée autorisée
     if (m_stopActive)
     {
-        SA_LOG_WARN("[Canton %u] Entrée %s BLOQUEE (STOP actif)\n",
+        CC_LOG_WARN("[Canton %u][Logic][CC] Entrée %s BLOQUEE (STOP actif)\n",
                     m_id,
                     (sens == SensHoraire ? "H" : "AH"));
         return false;
@@ -136,16 +158,19 @@ bool Canton::peutEntrerDansVoisin(SensDeMarche sens)
 }
 
 /* ============================================================================
- * estSortiePossible() — Vérifie si la loco peut quitter ce canton
- * ============================================================================
- */
-
+ *  estSortiePossible() — Vérifie si la loco peut quitter ce canton
+ * ---------------------------------------------------------------------------
+ *  Conditions :
+ *    - STOP inactif
+ *    - canton occupé
+ *    - entrée dans le voisin possible
+ * ==========================================================================*/
 bool Canton::estSortiePossible(SensDeMarche sens)
 {
     // 🔥 STOP global Exploration 2026 : aucune sortie autorisée
     if (m_stopActive)
     {
-        SA_LOG_WARN("[Canton %u] Sortie %s BLOQUEE (STOP actif)\n",
+        CC_LOG_WARN("[Canton %u][Logic][CC] Sortie %s BLOQUEE (STOP actif)\n",
                     m_id,
                     (sens == SensHoraire ? "H" : "AH"));
         return false;

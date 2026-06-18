@@ -1,45 +1,58 @@
 /*
- * SatTopo_UART_Aspects.cpp
- * ------------------------------------------------------------
- * Gestion des aspects SNCF envoyés à EXSA :
+ * SatTopo_UART_Aspects.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Transmission des aspects SNCF vers les EXCC via UART.
  *
- *   - E6 : Aspect horaire
- *   - E7 : Aspect anti-horaire
+ * OpCodes :
+ *   - E6 : aspect horaire
+ *   - E7 : aspect anti‑horaire
  *
- * Le calcul des aspects est effectué dans :
- *      SupervisionCanton.cpp → mettreAJourAspectCanton()
+ * Rôle :
+ *   - appeler mettreAJourAspectCanton() pour chaque sens (H / AH)
+ *   - transmettre les aspects calculés aux EXCC
  *
- * Ce module ne fait qu’une seule chose :
- *      → transmettre à EXSA les aspects calculés (enum ExsaAspect)
+ * IMPORTANT :
+ *   - aucune logique métier ici
+ *   - aucun calcul d’aspect
+ *   - aucune lecture de topologie
  *
- * Aucun calcul métier n’est effectué ici.
+ * Toute la logique métier est dans SupervisionCanton.cpp.
  */
 
 #include "SatTopologieUART.h"
 #include "Config.h"
 #include "Exploration_Protocol.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 #include "Settings.h"
 #include "SupervisionCanton.h"
 
 extern HardwareSerial Serial1;
 
-/*-------------------------------------------------------------
-  Envoie les aspects SNCF depuis l’état courant
-  → opcode E6 (horaire) + E7 (anti-horaire)
---------------------------------------------------------------*/
+/* ============================================================================
+ *  envoyerAspectsDepuisEtatCourant()
+ * ---------------------------------------------------------------------------
+ *  Envoie les aspects SNCF calculés :
+ *    → E6 (horaire)
+ *    → E7 (anti‑horaire)
+ * ==========================================================================*/
 void envoyerAspectsDepuisEtatCourant()
 {
-  ExsaAspect aspectHoraire =
-      mettreAJourAspectCanton(Settings::canton, 0);
+    // -----------------------------------------------------------------------
+    // Calcul des aspects (logique métier dans SupervisionCanton)
+    // -----------------------------------------------------------------------
+    ExccAspect aspectHoraire =
+        mettreAJourAspectCanton(Settings::canton, 0);
 
-  ExsaAspect aspectAntiHoraire =
-      mettreAJourAspectCanton(Settings::canton, 1);
+    ExccAspect aspectAntiHoraire =
+        mettreAJourAspectCanton(Settings::canton, 1);
 
-  envoyerAspectSignalHoraire(aspectHoraire);
-  envoyerAspectSignalAntiHoraire(aspectAntiHoraire);
+    // -----------------------------------------------------------------------
+    // Transmission UART vers EXCC
+    // -----------------------------------------------------------------------
+    envoyerAspectSignalHoraire(aspectHoraire);
+    envoyerAspectSignalAntiHoraire(aspectAntiHoraire);
 
-  SA_LOG_INFO("[TopoUART] Aspects envoyés : H=%u AH=%u\n",
-              aspectHoraire, aspectAntiHoraire);
+    CC_LOG_INFO("[TopoUART][CC] Aspects envoyés : H=%u AH=%u\n",
+                aspectHoraire, aspectAntiHoraire);
 }

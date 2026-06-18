@@ -2,7 +2,7 @@
 
 /*
  * ============================================================================
- *  CanMsg.h — API CAN du SA (Satellite d’Aiguillage)
+ *  CanMsg.h — API CAN du CC (Canton Controller)
  *  --------------------------------------------------------------------------
  *  Ce module gère :
  *
@@ -16,12 +16,12 @@
  *    - l’envoi CAN via une API simplifiée :
  *          sendMsg(prio, cmde, resp, id, data…)
  *
- *  Le protocole CAN Exploration utilise un ID étendu (29 bits) structuré ainsi :
+ *  Format ID étendu (29 bits) Exploration 2026 :
  *
  *      [ 2 bits priorité ]   bits 26..25
  *      [ 8 bits commande ]   bits 24..17
  *      [ 1 bit response ]    bit  16
- *      [ 16 bits ID SA ]     bits 15..0
+ *      [ 16 bits ID CC ]     bits 15..0
  *
  *  Exemple :
  *      prio = 1
@@ -31,8 +31,7 @@
  *
  *      ID = (1 << 25) | (0xE7 << 17) | (0 << 16) | 42
  *
- *  Toutes les fonctions sendMsg() encapsulent ce format.
- *
+ *  Toutes les surcharges sendMsg() encapsulent ce format.
  * ============================================================================
  */
 
@@ -46,100 +45,75 @@
 
 /*
  * ============================================================================
- *  Classe CanMsg
+ *  Classe CanMsg — Gestion Canton 2026
  *  --------------------------------------------------------------------------
- *  Cette classe est purement statique :
- *    - aucune instance n’est créée
+ *  Classe purement statique :
+ *    - aucune instance
  *    - toutes les méthodes sont statiques
  *
- *  Elle fournit :
- *
- *    1) setup()
- *       → crée la tâche FreeRTOS de réception CAN
- *
- *    2) canReceiveMsg()
- *       → boucle de réception CAN (décodage + dispatch)
- *
- *    3) sendMsg()
- *       → API d’envoi CAN (0 à 8 octets)
- *
- *    4) testMemory()
- *       → optionnel : surveille la stack de la tâche CAN
- *
+ *  Fournit :
+ *    1) setup()          → création de la tâche FreeRTOS de réception CAN
+ *    2) canReceiveMsg()  → boucle de réception / dispatch
+ *    3) sendMsg()        → API d’envoi CAN (0 à 8 octets)
+ *    4) testMemory()     → optionnel : surveillance stack FreeRTOS
  * ============================================================================
  */
 class CanMsg
 {
 public:
-  // -------------------------------------------------------------------------
-  // setup(canton)
-  // -------------------------------------------------------------------------
-  // Initialise le module CAN :
-  //   - crée la tâche FreeRTOS canReceiveMsg()
-  //   - passe le Canton local en paramètre
-  //
-  // Cette fonction doit être appelée UNE SEULE FOIS dans setup().
-  // -------------------------------------------------------------------------
-  static void setup(Canton *canton);
+    // -----------------------------------------------------------------------
+    // setup(canton)
+    // -----------------------------------------------------------------------
+    // Initialise le module CAN :
+    //   - crée la tâche FreeRTOS canReceiveMsg()
+    //   - passe le Canton local en paramètre
+    //
+    // À appeler UNE SEULE FOIS dans setup().
+    // -----------------------------------------------------------------------
+    static void setup(Canton *canton);
 
-  // -------------------------------------------------------------------------
-  // sendMsg(CANMessage&)
-  // -------------------------------------------------------------------------
-  // Envoi brut d’une trame CAN déjà formatée.
-  // Utilisé par toutes les surcharges ci‑dessous.
-  // -------------------------------------------------------------------------
-  static void sendMsg(CANMessage &frame);
+    // -----------------------------------------------------------------------
+    // Envoi brut d’une trame CAN déjà construite
+    // -----------------------------------------------------------------------
+    static void sendMsg(CANMessage &frame);
 
-  // -------------------------------------------------------------------------
-  // API simplifiée d’envoi CAN
-  // -------------------------------------------------------------------------
-  // Ces surcharges permettent d’envoyer une trame CAN sans construire
-  // manuellement un CANMessage.
-  //
-  // Exemple :
-  //     CanMsg::sendMsg(1, 0xE7, 0, canton->ID(), aspect);
-  //
-  // Toutes utilisent le format Exploration 2026 (ID étendu).
-  // -------------------------------------------------------------------------
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6);
-  static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte data0, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6, byte data7);
+    // -----------------------------------------------------------------------
+    // API simplifiée d’envoi CAN (0 à 8 octets)
+    // -----------------------------------------------------------------------
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3, byte d4);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3, byte d4, byte d5);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3, byte d4, byte d5, byte d6);
+    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3, byte d4, byte d5, byte d6, byte d7);
 
 #ifdef TEST_MEMORY_TASK
-  // -------------------------------------------------------------------------
-  // testMemory()
-  // -------------------------------------------------------------------------
-  // Tâche optionnelle permettant de surveiller la mémoire restante
-  // de la tâche canReceiveMsg().
-  //
-  // Utile pour débuguer les stacks FreeRTOS.
-  // -------------------------------------------------------------------------
-  static void testMemory(void *pvParameters);
+    // -----------------------------------------------------------------------
+    // testMemory() — surveillance stack FreeRTOS
+    // -----------------------------------------------------------------------
+    static void testMemory(void *pvParameters);
 #endif
 
 private:
-  // -------------------------------------------------------------------------
-  // canReceiveMsg()
-  // -------------------------------------------------------------------------
-  // Tâche FreeRTOS :
-  //   - lit les trames CAN
-  //   - décode l’ID étendu
-  //   - extrait :
-  //        * commande (0xB3–0xE9)
-  //        * ID expéditeur
-  //        * bit response
-  //   - route vers :
-  //        * handleSystemCommand()
-  //        * handleExplorationCommand()
-  //        * handleExploitCommand()
-  //
-  // Cette fonction tourne en permanence (10 ms).
-  // -------------------------------------------------------------------------
-  static void canReceiveMsg(void *pvParameters);
+    // -----------------------------------------------------------------------
+    // canReceiveMsg()
+    // -----------------------------------------------------------------------
+    // Tâche FreeRTOS :
+    //   - lit les trames CAN
+    //   - décode l’ID étendu Exploration 2026
+    //   - extrait :
+    //        * commande
+    //        * ID expéditeur
+    //        * bit response
+    //   - route vers :
+    //        * handleSystemCommand()
+    //        * handleExplorationCommand()
+    //        * handleExploitCommand()
+    //
+    // Boucle toutes les 10 ms.
+    // -----------------------------------------------------------------------
+    static void canReceiveMsg(void *pvParameters);
 };

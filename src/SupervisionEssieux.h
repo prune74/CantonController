@@ -5,33 +5,33 @@
 class Canton;
 
 /*
- * ============================================================
- *  SupervisionEssieux — SA 2026
+ * SupervisionEssieux.h — Gestion Canton 2026
  * ------------------------------------------------------------
- *  Rôle :
- *    Ce module surveille la cohérence ferroviaire entre :
+ * Module de supervision de la cohérence essieux pour le
+ * Canton Controller (CC).
  *
- *      - l’occupation logique du canton (Canton::busy())
- *      - le compteur global d’essieux (fourni par EXCC)
- *      - l’état des cantons amont et aval
- *      - les reboot EXCC (via notifierRebootEXCC)
+ * Rôle du module :
+ *   - surveiller la cohérence entre :
+ *       • l’occupation logique du canton (Canton::busy())
+ *       • le compteur global d’essieux fourni par l’EXCC
+ *       • l’état des cantons voisins (amont / aval)
+ *       • les reboot EXCC (perte d’état interne)
  *
- *    Pourquoi ?
- *      Le compteur d’essieux peut devenir invalide dans plusieurs cas :
- *        - reboot EXCC (perte de l’état interne)
- *        - compteur impossible (ex : < 0)
- *        - incohérence topologique (tout libre mais compteur > 0)
+ * Pourquoi ?
+ *   Le compteur d’essieux peut devenir incohérent dans plusieurs cas :
+ *       • reboot EXCC
+ *       • compteur négatif ou impossible
+ *       • topologie incohérente (tout libre mais compteur > 0)
  *
- *    Ce module :
- *      - détecte ces incohérences
- *      - remet le compteur à zéro dans les cas sûrs
- *      - NE MODIFIE JAMAIS Canton::busy()
- *        (l’occupation logique reste gérée par ConsoCourant)
+ * Ce module :
+ *   - détecte les incohérences
+ *   - remet le compteur à zéro dans les cas sûrs
+ *   - NE MODIFIE JAMAIS Canton::busy()
+ *     (l’occupation logique reste gérée par ConsoCourant)
  *
- *    🔥 Timer anti‑faux‑positifs :
- *      Pour éviter de réinitialiser le compteur trop vite
- *      lorsqu’un train est mal alimenté ou à cheval sur deux cantons.
- * ============================================================
+ * Timer anti‑faux‑positifs :
+ *   Permet d’éviter une remise à zéro trop rapide lorsque
+ *   le train est mal alimenté ou à cheval sur deux cantons.
  */
 
 class SupervisionEssieux
@@ -40,7 +40,7 @@ public:
     // Initialisation avec le Canton local
     static void begin(Canton *canton);
 
-    // À appeler régulièrement dans la loop() du SA
+    // À appeler régulièrement dans la loop() du Canton Controller
     static void loop();
 
     // À appeler lorsqu’un reboot EXCC est détecté (PING/PONG)
@@ -50,7 +50,7 @@ private:
     static Canton *s_canton;     // Canton supervisé
     static bool s_rebootDetecte; // Flag : reboot EXCC détecté
 
-    // 🔥 Timer anti‑faux‑positifs
+    // Timer anti‑faux‑positifs
     static uint16_t s_incoherenceTimer;             // compteur interne
     static const uint16_t INCOHERENCE_TIMEOUT = 40; // ~2 secondes
 

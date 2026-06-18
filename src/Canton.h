@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <map>
 #include <string>
+#include <Adafruit_MCP23X17.h>
 
 #include "SensEnum.h"
 #include "Canton/CantonPeriph.h"
@@ -11,17 +12,42 @@
 #include "Sensor.h"
 #include "Loco.h"
 
+/*
+ * Canton.h — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Représente un canton complet :
+ *   - topologie SP1 / SM1 / SP2 / SM2
+ *   - aiguilles logiques
+ *   - signaux H / AH
+ *   - capteurs ponctuels
+ *   - occupation physique + essieux
+ *   - rôle ferroviaire (pleine voie, gare, bifurcation…)
+ *   - feux directionnels
+ *   - STOP global
+ *
+ * Ce module est le cœur de la logique métier ferroviaire locale.
+ */
+
+// ---------------------------------------------------------------------------
+// Rôle ferroviaire du canton
+// ---------------------------------------------------------------------------
 enum CantonRole
 {
-    ROLE_PLEINE_VOIE = 0,
-    ROLE_BAL,
-    ROLE_GARE,
-    ROLE_ENTREE_GARE,
-    ROLE_SORTIE_GARE,
-    ROLE_MANOEUVRE,
-    ROLE_SERVICE
+    ROLE_INDETERMINE = 0, // Aucun voisin, topologie inconnue
+    ROLE_TIROIR,          // Impasse / voie en cul-de-sac
+    ROLE_PLEINE_VOIE,     // Voie simple sans aiguilles
+    ROLE_BAL,             // Voie avec aiguilles mais sans bifurcation
+    ROLE_ENTREE_GARE,     // Aiguilles + SP2/SM2 côté H
+    ROLE_SORTIE_GARE,     // Aiguilles + SP2/SM2 côté AH
+    ROLE_GARE,            // Aiguilles + SP2/SM2 + continuité H/AH
+    ROLE_BIFURCATION,     // Aiguilles + SP2/SM2 mais continuité partielle
+    ROLE_MANOEUVRE,       // Zone technique sans continuité
+    ROLE_SERVICE          // Zone technique avec aiguilles mais sans SP2/SM2
 };
 
+// ---------------------------------------------------------------------------
+// Paramètres directionnels (feux directionnels + code-barres)
+// ---------------------------------------------------------------------------
 struct DirectionConfig
 {
     bool active = false;
@@ -35,6 +61,9 @@ struct DirectionSettings
     DirectionConfig AH;
 };
 
+// ---------------------------------------------------------------------------
+// Classe Canton
+// ---------------------------------------------------------------------------
 class Canton
 {
     friend class Exploration;
@@ -46,39 +75,58 @@ public:
 
     static Canton *s_instance;
 
-    /* Identité */
+    // -----------------------------------------------------------------------
+    // MCP23017
+    // -----------------------------------------------------------------------
+    Adafruit_MCP23X17 mcp;
+    void initMCP();
+
+    // -----------------------------------------------------------------------
+    // Identité
+    // -----------------------------------------------------------------------
     void ID(uint16_t id);
     uint16_t ID();
 
-    /* Occupation / Réservation */
+    // -----------------------------------------------------------------------
+    // Occupation / Réservation
+    // -----------------------------------------------------------------------
     void busy(bool v);
     bool busy();
     void reserved(uint16_t addr);
     uint16_t reserved();
     bool estOccupe();
 
-    /* Rôle ferroviaire */
+    // -----------------------------------------------------------------------
+    // Rôle ferroviaire
+    // -----------------------------------------------------------------------
     void setRole(CantonRole role);
     CantonRole getRole();
     bool roleAutoriseAcces(SensDeMarche sens);
     bool roleImposeAvertissement();
     bool roleImposeManoeuvre();
+    void computeRole();
 
-    /* Topologie SP1 / SM1 / SP2 / SM2 */
+    // -----------------------------------------------------------------------
+    // Topologie SP1 / SM1 / SP2 / SM2
+    // -----------------------------------------------------------------------
     void SP1_idx(uint8_t idx);
     uint8_t SP1_idx();
     void SM1_idx(uint8_t idx);
     uint8_t SM1_idx();
+
     void SP2_acces(bool v);
     bool SP2_acces();
     void SP2_busy(bool v);
     bool SP2_busy();
+
     void SM2_acces(bool v);
     bool SM2_acces();
     void SM2_busy(bool v);
     bool SM2_busy();
 
-    /* Masques d’aiguilles */
+    // -----------------------------------------------------------------------
+    // Masques d’aiguilles
+    // -----------------------------------------------------------------------
     void masqueAig(uint8_t v);
     uint8_t masqueAig();
     void masqueAigSP2(uint8_t v);
@@ -86,7 +134,9 @@ public:
     void masqueAigSM2(uint8_t v);
     uint8_t masqueAigSM2();
 
-    /* Voisins directs */
+    // -----------------------------------------------------------------------
+    // Voisins directs
+    // -----------------------------------------------------------------------
     CantonPeriph *voisinSP1();
     CantonPeriph *voisinSM1();
     CantonPeriph *voisinSP2();
@@ -97,54 +147,72 @@ public:
     bool SP2_estAccessible();
     bool SM2_estAccessible();
 
-    /* Aiguilles (LOGIQUES) */
+    // -----------------------------------------------------------------------
+    // Aiguilles logiques
+    // -----------------------------------------------------------------------
     void aigRun(uint8_t idx);
     uint8_t getAiguillePosition(uint8_t idx) const;
 
-    /* Signaux (H / AH) */
+    // -----------------------------------------------------------------------
+    // Signaux (H / AH)
+    // -----------------------------------------------------------------------
     void applyRoleDefaults();
     uint8_t transitionH();
     uint8_t transitionAH();
     uint8_t transitionAspect(SensDeMarche sens);
 
-    /* Capteurs virtuels EXSA */
+    // -----------------------------------------------------------------------
+    // Capteurs virtuels EXCC
+    // -----------------------------------------------------------------------
     bool readCapteurAH();
     bool readCapteurH();
     bool capteurActif(SensDeMarche sens);
     void overrideCapteur(SensDeMarche sens, bool etat);
     void resetOverrideCapteurs();
 
-    /* Logique métier ferroviaire */
+    // -----------------------------------------------------------------------
+    // Logique métier ferroviaire
+    // -----------------------------------------------------------------------
     bool estAccesAutorise(SensDeMarche sens);
     bool aiguillesConformes(uint8_t masque);
     CantonPeriph *prochainVoisin(SensDeMarche sens);
     bool peutEntrerDansVoisin(SensDeMarche sens);
     bool estSortiePossible(SensDeMarche sens);
 
-    /* Vitesse / Sens */
+    // -----------------------------------------------------------------------
+    // Vitesse / Sens
+    // -----------------------------------------------------------------------
     void maxSpeed(uint8_t v);
     uint8_t maxSpeed();
     void sensMarche(SensDeMarche v);
     SensDeMarche sensMarche();
 
-    /* Feux directionnels */
+    // -----------------------------------------------------------------------
+    // Feux directionnels
+    // -----------------------------------------------------------------------
     void setFeuDirection(SensDeMarche sens, uint8_t valeur);
     uint8_t getFeuDirection(SensDeMarche sens) const;
     void updateFeuDirection(SensDeMarche sens);
 
-    /* API FeuxDirection pour Settings_JSON */
+    // API pour Settings_JSON
     DirectionConfig &directionH() { return direction.H; }
     DirectionConfig &directionAH() { return direction.AH; }
 
-    /* Debug */
+    // -----------------------------------------------------------------------
+    // Debug
+    // -----------------------------------------------------------------------
     void debugTopologieEtAiguilles();
 
-    /* Initialisation avancée */
+    // -----------------------------------------------------------------------
+    // Initialisation avancée
+    // -----------------------------------------------------------------------
     void validateTopology();
     void detectInitialDirection();
     void logInitialState();
 
-    /* Accès contrôlé */
+    // -----------------------------------------------------------------------
+    // Accès contrôlé aux tableaux internes
+    // -----------------------------------------------------------------------
     CantonPeriph *getCantonP(uint8_t idx)
     {
         return (idx < 8) ? cantonP[idx] : nullptr;
@@ -166,7 +234,7 @@ public:
             signal[idx] = s;
     }
 
-    // Ajouts pour Exploration
+    // Ajouts Exploration
     void setCantonP(uint8_t idx, CantonPeriph *np)
     {
         if (idx < 8)
@@ -186,18 +254,19 @@ public:
 
     Sensor *getSensorArray() { return sensor; }
 
-    Loco *getLoco()
-    {
-        return loco;
-    }
+    Loco *getLoco() { return loco; }
 
-    /* Compteur d'essieux */
+    // -----------------------------------------------------------------------
+    // Compteur d’essieux
+    // -----------------------------------------------------------------------
     void setCompteurEssieux(int v) { m_compteurEssieux = v; }
     int compteurEssieux() const { return m_compteurEssieux; }
     void resetCompteurEssieux() { m_compteurEssieux = 0; }
     void updateCompteurDepuisTrame(uint8_t code, uint8_t valeur);
 
-    /* STOP global Exploration 2026 */
+    // -----------------------------------------------------------------------
+    // STOP global Exploration 2026
+    // -----------------------------------------------------------------------
     void setStopActive(bool v);
     bool isStopActive() const { return m_stopActive; }
 

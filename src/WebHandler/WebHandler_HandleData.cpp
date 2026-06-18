@@ -1,13 +1,27 @@
 /*
-   WebHandler_HandleData.cpp — Exploration 2026 (CLEAN & FIXED)
-   ------------------------------------------------------------
-   Analyse et dispatch des messages WebSocket reçus par le SA.
-*/
+ * WebHandler_HandleData.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Analyse et dispatch des messages WebSocket reçus par le CC.
+ *
+ * Rôle :
+ *   - décoder le JSON WebSocket
+ *   - router vers les handlers spécialisés :
+ *        • Aiguilles (servoSettings / servoTest)
+ *        • WiFi
+ *        • Exploration
+ *        • maxSpeed
+ *        • save / restart
+ *        • rôle ferroviaire
+ *        • Booster (seuils / calibration)
+ *
+ * Ce module ne contient aucune logique métier :
+ *   → il distribue simplement les commandes WebSocket.
+ */
 
 #include "WebHandler.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include "Settings.h"
-#include "SatEXSA_Link.h"
+#include "EXCC_Link.h"
 #include "Booster.h"
 
 // ---------------------------------------------------------------------------
@@ -22,7 +36,7 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
 
     if (err)
     {
-        SA_LOG_WARN("[WebHandler] JSON invalide : %s\n", err.c_str());
+        CC_LOG_WARN("[WebHandler][CC] JSON invalide : %s\n", err.c_str());
         return;
     }
 
@@ -72,7 +86,8 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     {
         uint8_t v = doc["maxSpeed"];
         canton->maxSpeed(v);
-        SA_LOG_INFO("[WebHandler] maxSpeed = %u\n", v);
+
+        CC_LOG_INFO("[WebHandler][CC] maxSpeed = %u\n", v);
         notifyClients();
         return;
     }
@@ -105,25 +120,30 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     }
 
     // -----------------------------------------------------------------------
-    // BOOSTER — seuils
+    // BOOSTER — seuils manuels
     // -----------------------------------------------------------------------
     if (doc.containsKey("booster_seuils"))
     {
         JsonArray arr = doc["booster_seuils"];
         if (arr.size() >= 2)
         {
-            uint16_t libre = arr[0];
+            uint16_t libre  = arr[0];
             uint16_t occupe = arr[1];
 
+            // Mise à jour Settings
             Settings::setBoosterSeuilLibre(libre);
             Settings::setBoosterSeuilOccupe(occupe);
-            Settings::save();
 
+            // Sauvegarde JSON 2026
+            Settings::writeFile(canton);
+
+            // Mise à jour Booster interne
             Booster::setSeuils(libre, occupe);
 
-            SA_LOG_INFO("[WebHandler] Booster seuils mis à jour : libre=%u occupe=%u\n",
+            CC_LOG_INFO("[WebHandler][CC] Booster seuils mis à jour : libre=%u occupe=%u\n",
                         libre, occupe);
         }
+
         notifyClients();
         return;
     }
@@ -133,11 +153,16 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     // -----------------------------------------------------------------------
     if (doc.containsKey("cmd") && strcmp(doc["cmd"], "calibBooster") == 0)
     {
-        int8_t idx = SatEXSA_Link::getBoosterExsaIndex();
+        int8_t idx = EXCC_Link::getBoosterExccIndex();
+
         if (idx >= 0)
-            SatEXSA_Link::demanderRecalibration(idx);
+        {
+            EXCC_Link::demanderRecalibration(idx);
+        }
         else
-            SA_LOG_WARN("[WebHandler] Calibration demandée mais aucun EXSA booster détecté\n");
+        {
+            CC_LOG_WARN("[WebHandler][CC] Calibration demandée mais aucun EXCC booster détecté\n");
+        }
 
         return;
     }
@@ -145,5 +170,5 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     // -----------------------------------------------------------------------
     // COMMANDE INCONNUE
     // -----------------------------------------------------------------------
-    SA_LOG_WARN("[WebHandler] Commande WebSocket inconnue\n");
+    CC_LOG_WARN("[WebHandler][CC] Commande WebSocket inconnue\n");
 }

@@ -1,14 +1,23 @@
 /*
-   WebHandler_Aiguilles.cpp — Exploration 2026 (FINAL & CLEAN)
-*/
+ * WebHandler_Aiguilles.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Gestion des réglages d’aiguilles via l’interface Web :
+ *   - mise à jour des positions logiques droite / déviée
+ *   - mise à jour de la vitesse logique (slider 0–10)
+ *   - détermination de l’EXCC concerné (H / AH)
+ *   - envoi RS485 F1 (servoConfig) et F2 (servoTest)
+ *
+ * Le CC ne pilote aucun servo :
+ *   → il transmet uniquement les paramètres logiques à l’EXCC.
+ */
 
 #include "WebHandler.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include "SatTopologieUART.h"
 #include "Canton.h"
 #include "Aig.h"
 #include "Settings.h"
-#include "SA_RS485.h"
+#include "CC_RS485.h"
 #include "Exploration_Protocol.h"
 
 // ---------------------------------------------------------------------------
@@ -16,19 +25,17 @@
 // ---------------------------------------------------------------------------
 void WebHandler::handleServoSettings(JsonDocument &doc)
 {
-    const char *servoId = doc["servoSettings"][0];
-    const uint16_t value = doc["servoSettings"][1];
+    const char *servoId   = doc["servoSettings"][0];
+    const uint16_t value  = doc["servoSettings"][1];
     const uint8_t servoName = doc["servoSettings"][2];
 
     Aig *aig = canton->getAig(servoName);
 
     if (!aig)
     {
-        SA_LOG_ERROR("[Aiguilles] servoSettings: aig[%u] inexistant\n", servoName);
+        CC_LOG_ERROR("[Aiguilles][CC] servoSettings: aig[%u] inexistant\n", servoName);
         return;
     }
-
-    char key[32];
 
     // -----------------------------------------------------------------------
     // 1) Mise à jour logique interne + servoCfg
@@ -38,63 +45,47 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
         aig->posDroit(value);
         servoCfg[servoName].posDroit = value;
 
-        snprintf(key, sizeof(key), "aig%uposDroit", servoName);
-        Settings::set(key, value);
-
-        SA_LOG_INFO("[Aiguilles] posDroit aiguille %u = %u\n", servoName, value);
+        CC_LOG_INFO("[Aiguilles][CC] posDroit aiguille %u = %u\n", servoName, value);
     }
     else if (servoId[2] == '1') // posDevie
     {
         aig->posDevie(value);
         servoCfg[servoName].posDevie = value;
 
-        snprintf(key, sizeof(key), "aig%uposDevie", servoName);
-        Settings::set(key, value);
-
-        SA_LOG_INFO("[Aiguilles] posDevie aiguille %u = %u\n", servoName, value);
+        CC_LOG_INFO("[Aiguilles][CC] posDevie aiguille %u = %u\n", servoName, value);
     }
     else if (servoId[2] == '2') // speed (slider 0–10)
     {
         servoCfg[servoName].speed = value;
 
-        snprintf(key, sizeof(key), "aig%uspeed", servoName);
-        Settings::set(key, value);
-
-        SA_LOG_INFO("[Aiguilles] speed slider aiguille %u = %u\n",
+        CC_LOG_INFO("[Aiguilles][CC] speed slider aiguille %u = %u\n",
                     servoName, value);
     }
 
-    Settings::save();
-    Settings::load();
-
     // -----------------------------------------------------------------------
-    // 2) Lecture JSON (source de vérité)
+    // 2) Lecture interne (source de vérité JSON 2026)
     // -----------------------------------------------------------------------
-    snprintf(key, sizeof(key), "aig%uposDroit", servoName);
-    uint16_t posDroit = Settings::get(key);
+    uint16_t posDroit    = aig->posDroit();
+    uint16_t posDevie    = aig->posDevie();
+    uint16_t speedSlider = servoCfg[servoName].speed;
 
-    snprintf(key, sizeof(key), "aig%uposDevie", servoName);
-    uint16_t posDevie = Settings::get(key);
-
-    snprintf(key, sizeof(key), "aig%uspeed", servoName);
-    uint16_t speedSlider = Settings::get(key);
-
+    // Conversion slider → vitesse EXCC
     uint16_t speed = 11000 - (speedSlider * 1000);
 
     // -----------------------------------------------------------------------
-    // 3) Détermination EXSA H/AH
+    // 3) Détermination EXCC H/AH
     // -----------------------------------------------------------------------
-    uint8_t exsaAdresse =
+    uint8_t exccAdresse =
         (aig->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
 
-    SA_LOG_TRACE("[Aiguilles] EXSA sélectionné = %u pour aiguille %u\n",
-                 exsaAdresse, servoName);
+    CC_LOG_TRACE("[Aiguilles][CC] EXCC sélectionné = %u pour aiguille %u\n",
+                 exccAdresse, servoName);
 
     // -----------------------------------------------------------------------
     // 4) Envoi RS485 F1 : servoConfig
     // -----------------------------------------------------------------------
     envoyerServoConfig(
-        exsaAdresse,
+        exccAdresse,
         servoName,
         posDroit,
         posDevie,
@@ -112,15 +103,15 @@ void WebHandler::handleServoTest(JsonDocument &doc)
 
     if (!aig)
     {
-        SA_LOG_ERROR("[Aiguilles] servoTest: aig[%u] inexistant\n", servoName);
+        CC_LOG_ERROR("[Aiguilles][CC] servoTest: aig[%u] inexistant\n", servoName);
         return;
     }
 
-    uint8_t exsaAdresse =
+    uint8_t exccAdresse =
         (aig->cantonPdroitIdx() == canton->SP1_idx()) ? 0 : 1;
 
-    SA_LOG_INFO("[Aiguilles] Test aiguille %u via EXSA %u\n",
-                servoName, exsaAdresse);
+    CC_LOG_INFO("[Aiguilles][CC] Test aiguille %u via EXCC %u\n",
+                servoName, exccAdresse);
 
-    envoyerServoTest(exsaAdresse, servoName);
+    envoyerServoTest(exccAdresse, servoName);
 }

@@ -1,52 +1,62 @@
 /*
-   WebHandler_Role.cpp — Exploration 2026 (FINAL & CLEAN)
-*/
+ * WebHandler_Role.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Gestion du rôle ferroviaire du canton via WebSocket.
+ *
+ * JSON attendu :
+ *   { "cmd": "setRole", "value": <role> }
+ *
+ * Rôle :
+ *   - mettre à jour canton->setRole()
+ *   - sauvegarder dans settings.json (source de vérité 2026)
+ *   - notifier l’interface Web (roleUpdate)
+ *   - renvoyer l’état complet (notifyClients)
+ */
 
 #include "WebHandler.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 #include "Settings.h"
 
 // ---------------------------------------------------------------------------
 // handleRole()
 // ---------------------------------------------------------------------------
-// JSON attendu :
-//   { "cmd": "setRole", "value": 3 }
-//
-// Rôle :
-//   - mettre à jour canton->setRole()
-//   - sauvegarder dans settings.json
-//   - notifier les clients WebSocket
-// ---------------------------------------------------------------------------
 void WebHandler::handleRole(JsonDocument &doc)
 {
     if (!doc.containsKey("value"))
     {
-        SA_LOG_WARN("[Role] Commande setRole sans 'value'\n");
+        CC_LOG_WARN("[Role][CC] Commande setRole sans 'value'\n");
         return;
     }
 
     uint8_t role = doc["value"];
 
-    SA_LOG_INFO("[Role] Nouveau rôle demandé : %u\n", role);
+    CC_LOG_INFO("[Role][CC] Nouveau rôle demandé : %u\n", role);
 
-    // Mise à jour logique interne
-    canton->setRole((CantonRole)role);
+    // -----------------------------------------------------------------------
+    // 1) Mise à jour logique interne
+    // -----------------------------------------------------------------------
+    canton->setRole(static_cast<CantonRole>(role));
 
-    // Sauvegarde dans settings.json
-    Settings::set("role", role);
-    Settings::save();
+    // -----------------------------------------------------------------------
+    // 2) Sauvegarde JSON 2026
+    // -----------------------------------------------------------------------
+    Settings::writeFile(canton);
 
-    SA_LOG_INFO("[Role] Rôle mis à jour et sauvegardé\n");
+    CC_LOG_INFO("[Role][CC] Rôle mis à jour et sauvegardé\n");
 
-    // Notifier l’interface Web
+    // -----------------------------------------------------------------------
+    // 3) Notification WebSocket (événement roleUpdate)
+    // -----------------------------------------------------------------------
     StaticJsonDocument<64> out;
-    out["cmd"] = "roleUpdate";
+    out["cmd"]  = "roleUpdate";
     out["role"] = role;
 
     String json;
     serializeJson(out, json);
     _ws->textAll(json);
 
-    // Mise à jour complète
+    // -----------------------------------------------------------------------
+    // 4) Mise à jour complète de l’interface
+    // -----------------------------------------------------------------------
     notifyClients();
 }

@@ -1,31 +1,29 @@
 /*
- * SatTopo_UART_Aiguilles.cpp
- * ------------------------------------------------------------
- * Gestion des aiguilles logiques envoyées à EXSA via F0.
+ * SatTopo_UART_Aiguilles.cpp — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Envoi des mouvements réels d’aiguilles vers les EXCC via UART (commande F0).
  *
- *  - F0 : Mouvement réel d’une aiguille
- *
- * Le rôle de ce module est extrêmement simple :
- *    → Pour chaque aiguille logique (0..5)
- *         - déterminer quel EXSA la pilote (H ou AH)
- *         - envoyer F0 pour demander le mouvement réel
+ * Rôle :
+ *   - pour chaque aiguille logique (0..5)
+ *       • déterminer quel EXCC la pilote (côté H ou AH)
+ *       • envoyer F0 pour déclencher le mouvement réel
  *
  * IMPORTANT :
- *   - Ce module ne décide PAS de la position (droit/dévié)
- *   - Ce module ne lit PAS les positions servo
- *   - Ce module ne calcule PAS la topologie
+ *   - ce module ne décide PAS de la position (droit/dévié)
+ *   - ce module ne lit PAS les positions servo
+ *   - ce module ne calcule PAS la topologie
  *
- * Il se contente d’envoyer à EXSA :
- *      “Bouge l’aiguille X selon l’état logique actuel”
+ * Toute la logique métier (estDroit(), posDroit(), posDevie(), etc.)
+ * est gérée dans Aig.cpp et Canton_Aiguilles.cpp.
  *
- * La logique métier (estDroit(), posDroit(), posDevie(), etc.)
- * est entièrement gérée dans Aig.cpp et Canton_Aiguilles.cpp.
+ * Ici, on se contente d’envoyer :
+ *      “Bouge l’aiguille X selon son état logique actuel”
  */
 
 #include "SatTopologieUART.h"
 #include "Config.h"
 #include "Exploration_Protocol.h"
-#include "debug_sa.h"
+#include "debug_cc.h"
 
 #include "Settings.h"
 #include "Aig.h"
@@ -33,32 +31,34 @@
 
 extern HardwareSerial Serial1;
 
-/*-------------------------------------------------------------
-  Envoie l’état logique des aiguilles (F0) depuis l’état courant
-  --------------------------------------------------------------
-  Pour chaque aiguille logique :
-    - on lit estDroit()
-    - on détermine quel EXSA la pilote (H ou AH)
-    - on envoie F0 pour demander le mouvement réel
---------------------------------------------------------------*/
+/* ============================================================================
+ *  envoyerAiguillesDepuisEtatCourant()
+ * ---------------------------------------------------------------------------
+ *  Envoie F0 pour chaque aiguille logique active.
+ *  F0 = mouvement réel → EXCC choisit posDroit() ou posDevie().
+ * ==========================================================================*/
 void envoyerAiguillesDepuisEtatCourant()
 {
-  for (uint8_t idx = 0; idx < 6; ++idx)
-  {
-    Aig *aig = Settings::canton->getAig(idx);
-    if (!aig)
-      continue;
+    for (uint8_t idx = 0; idx < 6; ++idx)
+    {
+        Aig *aig = Settings::canton->getAig(idx);
+        if (!aig)
+            continue;
 
-    // Déterminer quel EXSA pilote cette aiguille
-    uint8_t exsaAdresse =
-        (aig->cantonPdroitIdx() == Settings::canton->SP1_idx()) ? 0 : 1;
+        // -------------------------------------------------------------------
+        // Déterminer quel EXCC pilote cette aiguille
+        // -------------------------------------------------------------------
+        uint8_t exccAdresse =
+            (aig->cantonPdroitIdx() == Settings::canton->SP1_idx()) ? 0 : 1;
 
-    // F0 = mouvement réel → EXSA choisit posDroit ou posDevie
-    envoyerServoMove(exsaAdresse, idx);
+        // -------------------------------------------------------------------
+        // F0 = mouvement réel
+        // -------------------------------------------------------------------
+        envoyerServoMove(exccAdresse, idx);
 
-    SA_LOG_INFO("[TopoUART] F0 → EXSA %u, aiguille %u (estDroit=%u)\n",
-                exsaAdresse, idx, aig->estDroit());
-  }
+        CC_LOG_INFO("[TopoUART][CC] F0 → EXCC %u, aiguille %u (estDroit=%u)\n",
+                    exccAdresse, idx, aig->estDroit());
+    }
 
-  SA_LOG_INFO("[TopoUART] Aiguilles renvoyées (F0) après reboot EXSA\n");
+    CC_LOG_INFO("[TopoUART][CC] Aiguilles renvoyées (F0) après reboot EXCC\n");
 }

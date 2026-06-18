@@ -1,26 +1,27 @@
 /*
- * Settings.cpp — Orchestrateur principal (Exploration 2026)
+ * Settings.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Rôle :
- *   - Centraliser l’accès aux paramètres du SA
- *   - Orchestrer l’initialisation complète :
- *        1) UART RS485 (EXSA)
- *        2) SPIFFS
- *        3) settings.json
- *        4) Dialogue CAN avec la carte Main
+ * Orchestrateur principal du Canton Controller (CC).
  *
- * Ce fichier NE CONTIENT PAS la logique détaillée :
- *   - UART  → Settings_UART.cpp
- *   - SPIFFS → Settings_SPIFFS.cpp
- *   - JSON → Settings_JSON.cpp
- *   - CAN → Settings_CAN.cpp
+ * Rôle :
+ *   - Initialisation générale du CC
+ *   - Montage SPIFFS (module dédié)
+ *   - Lecture du fichier settings.json (format JSON 2026)
+ *   - Chargement des paramètres : généraux, topologie, voisins,
+ *     aiguilles, signaux, direction, booster
+ *   - Lancement du dialogue CAN avec la carte Main (EXCC)
+ *
+ * Ce module centralise l’accès aux paramètres persistants du CC.
  */
 
 #include "Settings.h"
-#include "debug_sa.h"
-#include "SA_UartRx.h"
+#include "Settings_JSON.h"
+#include "debug_cc.h"
+#include "CC_UartRx.h"
 #include "Config.h"
 #include "Canton.h"
+#include <SPIFFS.h>
+#include <ArduinoJson.h>
 
 /* ============================================================================
  *  Déclarations statiques
@@ -28,111 +29,141 @@
 
 bool Settings::WIFI_ON = true;
 bool Settings::EXPLORATION_ON = true;
+
 String Settings::ssid_str = "";
 String Settings::password_str = "";
 char Settings::ssid[64] = {};
 char Settings::password[64] = {};
+
 bool Settings::isMainReady = false;
 Canton *Settings::canton = nullptr;
+
+// Booster
+uint16_t Settings::s_boosterSeuilLibre  = 0;
+uint16_t Settings::s_boosterSeuilOccupe = 0;
 
 /* ============================================================================
  *  Paramètres globaux : WiFi / Exploration
  * ==========================================================================*/
 
-bool Settings::wifiOn()
-{
-    return Settings::WIFI_ON;
-}
+bool Settings::wifiOn() { return WIFI_ON; }
+void Settings::wifiOn(bool val) { WIFI_ON = val; }
 
-void Settings::wifiOn(bool val)
-{
-    Settings::WIFI_ON = val;
-    SA_LOG_INFO("[Settings] wifiOn = %d\n", val);
-}
-
-bool Settings::explorationOn()
-{
-    return Settings::EXPLORATION_ON;
-}
-
-void Settings::explorationOn(bool val)
-{
-    Settings::EXPLORATION_ON = val;
-    SA_LOG_INFO("[Settings] explorationOn = %d\n", val);
-}
+bool Settings::explorationOn() { return EXPLORATION_ON; }
+void Settings::explorationOn(bool val) { EXPLORATION_ON = val; }
 
 /* ============================================================================
- *  setup() — Initialisation complète SA (hors CAN)
- * ---------------------------------------------------------------------------
- * Étapes :
- *   1) Initialisation UART RS485 (communication EXSA)
- *   2) Montage SPIFFS (système de fichiers interne)
- *   3) Lecture du fichier settings.json
- *
- * Remarque :
- *   Le dialogue CAN avec la carte Main est effectué dans begin().
+ *  setup() — Initialisation complète du Canton Controller (hors CAN)
  * ==========================================================================*/
+
 void Settings::setup(Canton *nd)
 {
     canton = nd;
 
-    SA_LOG_INFO("[Settings] Initialisation complète du SA...\n");
+    CC_LOG_INFO("[Settings][CC] Initialisation complète du CC...\n");
 
     // ------------------------------------------------------------------------
-    // 1) UART RS485 (EXSA)
+    // UART (module séparé)
     // ------------------------------------------------------------------------
-
-    SA_LOG_TRACE("[Settings] Initialisation UART RS485...\n");
     setupUART();
+    CC_UartRx::begin();
 
     // ------------------------------------------------------------------------
-    // 1) UART RS485 (EXSA) - Lancement de la tâche de réception
+    // SPIFFS (module séparé)
     // ------------------------------------------------------------------------
-
-    SA_LOG_TRACE("[Settings] Lancement de la tâche de réception UART...\n");
-    SA_UartRx::begin();
-
-    // ------------------------------------------------------------------------
-    // 2) Montage SPIFFS
-    // ------------------------------------------------------------------------
-    SA_LOG_TRACE("[Settings] Montage SPIFFS...\n");
-
     if (!mountSPIFFS())
-    {
-        SA_LOG_ERROR("[Settings] SPIFFS indisponible → arrêt de setup()\n");
         return;
-    }
 
     // ------------------------------------------------------------------------
-    // 3) Lecture settings.json
+    // Lecture du fichier JSON 2026
     // ------------------------------------------------------------------------
-    SA_LOG_TRACE("[Settings] Lecture settings.json...\n");
-    Settings::load(); // ← charge ssid/password dans settingsDoc et dans les champs statiques
-    loadFile(canton); // ← NOUVELLE API 2026
+    loadFile(canton);
 
-    SA_LOG_INFO("[Settings] ✔ setup() terminé\n\n");
+    CC_LOG_INFO("[Settings][CC] ✔ setup() terminé\n\n");
 }
 
 /* ============================================================================
- *  begin() — Dialogue CAN avec la carte Main
- * ---------------------------------------------------------------------------
- * Cette fonction :
- *   - établit la communication CAN avec la carte Main
- *   - vérifie que la carte Main est prête
- *   - synchronise les paramètres initiaux
- *
- * L’implémentation réelle est dans Settings_CAN.cpp.
+ *  begin() — Dialogue CAN avec la carte Main (EXCC)
  * ==========================================================================*/
+
 bool Settings::begin()
 {
-    SA_LOG_INFO("[Settings] Début du dialogue CAN avec la carte Main...\n");
+    CC_LOG_INFO("[Settings][CC] Début du dialogue CAN...\n");
 
-    bool ok = Settings::beginCAN();
+    bool ok = beginCAN();
 
     if (ok)
-        SA_LOG_INFO("[Settings] ✔ Initialisation CAN réussie\n\n");
+        CC_LOG_INFO("[Settings][CC] ✔ Initialisation CAN réussie\n");
     else
-        SA_LOG_ERROR("[Settings] ❌ Erreur CAN\n\n");
+        CC_LOG_ERROR("[Settings][CC] ❌ Erreur CAN\n");
 
     return ok;
+}
+
+/* ============================================================================
+ *  JSON 2026 — loadFile()
+ * ==========================================================================*/
+
+void Settings::loadFile(Canton *canton)
+{
+    File file = SPIFFS.open("/settings.json", "r");
+    if (!file)
+    {
+        CC_LOG_WARN("[Settings][CC] settings.json introuvable\n");
+        return;
+    }
+
+    StaticJsonDocument<8192> doc;
+    DeserializationError err = deserializeJson(doc, file);
+    file.close();
+
+    if (err)
+    {
+        CC_LOG_ERROR("[Settings][CC] Erreur JSON: %s\n", err.c_str());
+        return;
+    }
+
+    // Chargement des sections JSON 2026
+    Settings_JSON_loadGeneraux(canton, doc);
+    Settings_JSON_loadTopologie(canton, doc);
+    Settings_JSON_loadVoisins(canton, doc);
+    Settings_JSON_loadAiguilles(canton, doc);
+    Settings_JSON_loadSignaux(canton, doc);
+    Settings_JSON_loadDirection(canton, doc);
+    Settings_JSON_loadBooster(doc);
+
+    // Calcul du rôle ferroviaire (entrée / sortie / neutre)
+    canton->computeRole();
+
+    CC_LOG_INFO("[Settings][CC] loadFile() terminé\n");
+}
+
+/* ============================================================================
+ *  JSON 2026 — writeFile()
+ * ==========================================================================*/
+
+void Settings::writeFile(Canton *canton)
+{
+    StaticJsonDocument<8192> doc;
+
+    // Sauvegarde des sections JSON 2026
+    Settings_JSON_saveGeneraux(canton, doc);
+    Settings_JSON_saveTopologie(canton, doc);
+    Settings_JSON_saveVoisins(canton, doc);
+    Settings_JSON_saveAiguilles(canton, doc);
+    Settings_JSON_saveSignaux(canton, doc);
+    Settings_JSON_saveDirection(canton, doc);
+    Settings_JSON_saveBooster(doc);
+
+    File file = SPIFFS.open("/settings.json", "w");
+    if (!file)
+    {
+        CC_LOG_ERROR("[Settings][CC] Impossible d’écrire settings.json\n");
+        return;
+    }
+
+    serializeJsonPretty(doc, file);
+    file.close();
+
+    CC_LOG_INFO("[Settings][CC] writeFile() terminé\n");
 }

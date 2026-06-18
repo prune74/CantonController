@@ -1,58 +1,76 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="fr">
 <head>
-  <title>Satellites autonomes (client)</title>
-  <!--Version du 12/01/2023 -13:16-->
-  <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8" />
-  <link rel="icon" type="image/png" sizes="16X16" href="favicon.png">
-  <link rel="stylesheet" type="text/css" href="w3.css">
-  <script src="script.js" type="text/javascript"></script>
+  <meta charset="UTF-8" />
+  <title>Gestion Canton 2026</title>
 
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png" />
 
+  <!-- W3CSS + styles -->
+  <link rel="stylesheet" type="text/css" href="w3.css" />
+  <link rel="stylesheet" type="text/css" href="style.css" />
+
+  <!-- Script WebSocket / UI -->
+  <script src="script.js" type="text/javascript" defer></script>
 </head>
 
-<body>
-  <!--Titre-->
-  <div class="w3-card w3-blue w3-padding-small w3-center">
-    <h3>Locoduino : Satellites autonomes</h3>
-  </div>
+<body class="w3-light-grey">
 
-  <p class="w3-margin w3-center w3-padding-12">
-    <span id='messages' class="w3-wide w3-text-red"></span>
-  </p>
+  <!-- Header -->
+  <header class="w3-card w3-blue w3-padding-small w3-center">
+    <h3 class="w3-margin-0">Canton Controller — Gestion Canton 2026</h3>
+  </header>
 
-  <div class="w3-margin w3-card w3-padding-24">
-    <table width="80%" align="center">
+  <!-- État WebSocket -->
+  <section class="w3-margin w3-center w3-padding-12">
+    <span id="messages" class="w3-wide w3-text-red"></span>
+  </section>
+
+  <!-- Bloc principal : paramètres canton -->
+  <section class="w3-margin w3-card w3-white w3-padding-24">
+    <h4 class="w3-border-bottom w3-padding-small">Paramètres du canton</h4>
+
+    <table class="w3-table" style="max-width:900px;margin:auto;">
       <tr>
-        <td width="30%">Satellite ID : </td>
-        <td width="20%"><input id="idCanton" name="idCanton" size="10" type="text" value="10"></td>
-        <td width="20%"></td>
-        <td width="20%"></td>
+        <td style="width:30%;">Canton ID :</td>
+        <td style="width:20%;"><input id="idCanton" name="idCanton" size="10" type="text" value="10" /></td>
+        <td style="width:20%;"></td>
+        <td style="width:30%;"></td>
       </tr>
 
       <tr>
-        <td>Wifi :</td>
-        <td><input name="wifi_on" type="checkbox" id="wifi_on" onclick="wifi_on(this)" checked></td>
-        <td>Exploration : </td>
-        <td><input name="exploration_on" type="checkbox" id="exploration_on" checked onclick="exploration_on(this)">
+        <td>WiFi :</td>
+        <td>
+          <input name="wifi_on" type="checkbox" id="wifi_on" onclick="wifi_on(this)" checked />
+        </td>
+        <td>Exploration :</td>
+        <td>
+          <input name="exploration_on" type="checkbox" id="exploration_on" onclick="exploration_on(this)" checked />
         </td>
       </tr>
 
       <tr>
         <td>Sens de la marche :</td>
-        <td><input type="radio" id="horaire" name="sensMarche" value="horaire" /><label for="horaire">Horaire</label>
+        <td>
+          <input type="radio" id="horaire" name="sensMarche" value="horaire" />
+          <label for="horaire">Horaire</label>
         </td>
-        <td><input type="radio" id="antihoraire" name="sensMarche" value="antihoraire" /><label for="antihoraire">Anti
-            horaire</label></td>
-        <td><input type="radio" id="indifferent" name="sensMarche" value="indifferent" checked /><label
-            for="indifferent">Indifférent</label></td>
+        <td>
+          <input type="radio" id="antihoraire" name="sensMarche" value="antihoraire" />
+          <label for="antihoraire">Anti horaire</label>
+        </td>
+        <td>
+          <input type="radio" id="indifferent" name="sensMarche" value="indifferent" checked />
+          <label for="indifferent">Indifférent</label>
+        </td>
       </tr>
 
       <tr>
         <td>Vitesse maxi :</td>
-        <td><input name="maxSpeed" type="number" id="maxSpeed" value="128" size="5"></td>
+        <td>
+          <input name="maxSpeed" type="number" id="maxSpeed" value="128" size="5" />
+        </td>
         <td></td>
         <td></td>
       </tr>
@@ -75,230 +93,186 @@
       </tr>
 
       <!-- Booster -->
-      <div class="w3-margin w3-card w3-padding-24">
-        <h4>Booster</h4>
+      <tr>
+        <td colspan="4">
+          <div class="w3-margin-top w3-card w3-padding-16">
+            <h4 class="w3-border-bottom w3-padding-small">Booster</h4>
 
-        <table width="80%" align="center">
+            <table class="w3-table" style="max-width:700px;margin:auto;">
+              <tr>
+                <td>Seuil libre (mA) :</td>
+                <td><input id="booster_seuil_libre" type="number" min="0" max="2000" /></td>
+              </tr>
+              <tr>
+                <td>Seuil occupé (mA) :</td>
+                <td><input id="booster_seuil_occupe" type="number" min="0" max="2000" /></td>
+              </tr>
 
-          <!-- Seuils -->
-          <tr>
-            <td>Seuil libre (mA) :</td>
-            <td><input id="booster_seuil_libre" type="number" min="0" max="2000"></td>
-          </tr>
+              <tr><td colspan="2"><hr /></td></tr>
 
-          <tr>
-            <td>Seuil occupé (mA) :</td>
-            <td><input id="booster_seuil_occupe" type="number" min="0" max="2000"></td>
-          </tr>
+              <tr>
+                <td>Courant (mA) :</td>
+                <td><input id="booster_courant" type="text" readonly /></td>
+              </tr>
+              <tr>
+                <td>Tension (mV) :</td>
+                <td><input id="booster_tension" type="text" readonly /></td>
+              </tr>
+              <tr>
+                <td>État :</td>
+                <td><input id="booster_etat" type="text" readonly /></td>
+              </tr>
+              <tr>
+                <td>Occupation :</td>
+                <td><input id="booster_occupation" type="text" readonly /></td>
+              </tr>
+              <tr>
+                <td>Présence booster :</td>
+                <td><input id="booster_present" type="text" readonly /></td>
+              </tr>
 
-          <tr>
-            <td colspan="2">
-              <hr>
-            </td>
-          </tr>
+              <tr><td colspan="2"><hr /></td></tr>
 
-          <!-- Mesures live -->
-          <tr>
-            <td>Courant (mA) :</td>
-            <td><input id="booster_courant" type="text" readonly></td>
-          </tr>
+              <tr>
+                <td colspan="2" class="w3-center">
+                  <button class="w3-button w3-green w3-margin-right" onclick="saveBooster()">Sauver seuils</button>
+                  <button class="w3-button w3-blue" onclick="calibBooster()">Calibration auto</button>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </td>
+      </tr>
 
-          <tr>
-            <td>Tension (mV) :</td>
-            <td><input id="booster_tension" type="text" readonly></td>
-          </tr>
-
-          <tr>
-            <td>État :</td>
-            <td><input id="booster_etat" type="text" readonly></td>
-          </tr>
-
-          <tr>
-            <td>Occupation :</td>
-            <td><input id="booster_occupation" type="text" readonly></td>
-          </tr>
-
-          <tr>
-            <td>Présence booster :</td>
-            <td><input id="booster_present" type="text" readonly></td>
-          </tr>
-
-          <tr>
-            <td colspan="2">
-              <hr>
-            </td>
-          </tr>
-
-          <!-- Boutons -->
-          <tr>
-            <td colspan="2" style="text-align:center;">
-              <button class="w3-button w3-green" onclick="saveBooster()">Sauver seuils</button>
-              <button class="w3-button w3-blue" onclick="calibBooster()">Calibration auto</button>
-            </td>
-          </tr>
-
-        </table>
-      </div>
-
-
+      <!-- Topologie SP/SM -->
       <tr>
         <td>p00 :</td>
-        <td><input name="p00" type="text" id="p00" value="null" size="10" readonly></td>
-        <td>m00 : </td>
-        <td><input name="m00" type="text" id="m00" value="null" size="10" readonly></td>
+        <td><input name="p00" type="text" id="p00" value="null" size="10" readonly /></td>
+        <td>m00 :</td>
+        <td><input name="m00" type="text" id="m00" value="null" size="10" readonly /></td>
       </tr>
-
       <tr>
         <td>p01 :</td>
-        <td><input name="p01" type="text" id="p01" value="null" size="10" readonly></td>
+        <td><input name="p01" type="text" id="p01" value="null" size="10" readonly /></td>
         <td>m01 :</td>
-        <td><input name="m01" type="text" id="m01" value="null" size="10" readonly></td>
+        <td><input name="m01" type="text" id="m01" value="null" size="10" readonly /></td>
       </tr>
-
       <tr>
         <td>p10 :</td>
-        <td><input name="p10" type="text" id="p10" value="null" size="10" readonly></td>
+        <td><input name="p10" type="text" id="p10" value="null" size="10" readonly /></td>
         <td>m10 :</td>
-        <td><input name="m10" type="text" id="m10" value="null" size="10" readonly></td>
+        <td><input name="m10" type="text" id="m10" value="null" size="10" readonly /></td>
       </tr>
-
       <tr>
         <td>p11 :</td>
-        <td><input name="p11" type="text" id="p11" value="null" size="10" readonly></td>
+        <td><input name="p11" type="text" id="p11" value="null" size="10" readonly /></td>
         <td>m11 :</td>
-        <td><input name="m11" type="text" id="m11" value="null" size="10" readonly></td>
+        <td><input name="m11" type="text" id="m11" value="null" size="10" readonly /></td>
       </tr>
     </table>
-  </div>
+  </section>
 
-  <!--cibles signaux-->
-  <div class="w3-margin w3-card w3-padding-24">
-    <table width="80%" align="center">
+  <!-- Cibles signaux -->
+  <section class="w3-margin w3-card w3-white w3-padding-24">
+    <h4 class="w3-border-bottom w3-padding-small">Types de cibles</h4>
+    <table class="w3-table" style="max-width:900px;margin:auto;">
       <tr>
-        <td width="15%">Types de cibles</td>
-        <td width="35%"></td>
-        <td width="15%"></td>
-        <td width="35%"></td>
-      </tr>
-      <tr>
-        <td>Horaire :</td>
-        <td><img id="imageHoraire" src="" alt=""></td>
-        <td>Anti horaire :</td>
-        <td><img id="imageAntiHor" src="" alt=""></td>
+        <td style="width:15%;">Horaire :</td>
+        <td style="width:35%;"><img id="imageHoraire" src="" alt="Cible horaire" class="w3-image" /></td>
+        <td style="width:15%;">Anti horaire :</td>
+        <td style="width:35%;"><img id="imageAntiHor" src="" alt="Cible anti horaire" class="w3-image" /></td>
       </tr>
     </table>
-  </div>
+  </section>
 
-  <!--servos-->
-  <div class="w3-margin w3-card w3-padding-24">
-    <table width="80%" align="center">
+  <!-- Servos / Aiguilles -->
+  <section class="w3-margin w3-card w3-white w3-padding-24">
+    <h4 class="w3-border-bottom w3-padding-small">Aiguilles / Servos</h4>
+
+    <table class="w3-table w3-striped" style="max-width:1000px;margin:auto;">
       <tr>
-        <td>Aiguilles</td>
-        <td>Etat</td>
-        <td>Aig droite</td>
-        <td>Aig déviée</td>
-        <td>Vitesse</td>
-        <td></td>
+        <th>Aiguille</th>
+        <th>État</th>
+        <th>Aig droite</th>
+        <th>Aig déviée</th>
+        <th>Vitesse</th>
+        <th>Test</th>
       </tr>
 
+      <!-- Servo 0..5 -->
       <tr>
         <td>Servo 0 :</td>
-        <td><input id="s0" name="" size="5" type="text" value="null"></td>
-        <td><input id="s00" name="0" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s01" name="0" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s02" name="0" size="40" type="number" value="5" min="1" max="10" onChange="servoSettings(this)">
-        </td>
-        <td><button id="servoTest0" name="0" onclick="servoTest(this)"
-            class="w3-button w3-green w3-large w3-ripple">test</button></td>
+        <td><input id="s0" size="5" type="text" value="null" /></td>
+        <td><input id="s00" name="0" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s01" name="0" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s02" name="0" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" /></td>
+        <td><button id="servoTest0" name="0" onclick="servoTest(this)" class="w3-button w3-green w3-small w3-ripple">test</button></td>
       </tr>
 
       <tr>
         <td>Servo 1 :</td>
-        <td><input id="s1" name="" size="5" type="text" value="null"></td>
-        <td><input id="s10" name="1" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s11" name="1" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s12" name="1" size="40" type="number" value="5" min="1" max="10" onChange="servoSettings(this)">
-        </td>
-        <td><button id="servoTest1" name="1" onclick="servoTest(this)"
-            class="w3-button w3-green w3-large w3-ripple">test</button></td>
+        <td><input id="s1" size="5" type="text" value="null" /></td>
+        <td><input id="s10" name="1" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s11" name="1" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s12" name="1" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" /></td>
+        <td><button id="servoTest1" name="1" onclick="servoTest(this)" class="w3-button w3-green w3-small w3-ripple">test</button></td>
       </tr>
 
       <tr>
         <td>Servo 2 :</td>
-        <td><input id="s2" name="" size="5" type="text" value="null"></td>
-        <td><input id="s20" name="2" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s21" name="2" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s22" name="2" size="40" type="number" value="5" min="1" max="10" onChange="servoSettings(this)">
-        </td>
-        <td><button id="servoTest2" name="2" onclick="servoTest(this)"
-            class="w3-button w3-green w3-large w3-ripple">test</button></td>
+        <td><input id="s2" size="5" type="text" value="null" /></td>
+        <td><input id="s20" name="2" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s21" name="2" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s22" name="2" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" /></td>
+        <td><button id="servoTest2" name="2" onclick="servoTest(this)" class="w3-button w3-green w3-small w3-ripple">test</button></td>
       </tr>
 
       <tr>
         <td>Servo 3 :</td>
-        <td><input id="s3" name="" size="5" type="text" value="null"></td>
-        <td><input id="s30" name="3" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s31" name="3" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s32" name="3" size="40" type="number" value="5" min="1" max="10" onChange="servoSettings(this)">
-        </td>
-        <td><button id="servoTest3" name="3" onclick="servoTest(this)"
-            class="w3-button w3-green w3-large w3-ripple">test</button></td>
+        <td><input id="s3" size="5" type="text" value="null" /></td>
+        <td><input id="s30" name="3" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s31" name="3" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s32" name="3" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" /></td>
+        <td><button id="servoTest3" name="3" onclick="servoTest(this)" class="w3-button w3-green w3-small w3-ripple">test</button></td>
       </tr>
 
       <tr>
         <td>Servo 4 :</td>
-        <td><input id="s4" name="" size="5" type="text" value="null"></td>
-        <td><input id="s40" name="4" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s41" name="4" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s42" name="4" size="40" type="number" value="5" min="1" max="10" onChange="servoSettings(this)">
-        </td>
-        <td><button id="servoTest4" name="4" onclick="servoTest(this)"
-            class="w3-button w3-green w3-large w3-ripple">test</button></td>
+        <td><input id="s4" size="5" type="text" value="null" /></td>
+        <td><input id="s40" name="4" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s41" name="4" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s42" name="4" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" /></td>
+        <td><button id="servoTest4" name="4" onclick="servoTest(this)" class="w3-button w3-green w3-small w3-ripple">test</button></td>
       </tr>
 
       <tr>
         <td>Servo 5 :</td>
-        <td><input id="s5" name="" size="5" type="text" value="null"></td>
-        <td><input id="s50" name="5" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s51" name="5" size="40" type="number" value="1500" min="800" max="2100"
-            onChange="servoSettings(this)"></td>
-        <td><input id="s52" name="5" size="40" type="number" value="5" min="1" max="10" onChange="servoSettings(this)">
-        </td>
-        <td><button id="servoTest5" name="5" onclick="servoTest(this)"
-            class="w3-button w3-green w3-large w3-ripple">test</button></td>
+        <td><input id="s5" size="5" type="text" value="null" /></td>
+        <td><input id="s50" name="5" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s51" name="5" size="6" type="number" value="1500" min="800" max="2100" onchange="servoSettings(this)" /></td>
+        <td><input id="s52" name="5" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" /></td>
+        <td><button id="servoTest5" name="5" onclick="servoTest(this)" class="w3-button w3-green w3-small w3-ripple">test</button></td>
       </tr>
-
     </table>
-  </div>
+  </section>
 
-  <!--boutons-->
-  <div class="w3-margin w3-card w3-padding-24" style="text-align: center">
-    <button id="save" name="save" onclick="save(this)" class="w3-button w3-green w3-large w3-ripple"
-      style="width:30%;">save</button>
-    <button id="restartEsp" name="restartEsp" onclick="restartEsp(this)" class="w3-button w3-red w3-large w3-ripple"
-      style="width:30%;">restart ESP</button>
-  </div>
+  <!-- Boutons système -->
+  <section class="w3-margin w3-card w3-white w3-padding-24 w3-center">
+    <button id="save" name="save" onclick="save(this)" class="w3-button w3-green w3-large w3-ripple w3-margin-right" style="width:30%;">Save</button>
+    <button id="restartEsp" name="restartEsp" onclick="restartEsp(this)" class="w3-button w3-red w3-large w3-ripple" style="width:30%;">Restart ESP</button>
+  </section>
 
-  <div>
-    <a href="https://alkans.fr/locoduino/satellites_v2/document-pedagogique-signaux-regimes-exploitation-v1.pdf"
-      target="_blank">
-      Signaux :
+  <!-- Lien doc -->
+  <section class="w3-margin w3-center">
+    <a href="https://alkans.fr/locoduino/satellites_v2/document-pedagogique-signaux-regimes-exploitation-v1.pdf" target="_blank">
+      Documentation signaux SNCF (PDF)
     </a>
-  </div>
+  </section>
 
-  <div id="rawData" class="w3-margin w3-card w3-padding-24">Raw data</div>
+  <!-- Raw data -->
+  <section id="rawData" class="w3-margin w3-card w3-white w3-padding-24">
+    Raw data
+  </section>
 
 </body>
-
 </html>

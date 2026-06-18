@@ -1,55 +1,51 @@
 #pragma once
 /**
- * ------------------------------------------------------------
- * FeuxDirection_Conditions.h
- * ------------------------------------------------------------
- * Ce fichier déclare les outils permettant de vérifier si les
- * aiguilles PHYSIQUES sont alignées conformément à la géométrie
- * décrite dans le code-barres.
+ * ============================================================================
+ *  FeuxDirection_Conditions.h — Gestion Canton 2026
+ * ============================================================================
+ * Vérification de l’alignement PHYSIQUE des aiguilles par rapport à la
+ * géométrie décrite dans le code‑barres directionnel.
  *
  * Rôle de ce module :
- *   - comparer la géométrie (P0, P1, P2, T1, T2)
- *     avec les positions réelles des aiguilles (0 ou 1)
- *   - déterminer si la voie demandée est réellement ouverte
+ *   - comparer la géométrie logique (P0, P1, P2, T1, T2)
+ *     avec les positions réelles des aiguilles (0 = normal, 1 = dévié)
+ *   - déterminer si la voie demandée est physiquement ouverte
  *
  * IMPORTANT :
- *   - Ce module NE décode PAS le code-barres.
- *   - Ce module NE décide PAS quel feu allumer.
- *   - Ce module NE connaît PAS les voisins.
+ *   - ne décode PAS le code‑barres
+ *   - ne décide PAS quel feu allumer
+ *   - ne connaît PAS les voisins
+ *   - ne contient AUCUNE logique métier
  *
- * Il fait uniquement :
- *   géométrie (code-barres)  ↔  aiguilles physiques (Canton/EXSA)
+ * Ce module fait uniquement :
+ *      géométrie (code‑barres)  ↔  aiguilles physiques (Canton/EXCC)
  *
- * La décision finale du feu est faite dans FeuxDirection.cpp.
- * ------------------------------------------------------------
+ * La décision finale du feu est effectuée dans FeuxDirection.cpp.
+ * ============================================================================
  */
 
 #include "FeuxDirection_Types.h"
 
 namespace FeuxDirection
 {
-    // --------------------------------------------------------
-    // Interface d’accès aux aiguilles physiques
-    // --------------------------------------------------------
-    /**
-     * IAiguillesPhysiques
-     * --------------------------------------------------------
-     * Interface minimale permettant au module FeuxDirection
-     * d’interroger les positions réelles des aiguilles.
+    /* =========================================================================
+     *  Interface IAiguillesPhysiques
+     * -------------------------------------------------------------------------
+     *  Abstraction minimale permettant d’interroger les positions réelles des
+     *  aiguilles, indépendamment du matériel ou du canton.
      *
-     * Le SA (GestionReseau) fournira une implémentation concrète
-     * basée sur Canton/EXSA.
+     *  Le SA (GestionRéseau) fournit une implémentation concrète.
      *
-     * Exemple d’implémentation :
-     *   class AigFromCanton : public IAiguillesPhysiques {
-     *       uint8_t getPositionAig(uint8_t idx) const override {
-     *           return canton->getAigPosition(idx);
-     *       }
-     *   };
+     *  Exemple :
+     *      class AigFromCanton : public IAiguillesPhysiques {
+     *          uint8_t getPositionAig(uint8_t idx) const override {
+     *              return canton->getAigPosition(idx);
+     *          }
+     *      };
      *
-     * Cette abstraction permet de tester le module indépendamment
-     * du matériel.
-     */
+     *  Cette abstraction permet de tester le module FeuxDirection sans dépendre
+     *  du matériel ou du firmware du canton.
+     * ========================================================================= */
     struct IAiguillesPhysiques
     {
         virtual ~IAiguillesPhysiques() = default;
@@ -67,27 +63,22 @@ namespace FeuxDirection
         virtual uint8_t getPositionAig(uint8_t indexAig) const = 0;
     };
 
-    // --------------------------------------------------------
-    // Classe Conditions
-    // --------------------------------------------------------
-    /**
-     * Conditions
-     * --------------------------------------------------------
-     * Contient la logique permettant de déterminer si une voie
-     * est réellement ouverte, en comparant :
+    /* =========================================================================
+     *  Classe Conditions
+     * -------------------------------------------------------------------------
+     *  Vérifie si une voie est physiquement ouverte en comparant :
+     *     - la géométrie du code‑barres (P0/P1/P2/T1/T2)
+     *     - les positions physiques des aiguilles
      *
-     *   - la géométrie du code-barres (P0/P1/P2/T1/T2)
-     *   - les positions physiques des aiguilles
-     *
-     * Cette classe ne fait AUCUNE autre logique.
-     */
+     *  Cette classe ne contient AUCUNE autre logique.
+     * ========================================================================= */
     class Conditions
     {
     public:
         /**
-         * --------------------------------------------------------
+         * --------------------------------------------------------------------
          * voieOuverte()
-         * --------------------------------------------------------
+         * --------------------------------------------------------------------
          * Détermine si la voie demandée est réellement ouverte.
          *
          * Paramètres :
@@ -96,22 +87,21 @@ namespace FeuxDirection
          *   - aiguilles : accès aux positions physiques
          *
          * Retour :
-         *   - true  → toutes les aiguilles sont alignées
-         *   - false → au moins une aiguille n’est pas dans la
-         *             position attendue pour cette voie
+         *   - true  → toutes les aiguilles impliquées sont alignées
+         *   - false → au moins une aiguille n’est pas dans la position attendue
          *
-         * Cette fonction NE décide PAS si un feu doit s’allumer.
-         * Elle répond uniquement à la question :
-         *
-         *   "Le chemin physique vers la voie N est-il ouvert ?"
-         * --------------------------------------------------------
+         * Cette fonction NE décide PAS quel feu allumer.
+         * Elle répond uniquement :
+         *      « Le chemin physique vers la voie N est‑il ouvert ? »
+         * --------------------------------------------------------------------
          */
         static bool voieOuverte(const CodeBarreDecoded &cb,
                                 uint8_t voie,
                                 const IAiguillesPhysiques &aiguilles);
     };
 }
-/* ------------------------------------------------------------
-  Fin de FeuxDirection_Conditions.h
-  ------------------------------------------------------------
-*/
+
+/* ============================================================================
+ *  Fin de FeuxDirection_Conditions.h
+ * ============================================================================
+ */

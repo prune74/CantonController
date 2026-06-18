@@ -1,83 +1,91 @@
-/*
-  Aig.h — Version 2026 (CLEAN)
-  ------------------------------------------------------------
-  Représente une AIGUILLE LOGIQUE du réseau.
-
-  Rôle :
-  - Le SA ne pilote plus physiquement les servos.
-  - EXSA (H ou AH) pilote les servos via PCA9685.
-  - Cette classe stocke uniquement :
-        * position droite / déviée (µs)
-        * position logique courante
-        * index EXSA côté H (SP1)
-        * index EXSA côté AH (SM1)
-  - Le SA envoie ces paramètres à EXSA via RS485 (F0/F1/F2).
-
-  Aucun PWM local n’est utilisé dans l’architecture 2026.
-  ------------------------------------------------------------
-*/
-
 #pragma once
 #include <Arduino.h>
 #include "Config.h"
 
+/*
+ * Aig.h — Gestion Canton 2026
+ * ---------------------------------------------------------------------------
+ * Représente une AIGUILLE LOGIQUE du réseau.
+ *
+ * Rôle :
+ *   - Le CC (Canton Controller) ne pilote plus physiquement les servos.
+ *   - L’EXCC (côté H ou AH) pilote les servos via PCA9685.
+ *   - Cette classe stocke uniquement :
+ *        • positions droite / déviée (µs)
+ *        • position logique courante
+ *        • index EXCC côté H (SP1)
+ *        • index EXCC côté AH (SM1)
+ *        • vitesse logique (Exploration 2026)
+ *
+ * Aucun PWM local n’est utilisé dans l’architecture 2026.
+ * Le CC transmet les paramètres à l’EXCC via RS485 (F0/F1/F2).
+ */
+
 class Aig
 {
 protected:
-  // Identifiant logique de l’aiguille (0..N)
-  uint8_t m_id;
+    // Identifiant logique de l’aiguille (0..N)
+    uint8_t m_id;
 
-  // Positions logiques droite / déviée (µs)
-  uint16_t m_posDroit;
-  uint16_t m_posDevie;
+    // Positions logiques droite / déviée (µs)
+    uint16_t m_posDroit;
+    uint16_t m_posDevie;
 
-  // Limites mécaniques (validation des valeurs)
-  uint16_t m_minPos;
-  uint16_t m_maxPos;
+    // Limites mécaniques (validation des valeurs)
+    uint16_t m_minPos;
+    uint16_t m_maxPos;
 
-  // État logique actuel (true = droite)
-  bool m_estDroit;
+    // État logique actuel (true = droite)
+    bool m_estDroit;
 
-  // Position logique courante (EXSA fera le mouvement réel)
-  uint16_t m_curPos;
+    // Position logique courante (EXCC effectuera le mouvement réel)
+    uint16_t m_curPos;
 
-  // Index EXSA côté H (SP1)
-  uint8_t m_cantonPdroitIdx;
+    // Index EXCC côté H (SP1)
+    uint8_t m_cantonPdroitIdx;
 
-  // Index EXSA côté AH (SM1)
-  uint8_t m_cantonPdevieIdx;
+    // Index EXCC côté AH (SM1)
+    uint8_t m_cantonPdevieIdx;
+
+    // Vitesse logique (Exploration 2026)
+    uint16_t m_speed = 0;
 
 public:
-  Aig();
-  ~Aig();
+    Aig();
+    ~Aig();
 
-  // Identifiant logique
-  void ID(uint8_t);
-  uint8_t ID() const;
+    // Identifiant logique
+    void ID(uint8_t);
+    uint8_t ID() const;
 
-  // État logique (droite / déviée)
-  void estDroit(bool);
-  bool estDroit() const;
+    // État logique (droite / déviée)
+    void estDroit(bool);
+    bool estDroit() const;
 
-  // Positions logiques droite / déviée
-  void posDroit(uint16_t);
-  void posDevie(uint16_t);
-  uint16_t posDroit() const;
-  uint16_t posDevie() const;
+    // Positions logiques droite / déviée
+    void posDroit(uint16_t);
+    void posDevie(uint16_t);
+    uint16_t posDroit() const;
+    uint16_t posDevie() const;
 
-  // Position logique courante
-  void curPos(uint16_t);
-  uint16_t curPos() const;
+    // Position logique courante
+    void curPos(uint16_t);
+    uint16_t curPos() const;
 
-  // Index EXSA côté H (SP1)
-  void cantonPdroitIdx(uint8_t);
-  uint8_t cantonPdroitIdx() const;
+    // Index EXCC côté H (SP1)
+    void cantonPdroitIdx(uint8_t);
+    uint8_t cantonPdroitIdx() const;
 
-  // Index EXSA côté AH (SM1)
-  void cantonPdevieIdx(uint8_t);
-  uint8_t cantonPdevieIdx() const;
+    // Index EXCC côté AH (SM1)
+    void cantonPdevieIdx(uint8_t);
+    uint8_t cantonPdevieIdx() const;
+
+    // Vitesse logique (transmise à EXCC)
+    void speed(uint16_t v);
+    uint16_t speed() const;
 };
-/* ------------------------------------------------------------
-  Fin de Aig.h
-  ------------------------------------------------------------
-*/
+
+/* ---------------------------------------------------------------------------
+ * Fin de Aig.h
+ * ---------------------------------------------------------------------------
+ */
