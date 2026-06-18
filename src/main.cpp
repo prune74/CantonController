@@ -111,11 +111,6 @@ void setup()
     canton->initMCP();
 
     // ------------------------------------------------------------------------
-    // Déduction automatique du rôle ferroviaire
-    // ------------------------------------------------------------------------
-    canton->computeRole();
-
-    // ------------------------------------------------------------------------
     // Mode Exploration interne ou mode normal (RailCom + GestionReseau)
     // ------------------------------------------------------------------------
     if (Settings::explorationOn())

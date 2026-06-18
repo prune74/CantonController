@@ -21,29 +21,15 @@
  *   - signaux H / AH
  *   - capteurs ponctuels
  *   - occupation physique + essieux
- *   - rôle ferroviaire (pleine voie, gare, bifurcation…)
  *   - feux directionnels
  *   - STOP global
  *
  * Ce module est le cœur de la logique métier ferroviaire locale.
+ *
+ * IMPORTANT 2026 :
+ *   - Les rôles ferroviaires ont été supprimés.
+ *   - Toute la logique métier dépend désormais uniquement de la topologie.
  */
-
-// ---------------------------------------------------------------------------
-// Rôle ferroviaire du canton
-// ---------------------------------------------------------------------------
-enum CantonRole
-{
-    ROLE_INDETERMINE = 0, // Aucun voisin, topologie inconnue
-    ROLE_TIROIR,          // Impasse / voie en cul-de-sac
-    ROLE_PLEINE_VOIE,     // Voie simple sans aiguilles
-    ROLE_BAL,             // Voie avec aiguilles mais sans bifurcation
-    ROLE_ENTREE_GARE,     // Aiguilles + SP2/SM2 côté H
-    ROLE_SORTIE_GARE,     // Aiguilles + SP2/SM2 côté AH
-    ROLE_GARE,            // Aiguilles + SP2/SM2 + continuité H/AH
-    ROLE_BIFURCATION,     // Aiguilles + SP2/SM2 mais continuité partielle
-    ROLE_MANOEUVRE,       // Zone technique sans continuité
-    ROLE_SERVICE          // Zone technique avec aiguilles mais sans SP2/SM2
-};
 
 // ---------------------------------------------------------------------------
 // Paramètres directionnels (feux directionnels + code-barres)
@@ -97,16 +83,6 @@ public:
     bool estOccupe();
 
     // -----------------------------------------------------------------------
-    // Rôle ferroviaire
-    // -----------------------------------------------------------------------
-    void setRole(CantonRole role);
-    CantonRole getRole();
-    bool roleAutoriseAcces(SensDeMarche sens);
-    bool roleImposeAvertissement();
-    bool roleImposeManoeuvre();
-    void computeRole();
-
-    // -----------------------------------------------------------------------
     // Topologie SP1 / SM1 / SP2 / SM2
     // -----------------------------------------------------------------------
     void SP1_idx(uint8_t idx);
@@ -156,7 +132,7 @@ public:
     // -----------------------------------------------------------------------
     // Signaux (H / AH)
     // -----------------------------------------------------------------------
-    void applyRoleDefaults();
+    void applyRoleDefaults();  // désormais vide
     uint8_t transitionH();
     uint8_t transitionAH();
     uint8_t transitionAspect(SensDeMarche sens);
@@ -194,7 +170,6 @@ public:
     uint8_t getFeuDirection(SensDeMarche sens) const;
     void updateFeuDirection(SensDeMarche sens);
 
-    // API pour Settings_JSON
     DirectionConfig &directionH() { return direction.H; }
     DirectionConfig &directionAH() { return direction.AH; }
 
@@ -234,7 +209,6 @@ public:
             signal[idx] = s;
     }
 
-    // Ajouts Exploration
     void setCantonP(uint8_t idx, CantonPeriph *np)
     {
         if (idx < 8)
@@ -292,8 +266,6 @@ private:
 
     uint8_t m_maxSpeed;
     SensDeMarche m_sensMarche;
-
-    CantonRole m_role;
 
     uint8_t m_feuDirection[2];
 

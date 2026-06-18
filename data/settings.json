@@ -105,9 +105,6 @@
   "aig4cantonPdevieIdx": 0,
   "aig5cantonPdevieIdx": 0,
 
-  // Rôle ferroviaire (0 = pleine voie)
-  "role": 0,
-
   // Vitesse max autorisée
   "maxSpeed": 128,
 

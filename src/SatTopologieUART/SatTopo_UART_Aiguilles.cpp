@@ -28,7 +28,7 @@ extern HardwareSerial Serial1;
  * ==========================================================================*/
 void envoyerAiguillesDepuisEtatCourant()
 {
-    for (uint8_t idx = 0; idx < 6; ++idx)
+    for (uint8_t idx = 0; idx < aigSize; ++idx)
     {
         Aig *aig = Settings::canton->getAig(idx);
         if (!aig)

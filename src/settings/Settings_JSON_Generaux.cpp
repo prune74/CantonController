@@ -7,7 +7,6 @@
  *   - masqueAig
  *   - maxSpeed
  *   - sensMarche
- *   - rôle ferroviaire
  *   - WiFi / Exploration ON/OFF
  *   - SSID / Password
  *
@@ -52,14 +51,6 @@ void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc)
     canton->sensMarche(static_cast<SensDeMarche>(doc["sensMarche"] | 0));
 
     // -----------------------------------------------------------------------
-    // Rôle ferroviaire
-    // -----------------------------------------------------------------------
-    if (doc.containsKey("role"))
-        canton->setRole(static_cast<CantonRole>((uint8_t)doc["role"]));
-    else
-        canton->setRole(ROLE_PLEINE_VOIE);
-
-    // -----------------------------------------------------------------------
     // WiFi / Exploration
     // -----------------------------------------------------------------------
     Settings::WIFI_ON        = doc["wifi_on"]        | true;
@@ -88,7 +79,6 @@ void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc)
 
     doc["maxSpeed"]       = canton->maxSpeed();
     doc["sensMarche"]     = (uint8_t)canton->sensMarche();
-    doc["role"]           = (uint8_t)canton->getRole();
 
     doc["wifi_on"]        = Settings::WIFI_ON;
     doc["exploration_on"] = Settings::EXPLORATION_ON;

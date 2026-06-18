@@ -10,7 +10,12 @@
  * Rôle :
  *   - créer / supprimer les objets Signal selon le type
  *   - charger type + position
- *   - appliquer les defaults selon le rôle ferroviaire
+ *
+ * IMPORTANT 2026 :
+ *   - Les rôles ferroviaires sont désactivés.
+ *   - Aucun ajustement automatique n'est appliqué.
+ *   - La logique métier dépend désormais uniquement de la topologie
+ *     (aiguillages, cantons voisins, occupation…).
  *
  * Ce module ne contient aucune logique métier :
  *   → il synchronise simplement JSON ↔ structures Canton.
@@ -61,10 +66,10 @@ void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc)
         s->position(position);
     }
 
-    // Ajustement automatique selon le rôle ferroviaire
-    canton->applyRoleDefaults();
-
-    CC_LOG_INFO("[Settings][Signaux][CC] Signaux chargés + applyRoleDefaults()\n");
+    // -----------------------------------------------------------------------
+    // Rôles désactivés : aucun ajustement automatique
+    // -----------------------------------------------------------------------
+    CC_LOG_INFO("[Settings][Signaux][CC] Signaux chargés (sans rôle)\n");
 }
 
 /* ============================================================================
@@ -90,7 +95,4 @@ void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc)
             doc[basePosition] = s->position();
         }
     }
-
-    // Sauvegarde du rôle ferroviaire
-    doc["role"] = (uint8_t)canton->getRole();
 }

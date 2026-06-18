@@ -5,14 +5,13 @@
  *
  *   - sécurité absolue (STOP, occupation)
  *   - propagation des aspects restrictifs
- *   - application des règles selon le rôle ferroviaire
+ *   - défaut → voie libre
  *
- * IMPORTANT :
- *   - aucune logique d’aiguilles ici
- *   - aucune logique directionnelle (feux blancs)
- *   - aucune logique d’accès
- *
- * Ce module définit UNIQUEMENT l’aspect SNCF à afficher.
+ * IMPORTANT:
+ *   - La logique d’aspect dépend uniquement :
+ *       → de la sécurité
+ *       → de l’occupation
+ *       → de l’aspect du voisin
  */
 
 #include "Canton.h"
@@ -23,11 +22,6 @@
  *  Mini‑helpers internes
  * ==========================================================================*/
 
-/*
- * aspectVoisin() — retourne l’aspect reçu depuis un voisin
- * sens = H  → aspectRecu[0]
- * sens = AH → aspectRecu[1]
- */
 static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens)
 {
     if (!v)
@@ -38,9 +32,6 @@ static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens)
            : v->aspectRecu[1];
 }
 
-/*
- * estOccupeOuReserve() — règle de sécurité
- */
 static inline bool estOccupeOuReserve(CantonPeriph *v)
 {
     return v && (v->busy() || v->reserved() != 0);
@@ -53,9 +44,8 @@ static inline bool estOccupeOuReserve(CantonPeriph *v)
  *
  *    0. STOP global → CARRÉ
  *    1. Voisin occupé ou réservé → CARRÉ
- *    2. Propagation des aspects restrictifs (CARRÉ / SÉMAPHORE / AVERTISSEMENT)
- *    3. Application du rôle ferroviaire
- *    4. Défaut → Voie libre
+ *    2. Propagation des aspects restrictifs
+ *    3. Défaut → Voie libre
  * ==========================================================================*/
 uint8_t Canton::transitionAspect(SensDeMarche sens)
 {
@@ -72,7 +62,7 @@ uint8_t Canton::transitionAspect(SensDeMarche sens)
     }
 
     /* ------------------------------------------------------------------------
-     * Voisin principal (SP1 ou SM1)
+     * Voisin principal
      * ------------------------------------------------------------------------ */
     CantonPeriph *v = (sens == SensHoraire)
                       ? voisinSP1()
@@ -103,38 +93,11 @@ uint8_t Canton::transitionAspect(SensDeMarche sens)
     }
 
     /* ------------------------------------------------------------------------
-     * 3) Application des règles selon le rôle ferroviaire
+     * 3) Défaut → Voie libre
      * ------------------------------------------------------------------------ */
-    switch (m_role)
-    {
-        case ROLE_BAL:
-            CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → Voie libre (BAL)\n",
-                         m_id, sensStr);
-            return ASPECT_VOIE_LIBRE;
-
-        case ROLE_ENTREE_GARE:
-            CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → Avertissement (entrée gare)\n",
-                         m_id, sensStr);
-            return ASPECT_AVERTISSEMENT;
-
-        case ROLE_SORTIE_GARE:
-            CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → Voie libre (sortie gare)\n",
-                         m_id, sensStr);
-            return ASPECT_VOIE_LIBRE;
-
-        case ROLE_MANOEUVRE:
-            CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → Manoeuvre\n",
-                         m_id, sensStr);
-            return ASPECT_MANOEUVRE;
-
-        case ROLE_GARE:
-        case ROLE_SERVICE:
-        case ROLE_PLEINE_VOIE:
-        default:
-            CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → Voie libre (défaut)\n",
-                         m_id, sensStr);
-            return ASPECT_VOIE_LIBRE;
-    }
+    CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → Voie libre (défaut)\n",
+                 m_id, sensStr);
+    return ASPECT_VOIE_LIBRE;
 }
 
 /* ============================================================================

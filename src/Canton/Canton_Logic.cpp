@@ -23,11 +23,10 @@
  * ---------------------------------------------------------------------------
  *  Conditions :
  *    1. STOP global inactif
- *    2. Le rôle ferroviaire autorise l’accès
- *    3. Le voisin existe
- *    4. Le voisin est accessible
- *    5. Le voisin n’est ni occupé ni réservé
- *    6. Les aiguilles sont conformes au masque
+ *    2. Le voisin existe
+ *    3. Le voisin est accessible
+ *    4. Le voisin n’est ni occupé ni réservé
+ *    5. Les aiguilles sont conformes au masque
  * ==========================================================================*/
 bool Canton::estAccesAutorise(SensDeMarche sens)
 {
@@ -43,14 +42,7 @@ bool Canton::estAccesAutorise(SensDeMarche sens)
     CantonPeriph *v = (sens == SensHoraire) ? voisinSP1() : voisinSM1();
     const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
-    // 1) Rôle ferroviaire
-    if (!roleAutoriseAcces(sens))
-    {
-        CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (rôle)\n", m_id, sensStr);
-        return false;
-    }
-
-    // 2) Voisin existant
+    // 1) Voisin existant
     if (!v)
     {
         CC_LOG_WARN("[Canton %u][Logic][CC] Accès %s refusé (voisin inexistant)\n",
@@ -58,14 +50,14 @@ bool Canton::estAccesAutorise(SensDeMarche sens)
         return false;
     }
 
-    // 3) Voisin accessible
+    // 2) Voisin accessible
     if (!v->acces())
     {
         CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (acces=0)\n", m_id, sensStr);
         return false;
     }
 
-    // 4) Voisin libre
+    // 3) Voisin libre
     if (v->busy() || v->reserved() != 0)
     {
         CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (voisin occupé/réservé)\n",
@@ -73,7 +65,7 @@ bool Canton::estAccesAutorise(SensDeMarche sens)
         return false;
     }
 
-    // 5) Masque aiguilles
+    // 4) Masque aiguilles
     if (!aiguillesConformes(m_masqueAig))
     {
         CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (masque aiguilles)\n",

@@ -11,7 +11,6 @@
  *        • Exploration
  *        • maxSpeed
  *        • save / restart
- *        • rôle ferroviaire
  *        • Booster (seuils / calibration)
  *
  * Ce module ne contient aucune logique métier :
@@ -107,15 +106,6 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     if (doc.containsKey("restartEsp"))
     {
         handleRestart();
-        return;
-    }
-
-    // -----------------------------------------------------------------------
-    // RÔLE FERROVIAIRE
-    // -----------------------------------------------------------------------
-    if (doc.containsKey("cmd") && strcmp(doc["cmd"], "setRole") == 0)
-    {
-        handleRole(doc);
         return;
     }
 

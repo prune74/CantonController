@@ -1,18 +1,16 @@
 /*
  * Signal.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Représentation d’un signal SNCF physique ou logique pour le
- * Canton Controller (CC).
+ * Représentation d’un signal SNCF physique pour le Canton Controller (CC).
  *
- * Un signal possède :
- *   - un type (simple, carré, ralentissement, rappel, BAL, manœuvre…)
- *   - une position dans le tableau des signaux du canton
- *   - un nombre de feux (m_length)
- *   - des capacités (présence d’un carré, œilleton, rappel, etc.)
+ * Ce module définit les capacités physiques d’un signal selon son type :
+ *   - 2 feux  : manœuvre
+ *   - 3 feux  : BAL
+ *   - 5 feux  : carré
+ *   - 7 feux  : ralentissement
+ *   - 9 feux  : rappel / entrée / sortie
  *
- * Ce module définit les capacités d’un signal selon son type.
- * Il ne gère PAS l’allumage des feux : cette partie est assurée par
- * l’Extension Canton Controller (EXCC) dans EXCC_Signaux.cpp.
+ * L’allumage réel des feux est assuré par EXCC_Signaux.cpp.
  */
 
 #include "Signal.h"
@@ -35,84 +33,76 @@ Signal::Signal()
       m_hasCarreViolet(false),
       m_hasVLclignotant(false)
 {
-    CC_LOG_TRACE("[Signal][CC] Constructeur : type=%u position=%u\n",
-                 m_type, m_position);
+    CC_LOG_TRACE("[Signal][CC] Constructeur : type=INDEFINI position=%u\n",
+                 m_position);
 }
 
 Signal::~Signal() {}
 
 // ---------------------------------------------------------------------------
 // setup()
-// Configure les capacités du signal en fonction de son type.
+// Configure les capacités du signal en fonction de son type physique.
 // ---------------------------------------------------------------------------
 void Signal::setup()
 {
-    // Réinitialisation des capacités
-    m_hasCarre = false;
-    m_hasOeilleton = false;
-    m_hasRal = false;
-    m_hasRappel = false;
-    m_hasManoeuvre = false;
-    m_hasCarreViolet = false;
+    // Réinitialisation des capacités internes
+    m_hasCarre        = false;
+    m_hasOeilleton    = false;
+    m_hasRal          = false;
+    m_hasRappel       = false;
+    m_hasManoeuvre    = false;
+    m_hasCarreViolet  = false;
     m_hasVLclignotant = false;
 
     CC_LOG_TRACE("[Signal][CC] setup() : configuration du type %u\n", m_type);
 
     switch (m_type)
     {
-    case SIG_SIMPLE: // 0
-        m_length = 3;
-        CC_LOG_INFO("[Signal][CC] SIMPLE → 3 feux\n");
+    case SIG_INDEFINI: // 0 — état initial
+        m_length = 0;
+        CC_LOG_INFO("[Signal][CC] INDEFINI → aucun feu (en attente)\n");
         break;
 
-    case SIG_CARRE: // 1
+    case SIG_BAL: // 1 — 3 feux : Rouge / Jaune / Vert (BAL)
+        m_length = 3;
+        m_hasVLclignotant = true;   // capacité BAL : vert clignotant
+        CC_LOG_INFO("[Signal][CC] BAL → 3 feux (R/J/V + VL clignotant)\n");
+        break;
+
+    case SIG_CARRE: // 2 — 5 feux : Carré + Œilleton
         m_length = 5;
-        m_hasCarre = true;
-        m_hasOeilleton = true;
+        m_hasCarre     = true;      // 2 rouges
+        m_hasOeilleton = true;      // œilleton blanc
         CC_LOG_INFO("[Signal][CC] CARRE → 5 feux (Carré + Œilleton)\n");
         break;
 
-    case SIG_RAL: // 2
-        m_length = 9;
-        m_hasRal = true;
-        CC_LOG_INFO("[Signal][CC] RAL → 9 feux (RAL 30/60)\n");
+    case SIG_RAL: // 3 — 7 feux : Ralentissement 30/60
+        m_length = 7;
+        m_hasRal = true;            // jaune fixe + jaune clignotant + vert
+        CC_LOG_INFO("[Signal][CC] RAL → 7 feux (Ralentissement 30/60)\n");
         break;
 
-    case SIG_RAPPEL: // 3
+    case SIG_RAPPEL: // 4 — 9 feux : Rappel de ralentissement
         m_length = 9;
-        m_hasRappel = true;
+        m_hasRappel = true;         // confirmation du ralentissement
         CC_LOG_INFO("[Signal][CC] RAPPEL → 9 feux (Rappel 30/60)\n");
         break;
 
-    case SIG_MANOEUVRE: // 4
+    case SIG_MANOEUVRE: // 5 — 2 feux : Blanc + Violet
         m_length = 2;
-        m_hasManoeuvre = true;
-        m_hasCarreViolet = true;
-        CC_LOG_INFO("[Signal][CC] MANOEUVRE → Blanc + Violet\n");
+        m_hasManoeuvre   = true;
+        m_hasCarreViolet = true;    // violet = carré de manœuvre
+        CC_LOG_INFO("[Signal][CC] MANOEUVRE → 2 feux (Blanc + Violet)\n");
         break;
 
-    case SIG_BAL: // 5
-        m_length = 3;
-        m_hasVLclignotant = true;
-        CC_LOG_INFO("[Signal][CC] BAL → Rouge / Jaune / Vert clignotant\n");
-        break;
-
-    case SIG_ENTREE: // 6
-        m_length = 9;
-        m_hasCarre = true;
-        m_hasRal = true;
-        CC_LOG_INFO("[Signal][CC] ENTREE → Carré + RAL\n");
-        break;
-
-    case SIG_SORTIE: // 7
-        m_length = 9;
-        m_hasRappel = true;
-        CC_LOG_INFO("[Signal][CC] SORTIE → Rappel\n");
+    case SIG_ABSENT: // 255 — aucun signal présent physiquement
+        m_length = 0;
+        CC_LOG_INFO("[Signal][CC] ABSENT → aucun signal\n");
         break;
 
     default:
-        m_length = 3;
-        CC_LOG_WARN("[Signal][CC] Type inconnu (%u) → fallback SIMPLE\n", m_type);
+        m_length = 0;
+        CC_LOG_WARN("[Signal][CC] Type inconnu (%u) → INDEFINI\n", m_type);
         break;
     }
 

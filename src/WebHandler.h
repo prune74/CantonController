@@ -15,7 +15,6 @@
  *   - WebHandler_HandleData.cpp
  *   - WebHandler_Aiguilles.cpp
  *   - WebHandler_Settings.cpp
- *   - WebHandler_Role.cpp
  *   - WebHandler_Notify.cpp
  */
 
@@ -104,6 +103,4 @@ private:
     void handleSave();
     void handleRestart();
 
-    // Rôle ferroviaire
-    void handleRole(JsonDocument &doc);
 };

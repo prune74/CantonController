@@ -40,7 +40,6 @@ Canton::Canton()
       m_masqueAigSM2(0x00),
       m_maxSpeed(128),
       m_sensMarche(SensHoraire),
-      m_role(ROLE_PLEINE_VOIE),
       cantonP{},
       aig{},
       signal{},
@@ -194,7 +193,6 @@ void Canton::logInitialState()
 {
     CC_LOG_INFO("============================================================\n");
     CC_LOG_INFO("[Canton %u][Init][CC] Démarrage du canton\n", m_id);
-    CC_LOG_INFO("Rôle ferroviaire : %u\n", m_role);
     CC_LOG_INFO("SP1_idx=%u | SM1_idx=%u\n", m_SP1_idx, m_SM1_idx);
     CC_LOG_INFO("Capteur AH=%d | H=%d\n",
                 sensor[IDX_CAPT_ANTIHORAIRE].state(),

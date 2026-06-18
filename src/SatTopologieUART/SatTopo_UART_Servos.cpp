@@ -84,7 +84,7 @@ void envoyerConfigurationServosDepuisSettings()
         return;
     }
 
-    for (uint8_t servo = 0; servo < 6; ++servo)
+    for (uint8_t servo = 0; servo < aigSize; ++servo)
     {
         Aig *aig = Settings::canton->getAig(servo);
         if (!aig)
@@ -111,7 +111,7 @@ void envoyerConfigurationServosDepuisSettings()
         uint16_t speed = 11000 - (speedSlider * 1000);
 
         // -------------------------------------------------------------------
-        // Envoi F1 (EXCC unique, pas d’adresse)
+        // Envoi F1
         // -------------------------------------------------------------------
         envoyerServoConfig(servo, posDroit, posDevie, speed);
 

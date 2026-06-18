@@ -40,7 +40,12 @@ function onClose() {
   setTimeout(initWebSocket, 2000);
 }
 
-window.addEventListener("load", initWebSocket);
+window.addEventListener("load", () => {
+  initWebSocket();
+  // Désactivation du rôle (legacy)
+  const typeCanton = document.getElementById("typeCanton");
+  if (typeCanton) typeCanton.disabled = true;
+});
 
 /* ============================================================================
  * Réception WebSocket
@@ -58,10 +63,10 @@ function onMessage(event) {
   }
 
   /* ------------------------------------------------------------------------
-   * Commande spécifique : mise à jour du rôle
+   * Commande spécifique : mise à jour du rôle (désactivé)
    * ------------------------------------------------------------------------ */
   if (data.cmd === "roleUpdate") {
-    document.getElementById("typeCanton").value = data.role;
+    document.getElementById("typeCanton").value = 0;
     return;
   }
 
@@ -117,10 +122,9 @@ function onMessage(event) {
   document.getElementById("wifi_on").checked        = data.wifi_on;
 
   /* ------------------------------------------------------------------------
-   * Type de canton
+   * Type de canton (désactivé)
    * ------------------------------------------------------------------------ */
-  if (data.role !== undefined)
-    document.getElementById("typeCanton").value = data.role;
+  document.getElementById("typeCanton").value = 0;
 
   /* ------------------------------------------------------------------------
    * Debug brut
@@ -183,10 +187,10 @@ function save(obj) {
 }
 
 /* ============================================================================
- * Changement du rôle ferroviaire
+ * Changement du rôle ferroviaire (désactivé)
  * ==========================================================================*/
 function typeCantonChange(obj) {
-  websocket.send(JSON.stringify({ cmd: "setRole", value: parseInt(obj.value) }));
+  console.log("[UI] typeCantonChange ignoré (rôles désactivés)");
 }
 
 /* ============================================================================

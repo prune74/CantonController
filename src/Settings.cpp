@@ -132,9 +132,6 @@ void Settings::loadFile(Canton *canton)
     Settings_JSON_loadDirection(canton, doc);
     Settings_JSON_loadBooster(doc);
 
-    // Calcul du rôle ferroviaire (entrée / sortie / neutre)
-    canton->computeRole();
-
     CC_LOG_INFO("[Settings][CC] loadFile() terminé\n");
 }
 

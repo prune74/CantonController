@@ -36,8 +36,8 @@ void WebHandler::notifyClients()
     // -----------------------------------------------------------------------
     // Connexions P00/P01/P10/P11/M00/M01/M10/M11
     // -----------------------------------------------------------------------
-    const char *index[] = {"p00", "p01", "p10", "p11", 
-                            "m00", "m01", "m10", "m11"};
+    const char *index[] = {"p00", "p01", "p10", "p11",
+                           "m00", "m01", "m10", "m11"};
 
     for (uint8_t i = 0; i < 8; i++)
     {
@@ -47,7 +47,7 @@ void WebHandler::notifyClients()
         else
             doc[index[i]] = nullptr;
     }
-    
+
     // -----------------------------------------------------------------------
     // Aiguilles (positions + vitesse slider)
     // -----------------------------------------------------------------------
@@ -77,7 +77,7 @@ void WebHandler::notifyClients()
             doc[keyEtat] = "Actif";
             doc[keyD]    = a->posDroit();
             doc[keyV]    = a->posDevie();
-            doc[keyS]    = servoCfg[i].speed; // slider 0–10
+            doc[keyS]    = servoCfg[i].speed;
         }
     }
 
@@ -90,11 +90,6 @@ void WebHandler::notifyClients()
     doc["sensMarche"]     = canton->sensMarche();
 
     // -----------------------------------------------------------------------
-    // Rôle ferroviaire
-    // -----------------------------------------------------------------------
-    doc["role"] = canton->getRole();
-
-    // -----------------------------------------------------------------------
     // Signaux (cible horaire / antihoraire)
     // -----------------------------------------------------------------------
     Signal *sigAH = canton->getSignal(0);
@@ -102,9 +97,13 @@ void WebHandler::notifyClients()
 
     if (sigH)
         doc["cibleHoraire"] = sigH->type();
+    else
+        doc["cibleHoraire"] = 0;
 
     if (sigAH)
         doc["cibleAntiHor"] = sigAH->type();
+    else
+        doc["cibleAntiHor"] = 0;
 
     // -----------------------------------------------------------------------
     // BOOSTER — seuils + mesures live

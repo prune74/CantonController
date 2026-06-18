@@ -4,14 +4,13 @@
  * Cœur de la découverte autonome du canton :
  *   - détection des voisins via MCP23017
  *   - création logique des aiguilles
- *   - déduction automatique du rôle (computeRole)
- *   - application des types de signaux par défaut (applyRoleDefaults)
  *   - envoi de la topologie vers l’Extension Canton Controller (EXCC)
  *
- * Ce module ne fait que :
- *   - piloter la phase d’exploration
- *   - manipuler la structure interne du Canton
- *   - déclencher l’envoi de la topologie (SatTopologieUART)
+ * IMPORTANT 2026 :
+ *   - computeRole() désactivé (rôles supprimés)
+ *   - applyRoleDefaults() désactivé (rôles supprimés)
+ *   - aucun type de signal n’est imposé automatiquement
+ *   - la logique métier dépend désormais uniquement de la topologie
  */
 
 #include "Exploration.h"
@@ -82,10 +81,9 @@ static void runExplorationPass(Canton *canton)
     }
 
     // --------------------------------------------------------
-    // Déduction automatique du rôle
-    //   → computeRole() → setRole() → applyRoleDefaults()
+    // computeRole() désactivé en 2026 (rôles supprimés)
     // --------------------------------------------------------
-    canton->computeRole();
+    // canton->computeRole();
 
     // --------------------------------------------------------
     // Envoi de la topologie vers EXCC
@@ -102,8 +100,7 @@ void Exploration::begin(Canton *nd)
 
     // --------------------------------------------------------
     // Boutons via MCP23017
-    // (mêmes noms logiques, mappés sur MCP)
-// --------------------------------------------------------
+    // --------------------------------------------------------
     canton->mcp.pinMode(MCP_PIN_BTN_SAT_MOINS, INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_BTN_SAT_PLUS,  INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_INTER_DEV_2,   INPUT_PULLUP);
@@ -234,13 +231,13 @@ void Exploration::process(void *p)
                 }
             }
 
-            // Réinitialisation des signaux
+            // Réinitialisation des signaux (aucun type imposé)
             for (byte i = 0; i < signalSize; i++)
             {
                 Signal *s = canton->getSignal(i);
                 if (s)
                 {
-                    s->type(SIG_SIMPLE);
+                    s->type(0);        // Aucun signal par défaut
                     s->position(i);
                     s->setup();
                 }
