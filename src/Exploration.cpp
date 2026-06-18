@@ -7,8 +7,6 @@
  *   - envoi de la topologie vers l’Extension Canton Controller (EXCC)
  *
  * IMPORTANT 2026 :
- *   - computeRole() désactivé (rôles supprimés)
- *   - applyRoleDefaults() désactivé (rôles supprimés)
  *   - aucun type de signal n’est imposé automatiquement
  *   - la logique métier dépend désormais uniquement de la topologie
  */
@@ -79,11 +77,6 @@ static void runExplorationPass(Canton *canton)
         if (canton->getCantonP(c[0]) && canton->getCantonP(c[1]))
             createAig(i, c[0], c[1]);
     }
-
-    // --------------------------------------------------------
-    // computeRole() désactivé en 2026 (rôles supprimés)
-    // --------------------------------------------------------
-    // canton->computeRole();
 
     // --------------------------------------------------------
     // Envoi de la topologie vers EXCC

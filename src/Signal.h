@@ -22,15 +22,13 @@
 // ---------------------------------------------------------------------------
 enum SignalProfil : uint8_t
 {
-    SIG_INDEFINI  = 0,   // Pas encore déterminé (état initial)
+    SIG_ABSENT = 0,    // Aucun signal présent physiquement
 
-    SIG_BAL       = 1,   // 3 feux : Rouge / Jaune / Vert (BAL)
-    SIG_CARRE     = 2,   // 5 feux : Carré + Œilleton
-    SIG_RAL       = 3,   // 7 feux : Ralentissement 30/60
-    SIG_RAPPEL    = 4,   // 9 feux : Rappel 30/60
-    SIG_MANOEUVRE = 5,   // 2 feux : Blanc + Violet
-
-    SIG_ABSENT    = 255  // Aucun signal présent physiquement
+    SIG_BAL = 1,       // 3 feux : Rouge / Jaune / Vert (BAL)
+    SIG_CARRE = 2,     // 5 feux : Carré + Œilleton
+    SIG_RAL = 3,       // 7 feux : Ralentissement 30/60
+    SIG_RAPPEL = 4,    // 9 feux : Rappel 30/60
+    SIG_MANOEUVRE = 5, // 2 feux : Blanc + Violet
 };
 
 // ---------------------------------------------------------------------------
@@ -57,18 +55,18 @@ public:
     uint8_t length() const;
 
     // Capacités physiques
-    bool hasCarre() const        { return m_hasCarre; }
-    bool hasOeilleton() const    { return m_hasOeilleton; }
-    bool hasRal() const          { return m_hasRal; }
-    bool hasRappel() const       { return m_hasRappel; }
-    bool hasManoeuvre() const    { return m_hasManoeuvre; }
-    bool hasCarreViolet() const  { return m_hasCarreViolet; }
+    bool hasCarre() const { return m_hasCarre; }
+    bool hasOeilleton() const { return m_hasOeilleton; }
+    bool hasRal() const { return m_hasRal; }
+    bool hasRappel() const { return m_hasRappel; }
+    bool hasManoeuvre() const { return m_hasManoeuvre; }
+    bool hasCarreViolet() const { return m_hasCarreViolet; }
     bool hasVLclignotant() const { return m_hasVLclignotant; }
 
 private:
-    uint8_t m_type;      // Profil du signal (nombre de feux)
-    uint8_t m_position;  // 0 = horaire, 1 = anti‑horaire
-    uint8_t m_length;    // Nombre de feux physiques
+    uint8_t m_type;     // Profil du signal (nombre de feux)
+    uint8_t m_position; // 0 = horaire, 1 = anti‑horaire
+    uint8_t m_length;   // Nombre de feux physiques
 
     // Capacités internes
     bool m_hasCarre;

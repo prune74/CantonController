@@ -46,56 +46,51 @@ Signal::~Signal() {}
 void Signal::setup()
 {
     // Réinitialisation des capacités internes
-    m_hasCarre        = false;
-    m_hasOeilleton    = false;
-    m_hasRal          = false;
-    m_hasRappel       = false;
-    m_hasManoeuvre    = false;
-    m_hasCarreViolet  = false;
+    m_hasCarre = false;
+    m_hasOeilleton = false;
+    m_hasRal = false;
+    m_hasRappel = false;
+    m_hasManoeuvre = false;
+    m_hasCarreViolet = false;
     m_hasVLclignotant = false;
 
     CC_LOG_TRACE("[Signal][CC] setup() : configuration du type %u\n", m_type);
 
     switch (m_type)
     {
-    case SIG_INDEFINI: // 0 — état initial
-        m_length = 0;
-        CC_LOG_INFO("[Signal][CC] INDEFINI → aucun feu (en attente)\n");
-        break;
-
     case SIG_BAL: // 1 — 3 feux : Rouge / Jaune / Vert (BAL)
         m_length = 3;
-        m_hasVLclignotant = true;   // capacité BAL : vert clignotant
+        m_hasVLclignotant = true; // capacité BAL : vert clignotant
         CC_LOG_INFO("[Signal][CC] BAL → 3 feux (R/J/V + VL clignotant)\n");
         break;
 
     case SIG_CARRE: // 2 — 5 feux : Carré + Œilleton
         m_length = 5;
-        m_hasCarre     = true;      // 2 rouges
-        m_hasOeilleton = true;      // œilleton blanc
+        m_hasCarre = true;     // 2 rouges
+        m_hasOeilleton = true; // œilleton blanc
         CC_LOG_INFO("[Signal][CC] CARRE → 5 feux (Carré + Œilleton)\n");
         break;
 
     case SIG_RAL: // 3 — 7 feux : Ralentissement 30/60
         m_length = 7;
-        m_hasRal = true;            // jaune fixe + jaune clignotant + vert
+        m_hasRal = true; // jaune fixe + jaune clignotant + vert
         CC_LOG_INFO("[Signal][CC] RAL → 7 feux (Ralentissement 30/60)\n");
         break;
 
     case SIG_RAPPEL: // 4 — 9 feux : Rappel de ralentissement
         m_length = 9;
-        m_hasRappel = true;         // confirmation du ralentissement
+        m_hasRappel = true; // confirmation du ralentissement
         CC_LOG_INFO("[Signal][CC] RAPPEL → 9 feux (Rappel 30/60)\n");
         break;
 
     case SIG_MANOEUVRE: // 5 — 2 feux : Blanc + Violet
         m_length = 2;
-        m_hasManoeuvre   = true;
-        m_hasCarreViolet = true;    // violet = carré de manœuvre
+        m_hasManoeuvre = true;
+        m_hasCarreViolet = true; // violet = carré de manœuvre
         CC_LOG_INFO("[Signal][CC] MANOEUVRE → 2 feux (Blanc + Violet)\n");
         break;
 
-    case SIG_ABSENT: // 255 — aucun signal présent physiquement
+    case SIG_ABSENT: // 0 — aucun signal présent physiquement
         m_length = 0;
         CC_LOG_INFO("[Signal][CC] ABSENT → aucun signal\n");
         break;

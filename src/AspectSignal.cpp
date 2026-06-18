@@ -7,11 +7,14 @@
  *   - récupérer les aspects aval SP1 / SM1
  *   - vérifier les aiguilles locales
  *   - déduire l’aspect SNCF local (via DeductionAspect)
+ *   - déduire automatiquement le type de mât (topologie / aspect 2026)
+ *   - mettre à jour les objets Signal (type) pour sauvegarde JSON
  *   - calculer les feux directionnels (FeuxDirection)
  *   - envoyer les aspects / feux / occupation voisins (anti‑spam)
  *
- * Ce module ne contient aucune logique ferroviaire globale :
- *   → il applique uniquement les règles locales du canton.
+ * IMPORTANT :
+ *   Ce module ne contient aucune logique ferroviaire globale :
+ *     → il applique uniquement les règles locales du canton.
  */
 
 #include "AspectSignal.h"
@@ -28,8 +31,8 @@
 static uint8_t oldSignalValue0 = 255; // H
 static uint8_t oldSignalValue1 = 255; // AH
 
-static uint8_t oldDirValue0 = 255;    // H
-static uint8_t oldDirValue1 = 255;    // AH
+static uint8_t oldDirValue0 = 255; // H
+static uint8_t oldDirValue1 = 255; // AH
 
 static TickType_t lastEnvoi = 0;
 const TickType_t tempoEnvoi = pdMS_TO_TICKS(300);
@@ -75,6 +78,19 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
 
     signalValue[1] = static_cast<uint8_t>(
         deduireAspectDepuisAval(aspectAvalAH, voieDevieSM1));
+
+    // -----------------------------------------------------------------------
+    // 4bis) Déduction du type de mât + mise à jour des objets Signal
+    // -----------------------------------------------------------------------
+    uint8_t typeMatH  = canton->deduireTypeSignal(SensHoraire);
+    uint8_t typeMatAH = canton->deduireTypeSignal(SensAntiHoraire);
+
+    // Mise à jour du type dans les objets Signal (pour sauvegarde JSON)
+    Signal *sH = canton->getSignal(0);
+    if (sH) sH->type(typeMatH);
+
+    Signal *sAH = canton->getSignal(1);
+    if (sAH) sAH->type(typeMatAH);
 
     // -----------------------------------------------------------------------
     // 5) Calcul des feux directionnels (Exploration 2026)

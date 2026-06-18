@@ -24,8 +24,6 @@
  *   - feux directionnels
  *   - STOP global
  *
- * Ce module est le cœur de la logique métier ferroviaire locale.
- *
  * IMPORTANT 2026 :
  *   - Les rôles ferroviaires ont été supprimés.
  *   - Toute la logique métier dépend désormais uniquement de la topologie.
@@ -156,6 +154,23 @@ public:
     bool estSortiePossible(SensDeMarche sens);
 
     // -----------------------------------------------------------------------
+    // Signaux 2026 — Déduction du type de mât
+    // -----------------------------------------------------------------------
+    uint8_t deduireTypeSignal(SensDeMarche sens) const;
+
+    // Helpers topologiques
+    bool estImpasse() const;
+    bool estZoneAiguilles() const;
+    bool prochainCantonEstDangereux(SensDeMarche sens) const;
+    bool aBifurcation(SensDeMarche sens) const;
+    bool cantonPrecedentEstEnRalentissement(SensDeMarche sens) const;
+
+    // Besoins d’aspects
+    bool besoinRappel(SensDeMarche sens) const;
+    bool besoinRalentissement(SensDeMarche sens) const;
+    bool besoinCarre(SensDeMarche sens) const;
+
+    // -----------------------------------------------------------------------
     // Vitesse / Sens
     // -----------------------------------------------------------------------
     void maxSpeed(uint8_t v);
@@ -188,17 +203,17 @@ public:
     // -----------------------------------------------------------------------
     // Accès contrôlé aux tableaux internes
     // -----------------------------------------------------------------------
-    CantonPeriph *getCantonP(uint8_t idx)
+    CantonPeriph *getCantonP(uint8_t idx) const
     {
         return (idx < 8) ? cantonP[idx] : nullptr;
     }
 
-    Aig *getAig(uint8_t idx)
+    Aig *getAig(uint8_t idx) const
     {
         return (idx < 6) ? aig[idx] : nullptr;
     }
 
-    Signal *getSignal(uint8_t idx)
+    Signal *getSignal(uint8_t idx) const
     {
         return (idx < 2) ? signal[idx] : nullptr;
     }
