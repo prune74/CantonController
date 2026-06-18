@@ -1,13 +1,15 @@
 /*
  * CC_UartRx.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Réception UART RS485 depuis l’EXCC.
+ * Ce module lit les trames envoyées par l’unique EXCC via RS485.
  *
- * Format des trames :
- *   [SYNC=0xAA][OPCODE][INDEX_EXCC][DATA...]
+ * Format des trames (protocole sans index) :
+ *   [SYNC=0xAA][OPCODE][DATA...]
  *
  * Rôle :
- *   - parser les trames EXCC → CC
+ *   - lire les octets reçus
+ *   - détecter les trames valides
+ *   - parser les données selon l’OPCODE
  *   - dispatcher vers les modules concernés :
  *        • Sensor (ponctuels)
  *        • ConsoCourant (occupation)
@@ -24,7 +26,6 @@
 #include "CC_UartRx.h"
 #include "CC_RS485.h"
 #include "Exploration_Protocol.h"
-#include "Canton.h"
 
 #include "Sensor.h"
 #include "ConsoCourant.h"
@@ -32,6 +33,7 @@
 #include "EXCC_Link.h"
 #include "Railcom.h"
 #include "Booster.h"
+#include "Canton.h"
 
 #include "debug_cc.h"
 
@@ -64,7 +66,6 @@ void CC_UartRx::uartTask(void *param)
 {
     uint8_t step     = 0;
     uint8_t opcode   = 0;
-    uint8_t index    = 0;
     uint8_t data[8];
     uint8_t dataPos  = 0;
     uint8_t expected = 0;
@@ -89,13 +90,9 @@ void CC_UartRx::uartTask(void *param)
 
         case 1: // OPCODE
             opcode = byte;
-            step = 2;
-            break;
-
-        case 2: // INDEX EXCC (toujours présent dans la trame 2026)
-            index = byte;
             dataPos = 0;
 
+            // Détermination du nombre d’octets attendus
             switch (opcode)
             {
             case PROTO_03_H_PONCTUEL:        expected = 1; break;
@@ -103,7 +100,7 @@ void CC_UartRx::uartTask(void *param)
             case PROTO_04_OCCUPATION:        expected = 1; break;
             case PROTO_05_COMPTEUR_ESSIEUX:  expected = 1; break;
             case PROTO_06_POSITION_AIGUILLE: expected = 3; break;
-            case PROTO_07_BOOSTER:           expected = 4; break;
+            case PROTO_07_BOOSTER:           expected = 3; break; // etat, courant, tension
             case PROTO_08_RAILCOM_ADRESSE:   expected = 2; break;
             case PROTO_09_CALIB_BOOSTER:     expected = 4; break;
             case PROTO_PONG:                 expected = 0; break;
@@ -112,21 +109,21 @@ void CC_UartRx::uartTask(void *param)
 
             if (expected == 0)
             {
-                CC_UartRx::dispatch(opcode, index, nullptr, 0);
+                CC_UartRx::dispatch(opcode, nullptr, 0);
                 step = 0;
             }
             else
             {
-                step = 3;
+                step = 2;
             }
             break;
 
-        case 3: // DATA[n]
+        case 2: // DATA[n]
             data[dataPos++] = byte;
 
             if (dataPos >= expected)
             {
-                CC_UartRx::dispatch(opcode, index, data, expected);
+                CC_UartRx::dispatch(opcode, data, expected);
                 step = 0;
             }
             break;
@@ -137,7 +134,7 @@ void CC_UartRx::uartTask(void *param)
 // ---------------------------------------------------------------------------
 // Dispatch des trames vers les modules concernés
 // ---------------------------------------------------------------------------
-void CC_UartRx::dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t len)
+void CC_UartRx::dispatch(uint8_t opcode, uint8_t *data, uint8_t len)
 {
     switch (opcode)
     {
@@ -163,7 +160,7 @@ void CC_UartRx::dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t l
         break;
 
     case PROTO_07_BOOSTER:
-        EXCC_Link::onBooster(index, data[0], data[1], data[2], data[3]);
+        EXCC_Link::onBooster(data[0], data[1], data[2]);
         break;
 
     case PROTO_08_RAILCOM_ADRESSE:
@@ -175,7 +172,7 @@ void CC_UartRx::dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t l
         break;
 
     case PROTO_PONG:
-        EXCC_Link::onPong(index);
+        EXCC_Link::onPong();
         break;
 
     default:

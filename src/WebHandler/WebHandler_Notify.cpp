@@ -1,15 +1,12 @@
 /*
- * WebHandler_Notify.cpp — Gestion Canton 2026
+ * WebHandler_Notify.cpp — Publication de l’état CC → WebSocket
  * ---------------------------------------------------------------------------
- * Construction et envoi de l’état complet du CC vers les clients WebSocket.
+ * Ce module construit un JSON compact représentant l’état complet du canton :
+ *   - ID, topologie, aiguilles, signaux
+ *   - paramètres système (wifi, exploration, maxSpeed…)
+ *   - mesures Booster + seuils
  *
- * Rôle :
- *   - publier l’état du canton (ID, topologie, aiguilles, signaux)
- *   - publier les paramètres système (wifi, exploration, maxSpeed…)
- *   - publier les mesures Booster + seuils
- *   - envoyer un JSON compact et cohérent à l’UI
- *
- * Ce module ne contient aucune logique métier :
+ * Il ne contient aucune logique métier :
  *   → il expose simplement l’état interne du CC.
  */
 
@@ -95,23 +92,15 @@ void WebHandler::notifyClients()
     Signal *sigAH = canton->getSignal(0);
     Signal *sigH  = canton->getSignal(1);
 
-    if (sigH)
-        doc["cibleHoraire"] = sigH->type();
-    else
-        doc["cibleHoraire"] = 0;
-
-    if (sigAH)
-        doc["cibleAntiHor"] = sigAH->type();
-    else
-        doc["cibleAntiHor"] = 0;
+    doc["cibleHoraire"] = sigH  ? sigH->type()  : 0;
+    doc["cibleAntiHor"] = sigAH ? sigAH->type() : 0;
 
     // -----------------------------------------------------------------------
-    // BOOSTER — seuils + mesures live
+    // BOOSTER — mesures + seuils
     // -----------------------------------------------------------------------
     doc["booster_tension"]      = Booster::tension();
     doc["booster_courant"]      = Booster::courant();
     doc["booster_etat"]         = Booster::etat();
-    doc["booster_present"]      = Booster::present();
     doc["booster_seuil_libre"]  = Booster::seuilLibre();
     doc["booster_seuil_occupe"] = Booster::seuilOccupe();
 

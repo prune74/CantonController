@@ -4,12 +4,15 @@
 /*
  * CC_UartRx.h — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Réception UART RS485 depuis l’EXCC.
+ * Ce module lit les trames envoyées par l’unique EXCC via RS485.
+ *
+ * Format des trames :
+ *   [SYNC=0xAA][OPCODE][DATA...]
  *
  * Rôle :
  *   - lancer la tâche FreeRTOS de réception
- *   - parser les trames EXCC → CC
- *   - dispatcher vers les modules concernés :
+ *   - parser les trames reçues
+ *   - dispatcher les données vers les modules concernés :
  *        • Sensor (ponctuels)
  *        • ConsoCourant (occupation)
  *        • Canton (compteur essieux)
@@ -20,11 +23,6 @@
  *
  * Ce module ne contient aucune logique métier :
  *   → il distribue simplement les messages reçus.
- *
- * NOTE 2026 :
- *   - les trames EXCC contiennent toujours un INDEX_EXCC
- *   - certains modules n’utilisent plus cet index (occupation, railcom, booster…)
- *   - mais il reste indispensable pour EXCC_Link (PING/PONG, supervision)
  */
 
 class CC_UartRx
@@ -43,7 +41,7 @@ private:
 
 public:
     // -----------------------------------------------------------------------
-    // Dispatch : opcode + index EXCC + pointeur data + longueur
+    // Dispatch : opcode + pointeur data + longueur
     // -----------------------------------------------------------------------
-    static void dispatch(uint8_t opcode, uint8_t index, uint8_t *data, uint8_t len);
+    static void dispatch(uint8_t opcode, uint8_t *data, uint8_t len);
 };

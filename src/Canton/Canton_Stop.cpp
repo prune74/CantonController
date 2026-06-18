@@ -1,16 +1,16 @@
 /*
- * Canton_Stop.cpp — Gestion Canton 2026
+ * Canton_Stop.cpp — Gestion du STOP global
  * ---------------------------------------------------------------------------
- * Gestion du STOP global Exploration 2026.
+ * Ce module gère l’activation / désactivation du STOP global.
  *
  * Rôle :
- *   - activer / désactiver le STOP global
- *   - demander à l’EXCC possédant le booster de couper / réactiver la voie
+ *   - activer ou lever le STOP
+ *   - demander à l’unique EXCC de couper ou réactiver le booster
  *
- * IMPORTANT :
+ * Important :
  *   - aucune logique métier ici
  *   - aucune logique d’aiguilles ou de signaux
- *   - ce module ne fait que relayer l’ordre STOP → EXCC
+ *   - ce module relaie simplement l’ordre STOP → EXCC
  */
 
 #include "Canton.h"
@@ -24,10 +24,8 @@
  *  v = true  → STOP activé  → Booster OFF
  *  v = false → STOP levé    → Booster ON
  *
- *  Le booster réel est déterminé par :
- *      EXCC_Link::getBoosterExccIndex()
- *
- *  Si aucun EXCC ne déclare de booster → erreur critique.
+ *  Architecture :
+ *      Il n’existe qu’un seul EXCC → aucun index à gérer.
  * ==========================================================================*/
 void Canton::setStopActive(bool v)
 {
@@ -36,28 +34,14 @@ void Canton::setStopActive(bool v)
 
     m_stopActive = v;
 
-    // Quel EXCC possède réellement le booster ?
-    int8_t exccBooster = EXCC_Link::getBoosterExccIndex();
-
-    if (exccBooster < 0)
-    {
-        CC_LOG_ERROR("[Canton %u][STOP][CC] STOP demandé mais aucun EXCC n’a déclaré de booster !\n",
-                     m_id);
-        return;
-    }
-
     if (m_stopActive)
     {
-        CC_LOG_ERROR("[Canton %u][STOP][CC] STOP ACTIVÉ → Booster EXCC %d OFF\n",
-                     m_id, exccBooster);
-
-        EXCC_Link::envoyerBoosterPower(exccBooster, false);
+        CC_LOG_ERROR("[Canton %u][STOP] STOP ACTIVÉ → Booster OFF\n", m_id);
+        EXCC_Link::envoyerBoosterPower(false);
     }
     else
     {
-        CC_LOG_INFO("[Canton %u][STOP][CC] STOP LEVÉ → Booster EXCC %d ON\n",
-                    m_id, exccBooster);
-
-        EXCC_Link::envoyerBoosterPower(exccBooster, true);
+        CC_LOG_INFO("[Canton %u][STOP] STOP LEVÉ → Booster ON\n", m_id);
+        EXCC_Link::envoyerBoosterPower(true);
     }
 }

@@ -1,24 +1,25 @@
 /*
- * EXCC_Link.cpp — Gestion Canton 2026
+ * EXCC_Link.cpp — Communication RS485 CC ↔ EXCC - Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Couche de communication RS485 entre :
+ * Ce module gère la liaison série RS485 entre :
  *   - le Canton Controller (CC)
- *   - l’Extension Canton Controller (EXCC)
+ *   - l’unique Extension Canton Controller (EXCC)
  *
- * Rôle :
- *   - supervision ONLINE / OFFLINE des EXCC
- *   - envoi périodique des PING (PROTO_PING)
- *   - réception des PONG (PROTO_PONG)
- *   - gestion du booster (tension, courant, état, présence)
- *   - envoi des configurations lors d’un ONLINE :
- *        • topologie
- *        • signaux
- *        • servos
- *        • occupation
- *        • aspects SNCF
- *        • feux directionnels
- *   - envoi des seuils calibrés (F4)
- *   - commande ON/OFF du booster (F5)
+ * Conception :
+ *   → Un CC communique avec un seul EXCC
+ *   → Le booster est intégré à l’EXCC
+ *
+ * Fonctionnalités :
+ *   - supervision ONLINE / OFFLINE de l’EXCC
+ *   - envoi périodique d’un PING
+ *   - réception du PONG
+ *   - réception des informations du booster :
+ *        • tension
+ *        • courant
+ *        • état interne
+ *   - envoi des configurations lors du passage ONLINE
+ *   - envoi des seuils calibrés
+ *   - commande ON/OFF du booster
  */
 
 #include "EXCC_Link.h"
@@ -32,24 +33,22 @@
 // ---------------------------------------------------------------------------
 // Paramètres internes
 // ---------------------------------------------------------------------------
-static constexpr uint8_t  kExccCount        = 2;
-static constexpr uint32_t kPingPeriodMs     = 500;
-static constexpr uint32_t kOfflineTimeoutMs = 2000;
+static constexpr uint32_t kPingPeriodMs     = 500;   // période d’envoi du PING
+static constexpr uint32_t kOfflineTimeoutMs = 2000;  // délai avant OFFLINE
 
 // ---------------------------------------------------------------------------
-// État interne EXCC
+// État interne de l’EXCC
 // ---------------------------------------------------------------------------
 struct ExccState
 {
-    bool online;
-    uint32_t lastPongTime;
+    bool     online;        // EXCC joignable ?
+    uint32_t lastPongTime;  // horodatage du dernier PONG
 };
 
-static ExccState g_excc[kExccCount];
-static int8_t g_exccBoosterIndex = -1;
+static ExccState g_excc;
 
 // ---------------------------------------------------------------------------
-// Initialisation
+// Initialisation du lien RS485
 // ---------------------------------------------------------------------------
 void EXCC_Link::begin()
 {
@@ -57,28 +56,22 @@ void EXCC_Link::begin()
 
     CC_RS485::begin();
 
-    for (uint8_t i = 0; i < kExccCount; ++i)
-    {
-        g_excc[i].online = false;
-        g_excc[i].lastPongTime = 0;
-    }
-
-    g_exccBoosterIndex = -1;
+    g_excc.online       = false;
+    g_excc.lastPongTime = 0;
 }
 
 // ---------------------------------------------------------------------------
-// PING périodique
+// Envoi périodique du PING
 // ---------------------------------------------------------------------------
-static void envoyerPing(uint8_t index)
+static void envoyerPing()
 {
-    uint8_t frame[3] = {
+    uint8_t frame[2] = {
         PROTO_SYNC_BYTE,
-        PROTO_PING,
-        index
+        PROTO_PING
     };
 
     CC_RS485::sendFrame(frame, sizeof(frame));
-    CC_LOG_TRACE("[EXCC][CC] → PING EXCC %u\n", index);
+    CC_LOG_TRACE("[EXCC][CC] → PING\n");
 }
 
 void EXCC_Link::envoyerPingPeriodique()
@@ -90,60 +83,37 @@ void EXCC_Link::envoyerPingPeriodique()
         return;
 
     lastPing = now;
-
-    for (uint8_t i = 0; i < kExccCount; ++i)
-        envoyerPing(i);
+    envoyerPing();
 }
 
 // ---------------------------------------------------------------------------
-// PONG reçu
+// Réception du PONG
 // ---------------------------------------------------------------------------
-void EXCC_Link::onPong(uint8_t index)
+void EXCC_Link::onPong()
 {
-    if (index >= kExccCount)
-    {
-        CC_LOG_WARN("[EXCC][CC] PONG index invalide : %u\n", index);
-        return;
-    }
-
     uint32_t now = millis();
-    g_excc[index].lastPongTime = now;
+    g_excc.lastPongTime = now;
 
-    if (!g_excc[index].online)
+    if (!g_excc.online)
     {
-        g_excc[index].online = true;
-        EXCC_Link::onExccOnline(index);
+        g_excc.online = true;
+        EXCC_Link::onExccOnline();
     }
 
-    CC_LOG_TRACE("[EXCC][CC] PONG EXCC %u\n", index);
+    CC_LOG_TRACE("[EXCC][CC] PONG\n");
 }
 
 // ---------------------------------------------------------------------------
-// BOOSTER (PROTO_07)
+// Réception des informations Booster (PROTO_07)
 // ---------------------------------------------------------------------------
-void EXCC_Link::onBooster(uint8_t index,
-                          uint8_t etat,
+void EXCC_Link::onBooster(uint8_t etat,
                           uint8_t courant,
-                          uint8_t tension,
-                          uint8_t present)
+                          uint8_t tension)
 {
-    if (index >= kExccCount)
-    {
-        CC_LOG_WARN("[EXCC][CC] BOOSTER index invalide : %u\n", index);
-        return;
-    }
+    Booster::onBooster(tension, courant, etat);
 
-    // 🔥 Correction 2026 : suppression de index_excc dans Booster::onBooster()
-    Booster::onBooster(tension, courant, etat, present);
-
-    if (present == 1)
-    {
-        g_exccBoosterIndex = index;
-        CC_LOG_INFO("[EXCC][CC] Booster présent sur EXCC %u\n", index);
-    }
-
-    CC_LOG_TRACE("[EXCC][CC] Booster EXCC %u : etat=%u courant=%u tension=%u present=%u\n",
-                 index, etat, courant, tension, present);
+    CC_LOG_TRACE("[EXCC][CC] Booster : etat=%u  I=%u  U=%u\n",
+                 etat, courant, tension);
 }
 
 // ---------------------------------------------------------------------------
@@ -153,16 +123,13 @@ static void verifierTimeouts()
 {
     uint32_t now = millis();
 
-    for (uint8_t i = 0; i < kExccCount; ++i)
-    {
-        if (!g_excc[i].online)
-            continue;
+    if (!g_excc.online)
+        return;
 
-        if (now - g_excc[i].lastPongTime > kOfflineTimeoutMs)
-        {
-            g_excc[i].online = false;
-            EXCC_Link::onExccOffline(i);
-        }
+    if (now - g_excc.lastPongTime > kOfflineTimeoutMs)
+    {
+        g_excc.online = false;
+        EXCC_Link::onExccOffline();
     }
 }
 
@@ -176,21 +143,18 @@ void EXCC_Link::loop()
 }
 
 // ---------------------------------------------------------------------------
-// ONLINE / OFFLINE
+// Gestion ONLINE / OFFLINE
 // ---------------------------------------------------------------------------
-bool EXCC_Link::isOnline(uint8_t index)
+bool EXCC_Link::isOnline()
 {
-    if (index >= kExccCount)
-        return false;
-
-    return g_excc[index].online;
+    return g_excc.online;
 }
 
-void EXCC_Link::onExccOnline(uint8_t index)
+void EXCC_Link::onExccOnline()
 {
-    CC_LOG_INFO("[EXCC][CC] EXCC %u ONLINE\n", index);
+    CC_LOG_INFO("[EXCC][CC] EXCC ONLINE\n");
 
-    // Envoi des configurations
+    // Envoi des configurations courantes
     envoyerTopologieDepuisSettings();
     envoyerConfigurationSignauxDepuisSettings();
     envoyerConfigurationServosDepuisSettings();
@@ -198,68 +162,55 @@ void EXCC_Link::onExccOnline(uint8_t index)
     envoyerAspectsDepuisEtatCourant();
     envoyerFeuxDepuisEtatCourant();
 
-    // Envoi des seuils calibrés (F4)
+    // Envoi des seuils calibrés
     uint16_t libre  = Settings::boosterSeuilLibre();
     uint16_t occupe = Settings::boosterSeuilOccupe();
 
-    EXCC_Link::envoyerSeuilsBooster(index, libre, occupe);
+    EXCC_Link::envoyerSeuilsBooster(libre, occupe);
 }
 
-void EXCC_Link::onExccOffline(uint8_t index)
+void EXCC_Link::onExccOffline()
 {
-    CC_LOG_WARN("[EXCC][CC] EXCC %u OFFLINE\n", index);
+    CC_LOG_WARN("[EXCC][CC] EXCC OFFLINE\n");
 }
 
 // ---------------------------------------------------------------------------
-// Booster ON/OFF (F5)
+// Commande ON/OFF du booster
 // ---------------------------------------------------------------------------
-void EXCC_Link::envoyerBoosterPower(uint8_t index, bool on)
+void EXCC_Link::envoyerBoosterPower(bool on)
 {
-    if (index >= kExccCount)
-        return;
-
-    uint8_t frame[4] = {
+    uint8_t frame[3] = {
         PROTO_SYNC_BYTE,
         PROTO_F5_BOOSTER_POWER,
-        index,
         uint8_t(on ? 1 : 0)
     };
 
     CC_RS485::sendFrame(frame, sizeof(frame));
 
-    CC_LOG_WARN("[EXCC][CC] → Booster EXCC %u = %s\n",
-                index, on ? "ON" : "OFF");
+    CC_LOG_WARN("[EXCC][CC] → Booster = %s\n", on ? "ON" : "OFF");
 }
 
 // ---------------------------------------------------------------------------
-// F3 — Demande recalibration booster
+// Demande de recalibration
 // ---------------------------------------------------------------------------
-void EXCC_Link::demanderRecalibration(uint8_t index)
+void EXCC_Link::demanderRecalibration()
 {
-    if (index >= kExccCount)
-        return;
-
-    uint8_t frame[3] = {
+    uint8_t frame[2] = {
         PROTO_SYNC_BYTE,
-        PROTO_F3_RECALIBRER_BOOSTER,
-        index
+        PROTO_F3_RECALIBRER_BOOSTER
     };
 
     CC_RS485::sendFrame(frame, sizeof(frame));
 
-    CC_LOG_INFO("[EXCC][CC] → Demande recalibration EXCC %u (F3)\n", index);
+    CC_LOG_INFO("[EXCC][CC] → Demande recalibration\n");
 }
 
 // ---------------------------------------------------------------------------
-// F4 — Envoi seuils calibrés
+// Envoi des seuils calibrés
 // ---------------------------------------------------------------------------
-void EXCC_Link::envoyerSeuilsBooster(uint8_t index,
-                                     uint16_t libre,
+void EXCC_Link::envoyerSeuilsBooster(uint16_t libre,
                                      uint16_t occupe)
 {
-    if (index >= kExccCount)
-        return;
-
     uint8_t frame[6] = {
         PROTO_SYNC_BYTE,
         PROTO_F4_SET_SEUILS,
@@ -271,14 +222,6 @@ void EXCC_Link::envoyerSeuilsBooster(uint8_t index,
 
     CC_RS485::sendFrame(frame, sizeof(frame));
 
-    CC_LOG_INFO("[EXCC][CC] → Seuils EXCC %u : libre=%u occupe=%u (F4)\n",
-                index, libre, occupe);
-}
-
-// ---------------------------------------------------------------------------
-// Booster porteur
-// ---------------------------------------------------------------------------
-int8_t EXCC_Link::getBoosterExccIndex()
-{
-    return g_exccBoosterIndex;
+    CC_LOG_INFO("[EXCC][CC] → Seuils envoyés : libre=%u  occupé=%u\n",
+                libre, occupe);
 }

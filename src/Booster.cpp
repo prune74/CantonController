@@ -1,15 +1,14 @@
 /*
- * Booster.cpp — Gestion Canton 2026
+ * Booster.cpp — Gestion du Booster
  * ---------------------------------------------------------------------------
- * Gestion des informations Booster remontées par l’EXCC :
+ * Ce module stocke les informations remontées par l’EXCC :
  *   - tension
  *   - courant
- *   - état (flags internes)
- *   - présence
+ *   - état interne
  *   - seuils de calibration (libre / occupé)
  *
- * Ce module ne contient aucune logique métier :
- *   → il stocke les valeurs reçues et met à jour Settings.
+ * Il ne contient aucune logique métier :
+ *   → il met simplement à jour les valeurs internes et Settings.
  */
 
 #include "Booster.h"
@@ -22,26 +21,23 @@
 uint8_t  Booster::s_tension      = 0;
 uint8_t  Booster::s_courant      = 0;
 uint8_t  Booster::s_etat         = 0;
-uint8_t  Booster::s_present      = 0;
 
 uint16_t Booster::s_seuilLibre   = 0;
 uint16_t Booster::s_seuilOccupe  = 0;
 
 // ---------------------------------------------------------------------------
-// Mise à jour Booster (tension / courant / état / présence)
+// Mise à jour Booster (tension / courant / état)
 // ---------------------------------------------------------------------------
 void Booster::onBooster(uint8_t tension,
                         uint8_t courant,
-                        uint8_t etat,
-                        uint8_t present)
+                        uint8_t etat)
 {
     s_tension = tension;
     s_courant = courant;
     s_etat    = etat;
-    s_present = present;
 
-    CC_LOG_INFO("[Booster][CC] U=%u  I=%u  etat=%u  present=%u\n",
-                tension, courant, etat, present);
+    CC_LOG_INFO("[Booster][CC] U=%u  I=%u  etat=%u\n",
+                tension, courant, etat);
 }
 
 // ---------------------------------------------------------------------------
@@ -61,11 +57,11 @@ void Booster::onCalib(uint8_t libre_L,
     CC_LOG_INFO("[Booster][CC] Calib → libre=%u  occupé=%u\n",
                 libre, occupe);
 
-    // Mise à jour interne Settings
+    // Mise à jour Settings
     Settings::setBoosterSeuilLibre(libre);
     Settings::setBoosterSeuilOccupe(occupe);
 
-    // Sauvegarde JSON 2026
+    // Sauvegarde JSON
     Settings::writeFile(Settings::canton);
 }
 

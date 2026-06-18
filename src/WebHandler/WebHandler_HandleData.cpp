@@ -1,5 +1,5 @@
 /*
- * WebHandler_HandleData.cpp — Gestion Canton 2026
+ * WebHandler_HandleData.cpp — Gestion WebSocket CC
  * ---------------------------------------------------------------------------
  * Analyse et dispatch des messages WebSocket reçus par le CC.
  *
@@ -124,10 +124,10 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
             Settings::setBoosterSeuilLibre(libre);
             Settings::setBoosterSeuilOccupe(occupe);
 
-            // Sauvegarde JSON 2026
+            // Sauvegarde JSON
             Settings::writeFile(canton);
 
-            // Mise à jour Booster interne
+            // Mise à jour interne
             Booster::setSeuils(libre, occupe);
 
             CC_LOG_INFO("[WebHandler][CC] Booster seuils mis à jour : libre=%u occupe=%u\n",
@@ -143,17 +143,8 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
     // -----------------------------------------------------------------------
     if (doc.containsKey("cmd") && strcmp(doc["cmd"], "calibBooster") == 0)
     {
-        int8_t idx = EXCC_Link::getBoosterExccIndex();
-
-        if (idx >= 0)
-        {
-            EXCC_Link::demanderRecalibration(idx);
-        }
-        else
-        {
-            CC_LOG_WARN("[WebHandler][CC] Calibration demandée mais aucun EXCC booster détecté\n");
-        }
-
+        // Plus d’index → un seul EXCC
+        EXCC_Link::demanderRecalibration();
         return;
     }
 

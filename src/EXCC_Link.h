@@ -2,21 +2,25 @@
 #include <stdint.h>
 
 /*
- * EXCC_Link.h — Gestion Canton 2026
+ * EXCC_Link.h — Communication RS485 CC ↔ EXCC
  * ---------------------------------------------------------------------------
- * Interface publique de la couche de communication RS485 entre :
+ * Interface publique de la liaison série entre :
  *   - le Canton Controller (CC)
- *   - l’Extension Canton Controller (EXCC)
+ *   - l’unique Extension Canton Controller (EXCC)
+ *
+ * Conception :
+ *   → Un CC communique avec un seul EXCC
+ *   → Le booster est intégré à l’EXCC
  *
  * Rôle :
- *   - supervision ONLINE / OFFLINE des EXCC
+ *   - supervision ONLINE / OFFLINE de l’EXCC
  *   - gestion du protocole UART (PING / PONG)
- *   - gestion du booster (état, tension, courant, présence)
+ *   - réception des informations du booster (état, tension, courant)
  *   - envoi des configurations (topologie, signaux, servos…)
- *   - envoi des seuils calibrés (F4)
- *   - commande ON/OFF du booster (F5)
+ *   - envoi des seuils calibrés
+ *   - commande ON/OFF du booster
  *
- * Ce module ne contient aucune logique ferroviaire :
+ * Ce module ne contient aucune logique métier :
  *   → il transporte uniquement les données CC ↔ EXCC.
  */
 
@@ -32,31 +36,25 @@ public:
     // -----------------------------------------------------------------------
     // Supervision EXCC
     // -----------------------------------------------------------------------
-    static bool isOnline(uint8_t index);
-    static void onPong(uint8_t index);
-    static void onExccOnline(uint8_t index);
-    static void onExccOffline(uint8_t index);
+    static bool isOnline();
+    static void onPong();
+    static void onExccOnline();
+    static void onExccOffline();
 
     // -----------------------------------------------------------------------
     // Booster (PROTO_07)
     // -----------------------------------------------------------------------
-    static void onBooster(uint8_t index,
-                          uint8_t etat,
+    static void onBooster(uint8_t etat,
                           uint8_t courant,
-                          uint8_t tension,
-                          uint8_t present);
-
-    // Retourne l’index EXCC qui porte le booster (ou -1 si aucun)
-    static int8_t getBoosterExccIndex();
+                          uint8_t tension);
 
     // -----------------------------------------------------------------------
     // Commandes CC → EXCC
     // -----------------------------------------------------------------------
-    static void envoyerBoosterPower(uint8_t index, bool on); // F5
-    static void demanderRecalibration(uint8_t index);        // F3
-    static void envoyerSeuilsBooster(uint8_t index,
-                                     uint16_t libre,
-                                     uint16_t occupe);       // F4
+    static void envoyerBoosterPower(bool on);     // F5
+    static void demanderRecalibration();          // F3
+    static void envoyerSeuilsBooster(uint16_t libre,
+                                     uint16_t occupe); // F4
 
 private:
     // -----------------------------------------------------------------------

@@ -85,7 +85,6 @@ void WebHandler::loop()
     doc["booster_tension"]      = Booster::tension();
     doc["booster_courant"]      = Booster::courant();
     doc["booster_etat"]         = Booster::etat();
-    doc["booster_present"]      = Booster::present();
     doc["booster_seuil_libre"]  = Booster::seuilLibre();
     doc["booster_seuil_occupe"] = Booster::seuilOccupe();
 
