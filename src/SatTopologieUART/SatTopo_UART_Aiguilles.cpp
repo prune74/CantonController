@@ -15,7 +15,6 @@
 #include "debug_cc.h"
 
 #include "Settings.h"
-#include "Aig.h"
 #include "Canton.h"
 
 extern HardwareSerial Serial1;
@@ -42,7 +41,7 @@ void envoyerAiguillesDepuisEtatCourant()
         // -------------------------------------------------------------------
         // F0 = mouvement réel
         // -------------------------------------------------------------------
-        aigRun(idx);
+        Settings::canton->aigRun(idx);
 
         CC_LOG_INFO("[TopoUART][CC] F0 → servo=%u direction=%u (estDroit=%u)\n",
                     idx, direction, aig->estDroit());

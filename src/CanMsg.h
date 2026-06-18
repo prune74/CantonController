@@ -42,6 +42,7 @@
 #include "Canton.h"
 #include "Settings.h"
 #include "Exploration.h"
+#include "Aig.h"
 
 /*
  * ============================================================================
