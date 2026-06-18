@@ -41,11 +41,6 @@
   "SP2_acces": true,
   "SM2_acces": true,
 
-  // Masques d’aiguilles
-  "masqueAig": 0,
-  "masqueAigSP2": 0,
-  "masqueAigSM2": 0,
-
   // Nombre d’aiguilles
   "comptAig": 0,
 

@@ -1,14 +1,17 @@
 /*
  * Exploration.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Cœur de la découverte autonome du canton :
- *   - détection des voisins via MCP23017
- *   - création logique des aiguilles
- *   - envoi de la topologie vers l’Extension Canton Controller (EXCC)
+ * Rôle :
+ *   - détecter les voisins via MCP23017
+ *   - créer les aiguilles logiques (Aig)
+ *   - construire la topologie locale SP1 / SM1 / SP2 / SM2
+ *   - envoyer la topologie vers l’Extension Canton Controller (EXCC)
  *
  * IMPORTANT 2026 :
- *   - aucun type de signal n’est imposé automatiquement
- *   - la logique métier dépend désormais uniquement de la topologie
+ *   - aucun signal n’est imposé ici
+ *   - aucun masque d’aiguilles n’est géré ici
+ *   - la logique métier (aspects, mâts, sécurité) est ailleurs
+ *   - Exploration ne fait QUE la topologie locale
  */
 
 #include "Exploration.h"
@@ -42,8 +45,7 @@ void Exploration::stopProcess(bool v) { m_stopProcess = v; }
 // ---------------------------------------------------------------------------
 static void runExplorationPass(Canton *canton)
 {
-    // Masque aiguilles remis à zéro
-    canton->masqueAig(0x00);
+    // Remise à zéro du compteur d’aiguilles
     Exploration::comptAig(0);
 
     // --------------------------------------------------------
@@ -62,10 +64,11 @@ static void runExplorationPass(Canton *canton)
         a->cantonPdroitIdx(nodP0);
         a->cantonPdevieIdx(nodP1);
 
-        canton->masqueAig(canton->masqueAig() | (1 << index));
+        // On ne gère plus de masque d’aiguilles ici (2026)
         Exploration::comptAig(Exploration::comptAig() + 1);
     };
 
+    // Conditions de création des aiguilles (héritées de Discovery)
     const byte aigConditions[aigSize][2] = {
         {p00, p01}, {p00, p10}, {p01, p11},
         {m00, m01}, {m00, m10}, {m01, m11}
@@ -91,20 +94,16 @@ void Exploration::begin(Canton *nd)
 {
     canton = nd;
 
-    // --------------------------------------------------------
     // Boutons via MCP23017
-    // --------------------------------------------------------
     canton->mcp.pinMode(MCP_PIN_BTN_SAT_MOINS, INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_BTN_SAT_PLUS,  INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_INTER_DEV_2,   INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_INTER_DEV_1,   INPUT_PULLUP);
 
-    // --------------------------------------------------------
-    // LED Exploration via MCP23017
-    // --------------------------------------------------------
+    // LED Exploration
     canton->mcp.pinMode(MCP_PIN_LED_EXPLORATION, OUTPUT);
 
-    // Stacks augmentés pour éviter les stack overflows
+    // Tâches FreeRTOS
     xTaskCreatePinnedToCore(process,
                             "Process",
                             8192,
@@ -174,9 +173,7 @@ void Exploration::process(void *p)
 
     for (;;)
     {
-        // ----------------------------------------------------
         // Lecture boutons via MCP23017
-        // ----------------------------------------------------
         bool satMoins = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_MOINS);
         bool satPlus  = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_PLUS);
         bool dev2     = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_2);
@@ -208,7 +205,7 @@ void Exploration::process(void *p)
                     np->ID(UNUSED_ID);
                     np->busy(false);
                     np->reserved(0);
-                    np->masqueAig(0);
+                    np->masqueAig(0); // masque côté CantonPeriph : OK
                 }
             }
 
@@ -230,7 +227,7 @@ void Exploration::process(void *p)
                 Signal *s = canton->getSignal(i);
                 if (s)
                 {
-                    s->type(0);        // Aucun signal par défaut
+                    s->type(0);
                     s->position(i);
                     s->setup();
                 }

@@ -1,20 +1,16 @@
 /*
  * CC_CanMsg_Exploration.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Commandes CAN Exploration (0xC0–0xC1)
+ * Commandes CAN du mode Exploration (0xC0–0xC1)
  *
  * Rôle :
- *   - utilisées UNIQUEMENT pendant le mode Exploration
- *   - permettent :
- *       0xC0 → identification du CC voisin
- *       0xC1 → réception du masque d’aiguilles d’un voisin
+ *   - 0xC0 : réception de l’ID d’un CC voisin détecté via CAN
+ *   - 0xC1 : mise à jour du masque d’aiguilles d’un voisin
  *
- * IMPORTANT :
- *   - aucune logique métier
- *   - aucune logique ferroviaire
- *   - aucune logique d’accès ou de sécurité
- *
- * Ce module ne fait que décoder les trames CAN du mode Exploration.
+ * IMPORTANT 2026 :
+ *   - le masque est stocké uniquement dans CantonPeriph
+ *   - aucun masque n’est maintenu dans la classe Canton
+ *   - aucune logique métier ici : simple relais d’informations
  */
 
 #include "CanMsg.h"
@@ -30,17 +26,20 @@ void handleExplorationCommand(uint8_t commande, const CANMessage &frameIn,
     {
         /* --------------------------------------------------------------------
          * 0xC0 — Réception de l’ID du CC voisin
-         * --------------------------------------------------------------------
-         * idSatExpediteur = ID du CC détecté via CAN
          * ------------------------------------------------------------------ */
         case 0xC0:
             Exploration::ID_satPeriph(idSatExpediteur);
             break;
 
         /* --------------------------------------------------------------------
-         * 0xC1 — Masque aiguilles pendant Exploration
+         * 0xC1 — Réception du masque d’aiguilles d’un voisin
          * --------------------------------------------------------------------
-         * frameIn.data[0] = masque d’aiguilles envoyé par le voisin
+         * frameIn.data[0] = masque d’aiguilles du CC voisin
+         *
+         * NOTE 2026 :
+         *   - ce masque est stocké dans CantonPeriph
+         *   - il sert à détecter un voisin dangereux
+         *   - il n’est JAMAIS stocké dans Canton
          * ------------------------------------------------------------------ */
         case 0xC1:
         {

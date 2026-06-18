@@ -5,17 +5,14 @@
  *
  *   - indices SP1 / SM1 (voisins principaux)
  *   - états SP2 / SM2 (voies secondaires)
- *   - masques d’aiguilles bloquantes
  *   - accès aux CantonPeriph
  *   - helpers topologiques
- *   - déduction automatique du rôle SNCF (computeRole)
  *
- * IMPORTANT :
+ * IMPORTANT 2026 :
+ *   - aucun masque d’aiguilles n’est maintenu dans Canton
+ *   - les seuls masques valides sont dans CantonPeriph (voisins)
  *   - aucune logique métier ici
- *   - aucune logique d’aiguilles physiques
  *   - aucune logique de signaux
- *
- * Ce module décrit UNIQUEMENT la topologie locale du canton.
  */
 
 #include "Canton.h"
@@ -90,45 +87,6 @@ void Canton::SM2_busy(bool v)
 bool Canton::SM2_busy()
 {
     return m_SM2_busy;
-}
-
-/* ============================================================================
- *  Masques d’aiguilles bloquantes — SP1 / SM1 (principal)
- * ==========================================================================*/
-void Canton::masqueAig(byte v)
-{
-    m_masqueAig = v;
-    CC_LOG_TRACE("[Canton %u][Topo][CC] masqueAig = 0x%02X\n", m_id, m_masqueAig);
-}
-
-byte Canton::masqueAig()
-{
-    return m_masqueAig;
-}
-
-/* ============================================================================
- *  Masques d’aiguilles bloquantes — SP2 / SM2 (secondaire)
- * ==========================================================================*/
-void Canton::masqueAigSP2(byte v)
-{
-    m_masqueAigSP2 = v;
-    CC_LOG_TRACE("[Canton %u][Topo][CC] masqueAigSP2 = 0x%02X\n", m_id, m_masqueAigSP2);
-}
-
-byte Canton::masqueAigSP2()
-{
-    return m_masqueAigSP2;
-}
-
-void Canton::masqueAigSM2(byte v)
-{
-    m_masqueAigSM2 = v;
-    CC_LOG_TRACE("[Canton %u][Topo][CC] masqueAigSM2 = 0x%02X\n", m_id, m_masqueAigSM2);
-}
-
-byte Canton::masqueAigSM2()
-{
-    return m_masqueAigSM2;
 }
 
 /* ============================================================================

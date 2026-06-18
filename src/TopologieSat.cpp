@@ -4,11 +4,15 @@
  * Mise à jour de la topologie des satellites voisins pour le
  * Canton Controller (CC).
  *
- * Le CC détermine, en fonction des aiguilles locales, quels
- * satellites sont connectés côté horaire (SP1) et côté
- * anti‑horaire (SM1). Ces informations sont ensuite utilisées
- * par l’Extension Canton Controller (EXCC) pour router les
- * commandes et états.
+ * Rôle :
+ *   - déterminer SP1 et SM1 en fonction des aiguilles locales
+ *   - utiliser uniquement les objets Aig (0–5)
+ *   - fournir une topologie cohérente à l’EXCC
+ *
+ * IMPORTANT 2026 :
+ *   - aucun masque d’aiguilles n’est utilisé ici
+ *   - la topologie dépend EXCLUSIVEMENT des aiguilles locales
+ *   - SP2 / SM2 sont gérés ailleurs (accès secondaires)
  */
 
 #include "TopologieSat.h"
@@ -75,12 +79,11 @@ void mettreAJourTopologie(Canton *canton)
         }
 
         CC_LOG_TRACE(
-            "[Topo][CC] rechercheSat(%s) → idxA=%u idxS=%u → idx=%u (masqueAig=0x%02X)\n",
+            "[Topo][CC] rechercheSat(%s) → idxA=%u idxS=%u → idx=%u\n",
             satPos ? "Horaire" : "AntiHoraire",
             idxA,
             idxS,
-            idx,
-            canton->masqueAig());
+            idx);
 
         return idx;
     };
@@ -95,9 +98,8 @@ void mettreAJourTopologie(Canton *canton)
     canton->SM1_idx(sm1);
 
     CC_LOG_INFO(
-        "[Topo][CC][Canton %d] Topologie mise à jour : SP1_idx=%d  SM1_idx=%d  (masqueAig=0x%02X)\n",
+        "[Topo][CC][Canton %d] Topologie mise à jour : SP1_idx=%d  SM1_idx=%d\n",
         canton->ID(),
         sp1,
-        sm1,
-        canton->masqueAig());
+        sm1);
 }

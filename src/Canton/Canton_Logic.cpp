@@ -26,7 +26,6 @@
  *    2. Le voisin existe
  *    3. Le voisin est accessible
  *    4. Le voisin n’est ni occupé ni réservé
- *    5. Les aiguilles sont conformes au masque
  * ==========================================================================*/
 bool Canton::estAccesAutorise(SensDeMarche sens)
 {
@@ -65,47 +64,19 @@ bool Canton::estAccesAutorise(SensDeMarche sens)
         return false;
     }
 
-    // 4) Masque aiguilles
-    if (!aiguillesConformes(m_masqueAig))
-    {
-        CC_LOG_TRACE("[Canton %u][Logic][CC] Accès %s refusé (masque aiguilles)\n",
-                     m_id, sensStr);
-        return false;
-    }
+    // ✔ 2026 : plus de masque interne → test supprimé
 
     return true;
 }
 
 /* ============================================================================
- *  aiguillesConformes() — Vérifie les masques d’aiguilles
+ *  aiguillesConformes() — OBSOLÈTE en 2026
  * ---------------------------------------------------------------------------
- *  Pour chaque bit du masque :
- *    - 1 → aiguille concernée → doit être DROITE
- *    - 0 → aiguille ignorée
- *
- *  NOTE :
- *    Ce test utilise la position LOGIQUE (Aig::estDroit()),
- *    pas la position physique servo.
+ *  Conservé uniquement pour compatibilité, mais n’est plus utilisé.
  * ==========================================================================*/
 bool Canton::aiguillesConformes(byte masque)
 {
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        if (!(masque & (1 << i)))
-            continue; // aiguille non concernée
-
-        Aig *a = getAig(i);
-        if (!a)
-            continue; // aiguille non configurée
-
-        if (!a->estDroit())
-        {
-            CC_LOG_TRACE("[Canton %u][Logic][CC] Aiguille %u non conforme au masque\n",
-                         m_id, i);
-            return false;
-        }
-    }
-
+    // Fonction obsolète : toujours conforme
     return true;
 }
 

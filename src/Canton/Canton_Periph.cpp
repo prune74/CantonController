@@ -11,13 +11,14 @@
  *   - autorisation d’accès (acces)
  *   - réservation (reserved)
  *   - adresse RailCom de la loco présente (locoAddr)
- *   - masque d’aiguilles bloquantes (masqueAig)
+ *   - masque d’aiguilles dangereuses (masqueAig)
  *   - aspects reçus depuis EXCC (aspectRecu[H/AH])
  *
- * IMPORTANT :
- *   - aucune logique métier ici
- *   - aucune décision ferroviaire
- *   - uniquement un conteneur d’état pour la topologie
+ * IMPORTANT 2026 :
+ *   - ce masque est le SEUL masque d’aiguilles utilisé dans le système
+ *   - il provient du message CAN 0xC1 pendant l’Exploration
+ *   - il est utilisé par la logique métier (danger, ralentissement, carré)
+ *   - aucune logique métier n’est implémentée ici : c’est un conteneur d’état
  */
 
 #include "Canton.h"
@@ -29,8 +30,6 @@ uint8_t CantonPeriph::comptInst = 0;
 
 /* ============================================================================
  *  Constructeur
- * ---------------------------------------------------------------------------
- *  Initialise toutes les valeurs internes à un état neutre.
  * ==========================================================================*/
 CantonPeriph::CantonPeriph()
     : m_id(NODE_UNUSED_ID),

@@ -13,8 +13,10 @@
  *    - voisins cantonP[]
  *    - signaux
  *
- *  Ce diagnostic n’effectue AUCUNE logique métier.
- *  Il affiche uniquement l’état interne du canton.
+ *  IMPORTANT 2026 :
+ *    - aucun masque d’aiguilles n’est affiché ici
+ *    - SP2 / SM2 ne possèdent plus de masque
+ *    - ce diagnostic n’effectue AUCUNE logique métier
  * ============================================================================
  */
 void Canton::debugTopologieEtAiguilles()
@@ -30,13 +32,13 @@ void Canton::debugTopologieEtAiguilles()
     CC_LOG_INFO("SM1_idx = %u\n", m_SM1_idx);
 
     /* ------------------------------------------------------------------------
-     *  États SP2 / SM2
+     *  États SP2 / SM2 (accès secondaires)
      * ------------------------------------------------------------------------ */
-    CC_LOG_INFO("SP2 : acces=%d busy=%d masqueAig=0x%02X\n",
-                m_SP2_acces, m_SP2_busy, m_masqueAigSP2);
+    CC_LOG_INFO("SP2 : acces=%d busy=%d\n",
+                m_SP2_acces, m_SP2_busy);
 
-    CC_LOG_INFO("SM2 : acces=%d busy=%d masqueAig=0x%02X\n",
-                m_SM2_acces, m_SM2_busy, m_masqueAigSM2);
+    CC_LOG_INFO("SM2 : acces=%d busy=%d\n",
+                m_SM2_acces, m_SM2_busy);
 
     /* ------------------------------------------------------------------------
      *  Aiguilles

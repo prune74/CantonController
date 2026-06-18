@@ -99,16 +99,6 @@ public:
     bool SM2_busy();
 
     // -----------------------------------------------------------------------
-    // Masques d’aiguilles
-    // -----------------------------------------------------------------------
-    void masqueAig(uint8_t v);
-    uint8_t masqueAig();
-    void masqueAigSP2(uint8_t v);
-    uint8_t masqueAigSP2();
-    void masqueAigSM2(uint8_t v);
-    uint8_t masqueAigSM2();
-
-    // -----------------------------------------------------------------------
     // Voisins directs
     // -----------------------------------------------------------------------
     CantonPeriph *voisinSP1();
@@ -265,8 +255,6 @@ private:
     bool m_busy;
     uint16_t m_reserved;
 
-    uint8_t m_masqueAig;
-
     uint8_t m_SP1_idx;
     uint8_t m_SM1_idx;
 
@@ -275,9 +263,6 @@ private:
 
     bool m_SM2_acces;
     bool m_SM2_busy;
-
-    uint8_t m_masqueAigSP2;
-    uint8_t m_masqueAigSM2;
 
     uint8_t m_maxSpeed;
     SensDeMarche m_sensMarche;
