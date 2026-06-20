@@ -26,7 +26,7 @@
  *  Niveaux de logs
  * ============================================================================
  */
-#define CC_DEBUG 2   // 0 = aucun log, 1 = INFO/WARN/ERROR, 2 = + TRACE
+#define CC_DEBUG 0   // 0 = aucun log, 1 = INFO/WARN/ERROR, 2 = + TRACE
 
 /* ============================================================================
  *  MÉTADONNÉES PROJET
@@ -114,7 +114,6 @@ static constexpr uint8_t IDX_CAPT_HORAIRE     = 1;
 #define UART_RX_CANTON GPIO_NUM_26
 #define UART_BAUDRATE  9600UL
 #define UART_PORT_NUM  1
-#define UART_SYNC_BYTE PROTO_SYNC_BYTE
 
 /* ============================================================================
  *  RS485 — Direction du transceiver
@@ -123,27 +122,7 @@ static constexpr uint8_t IDX_CAPT_HORAIRE     = 1;
 #define RS485_DE_RE GPIO_NUM_27
 
 /* ============================================================================
- *  ALIAS LOCAUX → PROTOCOLE COMMUN CC ↔ EXCC
- * ============================================================================
- */
-#define UART_TRAME_TOPOLOGIE_CAN        PROTO_E4_TOPOLOGIE_CAN
-#define UART_TRAME_CONFIG_SIGNAUX       PROTO_E5_CONFIG_SIGNAUX
-#define UART_TRAME_ASPECT_HORAIRE       PROTO_E6_ASPECT_HORAIRE
-#define UART_TRAME_ASPECT_ANTIHORAIRE   PROTO_E7_ASPECT_ANTIHORAIRE
-#define UART_TRAME_DIRECTION_HORAIRE    PROTO_E8_DIRECTION_HORAIRE
-#define UART_TRAME_DIRECTION_ANTIHORAIRE PROTO_E9_DIRECTION_ANTIHORAIRE
-#define UART_TRAME_TYPE_OCCUPATION_VOISINS PROTO_EA_OCCUPATION_VOISINS
-
-#define UART_TRAME_SERVO_MOVE   PROTO_F0_SERVO_MOVE
-#define UART_TRAME_SERVO_CONFIG PROTO_F1_SERVO_CONFIG
-#define UART_TRAME_SERVO_TEST   PROTO_F2_SERVO_TEST
-
-/* ============================================================================
- *  DÉCOUVERTE (Exploration) — MCP23017
- * ============================================================================
- *  IMPORTANT :
- *  On garde EXACTEMENT les mêmes noms qu’avant,
- *  mais ils pointent maintenant vers des pins MCP23017.
+ *  MCP23017
  * ============================================================================
  */
 
