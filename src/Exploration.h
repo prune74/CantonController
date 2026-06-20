@@ -9,13 +9,23 @@
  *   - créer les aiguilles LOGIQUES (Aig) en fonction des voisins détectés
  *   - sauvegarder settings.json
  *   - envoyer la topologie vers l’Extension Canton Controller (EXCC)
+ *   - sauvegarder settings.json
  *
  * Notes 2026 :
  *   - le CC ne pilote plus aucun servo
  *   - les aiguilles sont 100 % logiques
  *   - EXCC pilote physiquement les servos via PCA9685
  *   - Exploration ne manipule plus aucune GPIO ESP32
- *   - boutons + LED Exploration → MCP23017
+ *   - boutons + LED Exploration + LED Manoeuvre → MCP23017
+ *
+ * LEDS 2026 :
+ *   - LED Exploration :
+ *       → utilisée uniquement pendant la phase de découverte
+ *       → éteinte en exploitation
+ *
+ *   - LED MANOEUVRE :
+ *       → reflète l’état du mode manœuvre UNIQUEMENT en exploration
+ *       → toujours éteinte en exploitation (même si le mode est ON)
  *
  * Ce module ne contient aucune logique ferroviaire :
  *   → il orchestre simplement la phase d’exploration.
@@ -36,6 +46,8 @@ class Exploration
 private:
     // -----------------------------------------------------------------------
     // LED Exploration (via MCP23017)
+    //   - clignote / s’allume pendant la découverte
+    //   - éteinte en exploitation
     // -----------------------------------------------------------------------
     static const uint8_t m_pinLed = MCP_PIN_LED_EXPLORATION;
 
@@ -65,6 +77,9 @@ private:
 
     // -----------------------------------------------------------------------
     // Indique que l’exploration doit s’arrêter (topologie finalisée)
+    //   → passage en mode exploitation
+    //   → LED Exploration OFF
+    //   → LED MANOEUVRE OFF
     // -----------------------------------------------------------------------
     static bool m_stopProcess;
 
@@ -78,6 +93,8 @@ public:
 
     // -----------------------------------------------------------------------
     // process() — gestion des boutons + reset logique + notifications CAN
+    //   - LED Exploration = activité découverte
+    //   - LED MANOEUVRE = état du mode manœuvre (exploration uniquement)
     // -----------------------------------------------------------------------
     static void process(void *);
 
@@ -100,6 +117,8 @@ public:
 
     // -----------------------------------------------------------------------
     // stopProcess() — fin de l’exploration (topologie envoyée)
+    //   - LED Exploration OFF
+    //   - LED MANOEUVRE OFF
     // -----------------------------------------------------------------------
     static void stopProcess(bool);
 };

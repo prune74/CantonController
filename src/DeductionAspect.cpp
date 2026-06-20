@@ -31,6 +31,10 @@ ExccAspect deduireAspectDepuisAval(ExccAspect aval, bool voieDevie)
     case ASPECT_CARRE:
         return ASPECT_CARRE;
 
+    // 🟣 Carré Violet → carré Violet
+    case ASPECT_CARRE_VIOLET:
+        return ASPECT_CARRE_VIOLET;
+
     // 🔴 Sémaphore → avertissement
     case ASPECT_SEMAPHORE:
         return ASPECT_AVERTISSEMENT;

@@ -77,7 +77,8 @@ void executerPilotageDistribue(Canton *canton)
     switch (aspectCommande)
     {
     case ASPECT_CARRE:
-        CC_LOG_INFO("[PilotageDistribue][CC] Carré → arrêt\n");
+    case ASPECT_CARRE_VIOLET:
+        CC_LOG_INFO("[PilotageDistribue][CC] Carré (rouge/violet) → arrêt\n");
         loco->speed(0);
         break;
 

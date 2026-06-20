@@ -8,6 +8,9 @@
   // WiFi activé ou non
   "wifi_on": true,
 
+  // Voie de Service (Mode Manoeuvre)
+  "mode_manoeuvre": false,
+
   // Identifiants WiFi
   "ssid": "Bbox-E51CC95D",
   "password": "53DA477752646293F62EEEDD9F21D2",

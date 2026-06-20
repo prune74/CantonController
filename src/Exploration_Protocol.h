@@ -31,6 +31,7 @@
 enum ExccAspect : uint8_t
 {
     ASPECT_CARRE = 0,         // 🔴 Arrêt absolu
+    ASPECT_CARRE_VIOLET,      // 🟣 Carré violet - Arrêt absolu
     ASPECT_SEMAPHORE,         // 🔴 Arrêt
     ASPECT_AVERTISSEMENT,     // 🟡 Ralentir
     ASPECT_RALENTISSEMENT_30, // 🟡⚠️ 30 km/h
@@ -40,7 +41,6 @@ enum ExccAspect : uint8_t
     ASPECT_VOIE_LIBRE,        // 🟢 Voie libre
     ASPECT_MANOEUVRE,         // 🔵 Manoeuvre
     ASPECT_MASQUE,            // ⚫ Masqué
-    ASPECT_DEFAUT             // ⚠️ Défaut
 };
 
 /* ============================================================================

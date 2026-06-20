@@ -153,5 +153,11 @@ static constexpr uint8_t IDX_CAPT_HORAIRE     = 1;
 #define MCP_PIN_INTER_DEV_2   2  // GPA2
 #define MCP_PIN_INTER_DEV_1   3  // GPA3
 
+// Mode Manoeuvre
+#define MCP_PIN_BTN_MANOEUVRE   4  // GPA4
+
 // LED Exploration
-#define MCP_PIN_LED_EXPLORATION 4 // GPA4
+#define MCP_PIN_LED_EXPLORATION 5 // GPA5
+
+// LED Manoeuvre
+#define MCP_PIN_LED_MANOEUVRE 6 // GPA6

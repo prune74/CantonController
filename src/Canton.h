@@ -13,19 +13,34 @@
 #include "Loco.h"
 
 /*
- * Canton.h — Gestion Canton 2026
+ * Canton.h — Architecture Canton 2026
  * ---------------------------------------------------------------------------
- * Représente un canton complet :
- *   - topologie SP1 / SM1 / SP2 / SM2
- *   - aiguilles logiques
- *   - signaux H / AH
- *   - capteurs ponctuels
- *   - occupation physique + essieux
- *   - feux directionnels
+ * Représente l’état complet d’un canton ferroviaire :
+ *
+ *   - Topologie locale : SP1 / SM1 / SP2 / SM2
+ *   - Aiguilles logiques (Aig) associées
+ *   - Signaux H / AH (objets Signal)
+ *   - Capteurs ponctuels (2 par canton)
+ *   - Occupation physique + compteur d’essieux
+ *   - Feux directionnels (Exploration 2026)
  *   - STOP global
+ *   - Mode MANOEUVRE (voie de service)
+ *
+ * Le canton est l’unité centrale de la logique ferroviaire :
+ *   → Le CC calcule les aspects BAL
+ *   → AspectSignal applique les règles locales (dont MANOEUVRE)
+ *   → EXCC affiche uniquement les couleurs
  *
  * IMPORTANT 2026 :
- *   - Toute la logique métier dépend désormais uniquement de la topologie.
+ *   - Toute la logique métier dépend uniquement de la topologie.
+ *   - Le mode MANOEUVRE est un état interne du canton.
+ *   - Le mode MANOEUVRE n’est PAS un aspect BAL.
+ *   - Le mode MANOEUVRE influence uniquement la logique locale
+ *     (ex : BLANC, VIOLET, accès restreint, etc.)
+ *
+ * LED MANOEUVRE (via Exploration) :
+ *   - reflète l’état du mode manœuvre uniquement en exploration
+ *   - toujours éteinte en exploitation
  */
 
 // ---------------------------------------------------------------------------
@@ -59,13 +74,14 @@ public:
     static Canton *s_instance;
 
     // -----------------------------------------------------------------------
-    // MCP23017
+    // MCP23017 — Entrées/sorties locales
+    //   (boutons, LED Exploration, LED Manoeuvre)
     // -----------------------------------------------------------------------
     Adafruit_MCP23X17 mcp;
     void initMCP();
 
     // -----------------------------------------------------------------------
-    // Identité
+    // Identité du canton
     // -----------------------------------------------------------------------
     void ID(uint16_t id);
     uint16_t ID();
@@ -73,11 +89,11 @@ public:
     // -----------------------------------------------------------------------
     // Occupation / Réservation
     // -----------------------------------------------------------------------
-    void busy(bool v);
+    void busy(bool v);              // Occupation physique
     bool busy();
-    void reserved(uint16_t addr);
+    void reserved(uint16_t addr);   // Réservation RailCom
     uint16_t reserved();
-    bool estOccupe();
+    bool estOccupe();               // Occupé ou réservé
 
     // -----------------------------------------------------------------------
     // Topologie SP1 / SM1 / SP2 / SM2
@@ -119,8 +135,8 @@ public:
     // -----------------------------------------------------------------------
     // Signaux (H / AH)
     // -----------------------------------------------------------------------
-    uint8_t transitionH();
-    uint8_t transitionAH();
+    uint8_t transitionH();                     // Aspect BAL côté H
+    uint8_t transitionAH();                    // Aspect BAL côté AH
     uint8_t transitionAspect(SensDeMarche sens);
 
     // -----------------------------------------------------------------------
@@ -133,7 +149,7 @@ public:
     void resetOverrideCapteurs();
 
     // -----------------------------------------------------------------------
-    // Logique métier ferroviaire
+    // Logique ferroviaire interne
     // -----------------------------------------------------------------------
     bool estAccesAutorise(SensDeMarche sens);
     CantonPeriph *prochainVoisin(SensDeMarche sens);
@@ -141,7 +157,7 @@ public:
     bool estSortiePossible(SensDeMarche sens);
 
     // -----------------------------------------------------------------------
-    // Signaux 2026 — Déduction du type de mât
+    // Déduction du type de mât SNCF (3/4/7/9 feux)
     // -----------------------------------------------------------------------
     uint8_t deduireTypeSignal(SensDeMarche sens) const;
 
@@ -166,7 +182,7 @@ public:
     SensDeMarche sensMarche();
 
     // -----------------------------------------------------------------------
-    // Feux directionnels
+    // Feux directionnels (Exploration 2026)
     // -----------------------------------------------------------------------
     void setFeuDirection(SensDeMarche sens, uint8_t valeur);
     uint8_t getFeuDirection(SensDeMarche sens) const;
@@ -174,6 +190,15 @@ public:
 
     DirectionConfig &directionH() { return direction.H; }
     DirectionConfig &directionAH() { return direction.AH; }
+
+    // -----------------------------------------------------------------------
+    // Mode MANOEUVRE (voie de service)
+    //   - état interne du canton
+    //   - utilisé par AspectSignal
+    //   - LED MANOEUVRE gérée par Exploration (exploration uniquement)
+    // -----------------------------------------------------------------------
+    void setModeManoeuvre(bool v) { m_modeManoeuvre = v; }
+    bool modeManoeuvre() const { return m_modeManoeuvre; }
 
     // -----------------------------------------------------------------------
     // Debug
@@ -277,6 +302,14 @@ private:
     class ConsoCourant *occupation;
 
     bool m_stopActive = false;
+
+    // -----------------------------------------------------------------------
+    // Mode MANOEUVRE (voie de service)
+    //   - état interne du canton
+    //   - utilisé par AspectSignal
+    //   - LED MANOEUVRE gérée par Exploration
+    // -----------------------------------------------------------------------
+    bool m_modeManoeuvre = false;
 
     int m_compteurEssieux = 0;
 };

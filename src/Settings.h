@@ -8,11 +8,13 @@
  *   - Configuration UART RS485 (CC → EXCC)
  *   - Montage SPIFFS
  *   - Lecture / écriture du fichier settings.json (format JSON 2026)
- *   - Gestion des paramètres globaux (WiFi, exploration, booster)
+ *   - Gestion des paramètres globaux (WiFi, Exploration, Booster)
  *   - Accès centralisé aux seuils Booster
  *
- * Ce module ne contient aucune logique ferroviaire : il orchestre
- * simplement l’initialisation et la persistance des paramètres.
+ * IMPORTANT 2026 :
+ *   - Ce module ne contient AUCUNE logique ferroviaire.
+ *   - Il orchestre uniquement l’initialisation et la persistance des données.
+ *   - Toute la logique métier (BAL, signaux, manœuvre, topologie) est ailleurs.
  */
 
 #pragma once
@@ -26,19 +28,22 @@ class Settings
 {
 public:
     /* =======================================================================
-     *  Initialisation générale du système
+     *  1) Initialisation générale du système
+     *     - UART RS485
+     *     - SPIFFS
+     *     - Lecture settings.json
      * =====================================================================*/
     static void setup(Canton *nd);  // Initialisation complète (hors CAN)
     static bool begin();            // Dialogue CAN avec la carte Main
     static bool beginCAN();         // Initialisation du bus CAN
 
     /* =======================================================================
-     *  UART RS485 (CC → EXCC)
+     *  2) UART RS485 (CC → EXCC)
      * =====================================================================*/
     static HardwareSerial &uart();
 
     /* =======================================================================
-     *  Paramètres globaux (WiFi, Exploration interne)
+     *  3) Paramètres globaux (WiFi, Exploration interne)
      * =====================================================================*/
     static bool wifiOn();
     static void wifiOn(bool val);
@@ -49,7 +54,7 @@ public:
     static void sMainReady(bool val);
 
     /* =======================================================================
-     *  Champs globaux accessibles
+     *  4) Champs globaux accessibles
      * =====================================================================*/
     static bool WIFI_ON;
     static bool EXPLORATION_ON;
@@ -66,19 +71,21 @@ public:
     static HardwareSerial SerialUART;
 
     /* =======================================================================
-     *  Fonctions internes (modules spécialisés)
+     *  5) Fonctions internes (modules spécialisés)
      * =====================================================================*/
     static void setupUART();     // Configuration UART RS485
     static bool mountSPIFFS();   // Montage SPIFFS
 
     /* =======================================================================
-     *  JSON (Gestion Canton 2026)
+     *  6) JSON (Gestion Canton 2026)
+     *     - loadFile()  : lecture settings.json → objets Canton
+     *     - writeFile() : objets Canton → settings.json
      * =====================================================================*/
-    static void loadFile(Canton *canton);   // Lecture settings.json
-    static void writeFile(Canton *canton);  // Écriture settings.json
+    static void loadFile(Canton *canton);
+    static void writeFile(Canton *canton);
 
     /* =======================================================================
-     *  Booster — Seuils calibrés (API publique)
+     *  7) Booster — Seuils calibrés (API publique)
      * =====================================================================*/
     static void setBoosterSeuilLibre(uint16_t v)  { s_boosterSeuilLibre  = v; }
     static void setBoosterSeuilOccupe(uint16_t v) { s_boosterSeuilOccupe = v; }

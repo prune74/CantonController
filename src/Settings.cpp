@@ -5,13 +5,25 @@
  *
  * Rôle :
  *   - Initialisation générale du CC
- *   - Montage SPIFFS (module dédié)
+ *   - Configuration UART RS485 (CC → EXCC)
+ *   - Montage SPIFFS (stockage interne)
  *   - Lecture du fichier settings.json (format JSON 2026)
- *   - Chargement des paramètres : généraux, topologie, voisins,
- *     aiguilles, signaux, direction, booster
+ *   - Chargement des paramètres persistants :
+ *         • généraux
+ *         • mode manœuvre
+ *         • topologie
+ *         • voisins
+ *         • aiguilles logiques
+ *         • signaux SNCF
+ *         • direction / feux directionnels
+ *         • booster
  *   - Lancement du dialogue CAN avec la carte Main (EXCC)
  *
- * Ce module centralise l’accès aux paramètres persistants du CC.
+ * IMPORTANT 2026 :
+ *   - Ce module ne contient AUCUNE logique ferroviaire.
+ *   - Il orchestre uniquement l’initialisation et la persistance.
+ *   - Toute la logique métier (BAL, signaux, manœuvre, exploration)
+ *     est gérée dans les modules spécialisés.
  */
 
 #include "Settings.h"
@@ -63,19 +75,19 @@ void Settings::setup(Canton *nd)
     CC_LOG_INFO("[Settings][CC] Initialisation complète du CC...\n");
 
     // ------------------------------------------------------------------------
-    // UART (module séparé)
+    // 1) UART RS485 (module séparé)
     // ------------------------------------------------------------------------
     setupUART();
     CC_UartRx::begin();
 
     // ------------------------------------------------------------------------
-    // SPIFFS (module séparé)
+    // 2) Montage SPIFFS
     // ------------------------------------------------------------------------
     if (!mountSPIFFS())
         return;
 
     // ------------------------------------------------------------------------
-    // Lecture du fichier JSON 2026
+    // 3) Lecture du fichier JSON 2026
     // ------------------------------------------------------------------------
     loadFile(canton);
 
@@ -101,7 +113,7 @@ bool Settings::begin()
 }
 
 /* ============================================================================
- *  JSON 2026 — loadFile()
+ *  JSON 2026 — loadFile() : settings.json → objets Canton
  * ==========================================================================*/
 
 void Settings::loadFile(Canton *canton)
@@ -123,8 +135,11 @@ void Settings::loadFile(Canton *canton)
         return;
     }
 
+    // ------------------------------------------------------------------------
     // Chargement des sections JSON 2026
+    // ------------------------------------------------------------------------
     Settings_JSON_loadGeneraux(canton, doc);
+    Settings_JSON_loadModeManoeuvre(canton, doc);
     Settings_JSON_loadTopologie(canton, doc);
     Settings_JSON_loadVoisins(canton, doc);
     Settings_JSON_loadAiguilles(canton, doc);
@@ -136,15 +151,18 @@ void Settings::loadFile(Canton *canton)
 }
 
 /* ============================================================================
- *  JSON 2026 — writeFile()
+ *  JSON 2026 — writeFile() : objets Canton → settings.json
  * ==========================================================================*/
 
 void Settings::writeFile(Canton *canton)
 {
     StaticJsonDocument<8192> doc;
 
+    // ------------------------------------------------------------------------
     // Sauvegarde des sections JSON 2026
+    // ------------------------------------------------------------------------
     Settings_JSON_saveGeneraux(canton, doc);
+    Settings_JSON_saveModeManoeuvre(canton, doc);
     Settings_JSON_saveTopologie(canton, doc);
     Settings_JSON_saveVoisins(canton, doc);
     Settings_JSON_saveAiguilles(canton, doc);

@@ -12,9 +12,17 @@
  *   - aucun masque d’aiguilles n’est géré ici
  *   - la logique métier (aspects, mâts, sécurité) est ailleurs
  *   - Exploration ne fait QUE la topologie locale
+ *
+ * AJOUT 2026 :
+ *   - bouton MANOEUVRE (voie de service)
+ *   - LED MANOEUVRE dédiée
+ *   - LED MANOEUVRE = reflète l’état du mode manœuvre **uniquement en exploration**
+ *   - LED MANOEUVRE = toujours OFF en exploitation
+ *   - LED Exploration = uniquement pour la découverte
  */
 
 #include "Exploration.h"
+#include "Settings.h"
 #include "debug_cc.h"
 
 // ---------------------------------------------------------------------------
@@ -100,8 +108,18 @@ void Exploration::begin(Canton *nd)
     canton->mcp.pinMode(MCP_PIN_INTER_DEV_2,   INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_INTER_DEV_1,   INPUT_PULLUP);
 
-    // LED Exploration
+    // Bouton MANOEUVRE
+    canton->mcp.pinMode(MCP_PIN_BTN_MANOEUVRE, INPUT_PULLUP);
+
+    // LED Exploration (uniquement pour la découverte)
     canton->mcp.pinMode(MCP_PIN_LED_EXPLORATION, OUTPUT);
+
+    // LED MANOEUVRE (reflète l’état uniquement en exploration)
+    canton->mcp.pinMode(MCP_PIN_LED_MANOEUVRE, OUTPUT);
+
+    // Mise à jour initiale LED MANOEUVRE (on est en exploration)
+    canton->mcp.digitalWrite(MCP_PIN_LED_MANOEUVRE,
+                             canton->modeManoeuvre() ? HIGH : LOW);
 
     // Tâches FreeRTOS
     xTaskCreatePinnedToCore(process,
@@ -122,7 +140,7 @@ void Exploration::begin(Canton *nd)
 }
 
 // ---------------------------------------------------------------------------
-// process() — gestion boutons + reset logique + CAN
+// process() — gestion boutons + reset logique + CAN + MANOEUVRE
 // ---------------------------------------------------------------------------
 void Exploration::process(void *p)
 {
@@ -130,21 +148,30 @@ void Exploration::process(void *p)
     bool ledAllumee = false;
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    auto clignoterLED = [&]()
+    static bool lastManoeuvreBtn = false;
+
+    auto clignoterLEDexploration = [&]()
     {
         canton->mcp.digitalWrite(MCP_PIN_LED_EXPLORATION,
                                  ledAllumee ? HIGH : LOW);
         ledAllumee = !ledAllumee;
     };
 
-    auto allumerLED = [&]()
-    {
-        canton->mcp.digitalWrite(MCP_PIN_LED_EXPLORATION, HIGH);
-    };
-
-    auto eteindreLED = [&]()
+    auto eteindreLEDexploration = [&]()
     {
         canton->mcp.digitalWrite(MCP_PIN_LED_EXPLORATION, LOW);
+    };
+
+    auto majLEDmanoeuvre = [&]()
+    {
+        // LED MANOEUVRE = reflète l’état uniquement en exploration
+        canton->mcp.digitalWrite(MCP_PIN_LED_MANOEUVRE,
+                                 canton->modeManoeuvre() ? HIGH : LOW);
+    };
+
+    auto eteindreLEDmanoeuvre = [&]()
+    {
+        canton->mcp.digitalWrite(MCP_PIN_LED_MANOEUVRE, LOW);
     };
 
     auto btnPush = [&](uint8_t btnNum)
@@ -161,24 +188,46 @@ void Exploration::process(void *p)
                 canton->setCantonP(btnNum, np);
             }
 
-            np->ID(15); // TODO : attribution dynamique plus tard
-            allumerLED();
+            np->ID(15);
+            clignoterLEDexploration();
             m_ID_satPeriph = UNUSED_ID;
         }
         else
         {
-            clignoterLED();
+            clignoterLEDexploration();
         }
     };
 
     for (;;)
     {
-        // Lecture boutons via MCP23017
+        // Lecture boutons
         bool satMoins = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_MOINS);
         bool satPlus  = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_PLUS);
         bool dev2     = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_2);
         bool dev1     = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_1);
 
+        bool btnManoeuvre = !canton->mcp.digitalRead(MCP_PIN_BTN_MANOEUVRE);
+
+        // Toggle MANOEUVRE
+        if (btnManoeuvre && !lastManoeuvreBtn)
+        {
+            bool newState = !canton->modeManoeuvre();
+            canton->setModeManoeuvre(newState);
+
+            Settings::writeFile(canton);
+
+            // Mise à jour LED MANOEUVRE (exploration uniquement)
+            majLEDmanoeuvre();
+
+            CC_LOG_INFO("[Exploration][Manoeuvre] Mode = %s\n",
+                        newState ? "ACTIF" : "INACTIF");
+        }
+        lastManoeuvreBtn = btnManoeuvre;
+
+        // LED MANOEUVRE = mise à jour continue en exploration
+        majLEDmanoeuvre();
+
+        // Gestion découverte
         m_btnState =
             (satMoins ? 0x01 : 0) |
             (satPlus  ? 0x02 : 0) |
@@ -195,8 +244,8 @@ void Exploration::process(void *p)
             btnPush((m_btnState >> 2) + 4);
             break;
 
-        case 0x03: // RESET LOGIQUE + nouvelle découverte
-            // Réinitialisation des cantons périphériques
+        case 0x03:
+            // RESET LOGIQUE + nouvelle découverte
             for (byte i = 0; i < cantonPsize; i++)
             {
                 CantonPeriph *np = canton->getCantonP(i);
@@ -205,7 +254,7 @@ void Exploration::process(void *p)
                     np->ID(UNUSED_ID);
                     np->busy(false);
                     np->reserved(0);
-                    np->masqueAig(0); // masque côté CantonPeriph : OK
+                    np->masqueAig(0);
                 }
             }
 
@@ -234,18 +283,23 @@ void Exploration::process(void *p)
             }
 
             m_comptAig = 0;
-            allumerLED();
+            clignoterLEDexploration();
 
             runExplorationPass(canton);
             break;
 
         default:
-            eteindreLED();
+            eteindreLEDexploration();
             break;
         }
 
+        // Passage en exploitation ?
         if (m_stopProcess)
+        {
+            // LED MANOEUVRE doit être OFF en exploitation
+            eteindreLEDmanoeuvre();
             vTaskDelete(NULL);
+        }
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
     }

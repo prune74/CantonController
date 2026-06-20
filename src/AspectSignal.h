@@ -12,12 +12,14 @@
  * ---------------------------------------------------------------------------
  * Déduction et envoi des aspects SNCF + feux directionnels.
  *
- * Rôle :
- *   - récupérer les aspects aval SP1 / SM1
- *   - vérifier les aiguilles locales
- *   - déduire l’aspect SNCF local (via DeductionAspect)
- *   - calculer les feux directionnels (FeuxDirection)
- *   - envoyer les aspects / feux / occupation voisins (anti‑spam)
+ * Pipeline 2026 :
+ *   1) récupérer les aspects aval SP1 / SM1
+ *   2) vérifier les aiguilles locales
+ *   3) déduire l’aspect SNCF local (BAL)
+ *   4) appliquer le mode MANOEUVRE (voie de service)
+ *   5) déduire automatiquement le type de mât + MAJ objets Signal
+ *   6) calculer les feux directionnels (FeuxDirection)
+ *   7) envoyer les aspects / feux / occupation voisins (anti‑spam)
  *
  * Format du tableau signalValue :
  *   signalValue[0] = aspect horaire      (ExccAspect)
@@ -25,6 +27,12 @@
  *
  * Chaque aspect est codé sur 1 octet (Option A),
  * conformément au protocole Exploration_Protocol.h.
+ *
+ * NOTE 2026 :
+ *   - Le mode MANOEUVRE ne modifie pas la logique BAL interne.
+ *   - Il est appliqué uniquement sur les aspects envoyés à l’EXCC.
+ *   - EXCC n’a pas à connaître le mode manœuvre : il affiche seulement
+ *     les couleurs correspondant aux aspects reçus.
  */
 
 /*
@@ -38,6 +46,8 @@
  *
  * Cette fonction applique :
  *   - la déduction locale (DeductionAspect)
+ *   - le mode MANOEUVRE (voie de service)
+ *   - la mise à jour du type de mât (Signal::type)
  *   - la mise à jour des feux directionnels
  *   - l’envoi conditionnel (anti‑spam)
  */
