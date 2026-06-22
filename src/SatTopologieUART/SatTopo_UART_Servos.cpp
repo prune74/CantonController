@@ -42,7 +42,7 @@ extern HardwareSerial Serial1;
  *  F0 — Mouvement réel du servo
  *  EXCC attend : data[0] = servoIndex, data[1] = direction (0=droit, 1=devie)
  * ==========================================================================*/
-void envoyerServoMove(uint8_t servoIndex, uint8_t direction)
+void envoyerServoMove(uint8_t servoIndex, uint8_t direction) // 🟢
 {
     CC_LOG_INFO("[ServoUART][CC] Move : servo=%u direction=%u\n",
                 servoIndex, direction);
@@ -57,7 +57,7 @@ void envoyerServoMove(uint8_t servoIndex, uint8_t direction)
  *  Envoi de la configuration des servos depuis settings.json (F1)
  *  EXCC attend : idx, posDroit, posDevie, speed
  * ==========================================================================*/
-void envoyerConfigurationServosDepuisSettings()
+void envoyerConfigurationServosDepuisSettings() // 🟢
 {
     CC_LOG_INFO("[ServoUART][CC] Envoi configuration servos (F1)...\n");
 
@@ -125,10 +125,7 @@ void envoyerConfigurationServosDepuisSettings()
 /* ============================================================================
  *  F1 — Configuration servo
  * ==========================================================================*/
-void envoyerServoConfig(uint8_t servoIndex,
-                        uint16_t posDroit,
-                        uint16_t posDevie,
-                        uint16_t speed)
+void envoyerServoConfig(uint8_t servoIndex, uint16_t posDroit, uint16_t posDevie, uint16_t speed) // 🟢
 {
     CC_LOG_INFO("[ServoUART][CC] Config : servo=%u droit=%u devie=%u speed=%u\n",
                 servoIndex, posDroit, posDevie, speed);
@@ -150,7 +147,7 @@ void envoyerServoConfig(uint8_t servoIndex,
 /* ============================================================================
  *  F2 — Test servo
  * ==========================================================================*/
-void envoyerServoTest(uint8_t servoIndex)
+void envoyerServoTest(uint8_t servoIndex) // 🟢
 {
     CC_LOG_INFO("[ServoUART][CC] Test : servo=%u\n", servoIndex);
 

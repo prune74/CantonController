@@ -19,7 +19,7 @@
 /* ============================================================================
  *  Chargement de la topologie ferroviaire
  * ==========================================================================*/
-void Settings_JSON_loadTopologie(Canton *canton, JsonDocument &doc)
+void Settings_JSON_loadTopologie(Canton *canton, JsonDocument &doc) // 🟢
 {
     // SP1 / SM1 : indices des voisins principaux
     canton->SP1_idx(doc["SP1_idx"] | 0);
@@ -39,7 +39,7 @@ void Settings_JSON_loadTopologie(Canton *canton, JsonDocument &doc)
 /* ============================================================================
  *  Sauvegarde de la topologie ferroviaire
  * ==========================================================================*/
-void Settings_JSON_saveTopologie(Canton *canton, JsonDocument &doc)
+void Settings_JSON_saveTopologie(Canton *canton, JsonDocument &doc) // 🟢
 {
     // SP1 / SM1
     doc["SP1_idx"] = canton->SP1_idx();

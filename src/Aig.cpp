@@ -41,65 +41,65 @@ Aig::~Aig() {}
 // ---------------------------------------------------------------------------
 // Identifiant logique
 // ---------------------------------------------------------------------------
-void Aig::ID(uint8_t id) { m_id = id; }
-uint8_t Aig::ID() const { return m_id; }
+void Aig::ID(uint8_t id) { m_id = id; } // 🟢
+uint8_t Aig::ID() const { return m_id; } // 🟢
 
 // ---------------------------------------------------------------------------
 // État logique (droite / déviée)
 // ---------------------------------------------------------------------------
-void Aig::estDroit(bool pos) { m_estDroit = pos; }
-bool Aig::estDroit() const { return m_estDroit; }
+void Aig::estDroit(bool pos) { m_estDroit = pos; } // 🟢
+bool Aig::estDroit() const { return m_estDroit; } // 🟢
 
 // ---------------------------------------------------------------------------
 // Positions logiques droite / déviée
 // ---------------------------------------------------------------------------
-void Aig::posDroit(uint16_t pos)
+void Aig::posDroit(uint16_t pos) // 🟢
 {
     if (pos > m_minPos && pos < m_maxPos)
         m_posDroit = pos;
 }
 
-void Aig::posDevie(uint16_t pos)
+void Aig::posDevie(uint16_t pos) // 🟢
 {
     if (pos > m_minPos && pos < m_maxPos)
         m_posDevie = pos;
 }
 
-uint16_t Aig::posDroit() const { return m_posDroit; }
-uint16_t Aig::posDevie() const { return m_posDevie; }
+uint16_t Aig::posDroit() const { return m_posDroit; } // 🟢
+uint16_t Aig::posDevie() const { return m_posDevie; } // 🟢
 
 // ---------------------------------------------------------------------------
 // Position logique courante (EXCC effectuera le mouvement réel)
 // ---------------------------------------------------------------------------
-void Aig::curPos(uint16_t pos)
+void Aig::curPos(uint16_t pos) // 🔴
 {
     if (pos > m_minPos && pos < m_maxPos)
         m_curPos = pos;
 }
 
-uint16_t Aig::curPos() const { return m_curPos; }
+uint16_t Aig::curPos() const { return m_curPos; } // 🔴
 
 // ---------------------------------------------------------------------------
 // Index EXCC côté H (SP1)
 // ---------------------------------------------------------------------------
-void Aig::cantonPdroitIdx(uint8_t idx) { m_cantonPdroitIdx = idx; }
-uint8_t Aig::cantonPdroitIdx() const { return m_cantonPdroitIdx; }
+void Aig::cantonPdroitIdx(uint8_t idx) { m_cantonPdroitIdx = idx; } // 🟢
+uint8_t Aig::cantonPdroitIdx() const { return m_cantonPdroitIdx; } // 🟢
 
 // ---------------------------------------------------------------------------
 // Index EXCC côté AH (SM1)
 // ---------------------------------------------------------------------------
-void Aig::cantonPdevieIdx(uint8_t idx) { m_cantonPdevieIdx = idx; }
-uint8_t Aig::cantonPdevieIdx() const { return m_cantonPdevieIdx; }
+void Aig::cantonPdevieIdx(uint8_t idx) { m_cantonPdevieIdx = idx; } // 🟢
+uint8_t Aig::cantonPdevieIdx() const { return m_cantonPdevieIdx; } // 🟢
 
 // ---------------------------------------------------------------------------
-// Vitesse logique (Exploration 2026 → EXCC)
+// Vitesse logique (CC → EXCC)
 // ---------------------------------------------------------------------------
-void Aig::speed(uint16_t v)
+void Aig::speed(uint16_t v) // 🟡
 {
     m_speed = v;
 }
 
-uint16_t Aig::speed() const
+uint16_t Aig::speed() const // 🟡
 {
     return m_speed;
 }

@@ -27,7 +27,8 @@
  *    3. Le voisin est accessible
  *    4. Le voisin n’est ni occupé ni réservé
  * ==========================================================================*/
-bool Canton::estAccesAutorise(SensDeMarche sens)
+bool Canton::estAccesAutorise(SensDeMarche sens) // 🟢
+
 {
     // 0) STOP global
     if (isStopActive())
@@ -70,7 +71,7 @@ bool Canton::estAccesAutorise(SensDeMarche sens)
 /* ============================================================================
  *  prochainVoisin() — Détermine le prochain canton selon le sens
  * ==========================================================================*/
-CantonPeriph *Canton::prochainVoisin(SensDeMarche sens)
+CantonPeriph *Canton::prochainVoisin(SensDeMarche sens) // 🟢
 {
     return (sens == SensHoraire) ? voisinSP1() : voisinSM1();
 }
@@ -84,7 +85,7 @@ CantonPeriph *Canton::prochainVoisin(SensDeMarche sens)
  *    - voisin existant
  *    - voisin libre
  * ==========================================================================*/
-bool Canton::peutEntrerDansVoisin(SensDeMarche sens)
+bool Canton::peutEntrerDansVoisin(SensDeMarche sens) // 🟢
 {
     if (m_stopActive)
     {
@@ -115,7 +116,8 @@ bool Canton::peutEntrerDansVoisin(SensDeMarche sens)
  *    - canton occupé
  *    - entrée dans le voisin possible
  * ==========================================================================*/
-bool Canton::estSortiePossible(SensDeMarche sens)
+bool Canton::estSortiePossible(SensDeMarche sens) // 🟢
+
 {
     // 🔥 STOP global Exploration 2026 : aucune sortie autorisée
     if (m_stopActive)

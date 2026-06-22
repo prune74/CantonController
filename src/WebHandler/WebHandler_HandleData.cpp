@@ -26,9 +26,7 @@
 // ---------------------------------------------------------------------------
 // handleWebSocketData()
 // ---------------------------------------------------------------------------
-void WebHandler::handleWebSocketData(AsyncWebSocketClient *client,
-                                     uint8_t *data,
-                                     size_t len)
+void WebHandler::handleWebSocketData(AsyncWebSocketClient *client, uint8_t *data, size_t len) // 🟢
 {
     StaticJsonDocument<1024> doc;
     DeserializationError err = deserializeJson(doc, data, len);

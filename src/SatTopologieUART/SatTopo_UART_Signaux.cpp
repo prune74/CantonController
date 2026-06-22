@@ -38,7 +38,7 @@ extern HardwareSerial Serial1;
  * ---------------------------------------------------------------------------
  *  Envoie type + position des deux mâts (sign0 / sign1).
  * ==========================================================================*/
-void envoyerConfigurationSignauxDepuisSettings()
+void envoyerConfigurationSignauxDepuisSettings() // 🟢
 {
     CC_LOG_INFO("[TopoUART][CC] Envoi configuration signaux (E5)...\n");
 
@@ -96,7 +96,7 @@ void envoyerConfigurationSignauxDepuisSettings()
 /* ============================================================================
  *  envoyerAspectSignalHoraire() — opcode E6
  * ==========================================================================*/
-void envoyerAspectSignalHoraire(uint8_t aspect)
+void envoyerAspectSignalHoraire(uint8_t aspect) // 🟢
 {
     CC_LOG_TRACE("[TopoUART][CC] Aspect horaire (E6) = %u\n", aspect);
 
@@ -108,7 +108,7 @@ void envoyerAspectSignalHoraire(uint8_t aspect)
 /* ============================================================================
  *  envoyerAspectSignalAntiHoraire() — opcode E7
  * ==========================================================================*/
-void envoyerAspectSignalAntiHoraire(uint8_t aspect)
+void envoyerAspectSignalAntiHoraire(uint8_t aspect) // 🟢
 {
     CC_LOG_TRACE("[TopoUART][CC] Aspect anti-horaire (E7) = %u\n", aspect);
 

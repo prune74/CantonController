@@ -50,7 +50,7 @@ static ExccState g_excc;
 // ---------------------------------------------------------------------------
 // Initialisation du lien RS485
 // ---------------------------------------------------------------------------
-void EXCC_Link::begin()
+void EXCC_Link::begin() // 🟢
 {
     CC_LOG_INFO("[EXCC][CC] Initialisation RS485...\n");
 
@@ -63,7 +63,7 @@ void EXCC_Link::begin()
 // ---------------------------------------------------------------------------
 // Envoi périodique du PING
 // ---------------------------------------------------------------------------
-static void envoyerPing()
+static void envoyerPing() // 🟢
 {
     uint8_t frame[2] = {
         PROTO_SYNC_BYTE,
@@ -74,7 +74,7 @@ static void envoyerPing()
     CC_LOG_TRACE("[EXCC][CC] → PING\n");
 }
 
-void EXCC_Link::envoyerPingPeriodique()
+void EXCC_Link::envoyerPingPeriodique() // 🟢
 {
     static uint32_t lastPing = 0;
     uint32_t now = millis();
@@ -89,7 +89,7 @@ void EXCC_Link::envoyerPingPeriodique()
 // ---------------------------------------------------------------------------
 // Réception du PONG
 // ---------------------------------------------------------------------------
-void EXCC_Link::onPong()
+void EXCC_Link::onPong() // 🟢
 {
     uint32_t now = millis();
     g_excc.lastPongTime = now;
@@ -106,9 +106,7 @@ void EXCC_Link::onPong()
 // ---------------------------------------------------------------------------
 // Réception des informations Booster (PROTO_07)
 // ---------------------------------------------------------------------------
-void EXCC_Link::onBooster(uint8_t etat,
-                          uint8_t courant,
-                          uint8_t tension)
+void EXCC_Link::onBooster(uint8_t etat, uint8_t courant, uint8_t tension) // 🟢
 {
     Booster::onBooster(tension, courant, etat);
 
@@ -119,7 +117,7 @@ void EXCC_Link::onBooster(uint8_t etat,
 // ---------------------------------------------------------------------------
 // Détection OFFLINE
 // ---------------------------------------------------------------------------
-static void verifierTimeouts()
+static void verifierTimeouts() // 🟢
 {
     uint32_t now = millis();
 
@@ -136,7 +134,7 @@ static void verifierTimeouts()
 // ---------------------------------------------------------------------------
 // Boucle principale
 // ---------------------------------------------------------------------------
-void EXCC_Link::loop()
+void EXCC_Link::loop() // 🟢
 {
     envoyerPingPeriodique();
     verifierTimeouts();
@@ -145,12 +143,12 @@ void EXCC_Link::loop()
 // ---------------------------------------------------------------------------
 // Gestion ONLINE / OFFLINE
 // ---------------------------------------------------------------------------
-bool EXCC_Link::isOnline()
+bool EXCC_Link::isOnline() // 🔴
 {
     return g_excc.online;
 }
 
-void EXCC_Link::onExccOnline()
+void EXCC_Link::onExccOnline() // 🟢
 {
     CC_LOG_INFO("[EXCC][CC] EXCC ONLINE\n");
 
@@ -169,7 +167,7 @@ void EXCC_Link::onExccOnline()
     EXCC_Link::envoyerSeuilsBooster(libre, occupe);
 }
 
-void EXCC_Link::onExccOffline()
+void EXCC_Link::onExccOffline() // 🟢
 {
     CC_LOG_WARN("[EXCC][CC] EXCC OFFLINE\n");
 }
@@ -177,7 +175,7 @@ void EXCC_Link::onExccOffline()
 // ---------------------------------------------------------------------------
 // Commande ON/OFF du booster
 // ---------------------------------------------------------------------------
-void EXCC_Link::envoyerBoosterPower(bool on)
+void EXCC_Link::envoyerBoosterPower(bool on) // 🟢
 {
     uint8_t frame[3] = {
         PROTO_SYNC_BYTE,
@@ -193,7 +191,7 @@ void EXCC_Link::envoyerBoosterPower(bool on)
 // ---------------------------------------------------------------------------
 // Demande de recalibration
 // ---------------------------------------------------------------------------
-void EXCC_Link::demanderRecalibration()
+void EXCC_Link::demanderRecalibration() // 🟢
 {
     uint8_t frame[2] = {
         PROTO_SYNC_BYTE,
@@ -208,8 +206,7 @@ void EXCC_Link::demanderRecalibration()
 // ---------------------------------------------------------------------------
 // Envoi des seuils calibrés
 // ---------------------------------------------------------------------------
-void EXCC_Link::envoyerSeuilsBooster(uint16_t libre,
-                                     uint16_t occupe)
+void EXCC_Link::envoyerSeuilsBooster(uint16_t libre, uint16_t occupe) // 🟢
 {
     uint8_t frame[6] = {
         PROTO_SYNC_BYTE,

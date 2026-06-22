@@ -22,7 +22,7 @@
 /* ============================================================================
  *  Chargement du mode MANOEUVRE
  * ==========================================================================*/
-void Settings_JSON_loadModeManoeuvre(Canton *canton, JsonDocument &doc)
+void Settings_JSON_loadModeManoeuvre(Canton *canton, JsonDocument &doc) // 🟢
 {
     // Valeur par défaut : false (mode normal)
     bool mode = false;
@@ -39,7 +39,7 @@ void Settings_JSON_loadModeManoeuvre(Canton *canton, JsonDocument &doc)
 /* ============================================================================
  *  Sauvegarde du mode MANOEUVRE
  * ==========================================================================*/
-void Settings_JSON_saveModeManoeuvre(Canton *canton, JsonDocument &doc)
+void Settings_JSON_saveModeManoeuvre(Canton *canton, JsonDocument &doc) // 🟢
 {
     bool mode = canton->modeManoeuvre();
 

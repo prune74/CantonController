@@ -25,7 +25,7 @@
 /* ============================================================================
  *  Chargement des aiguilles LOGIQUES
  * ==========================================================================*/
-void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc)
+void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc) // 🟢
 {
     for (byte i = 0; i < aigSize; i++)
     {

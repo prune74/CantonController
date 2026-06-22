@@ -22,7 +22,7 @@
  *  Mini‑helpers internes
  * ==========================================================================*/
 
-static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens)
+static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens) // 🟢
 {
     if (!v)
         return ASPECT_CARRE;
@@ -32,7 +32,7 @@ static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens)
            : v->aspectRecu[1];
 }
 
-static inline bool estOccupeOuReserve(CantonPeriph *v)
+static inline bool estOccupeOuReserve(CantonPeriph *v) // 🟢
 {
     return v && (v->busy() || v->reserved() != 0);
 }
@@ -47,7 +47,7 @@ static inline bool estOccupeOuReserve(CantonPeriph *v)
  *    2. Propagation des aspects restrictifs
  *    3. Défaut → Voie libre
  * ==========================================================================*/
-uint8_t Canton::transitionAspect(SensDeMarche sens)
+uint8_t Canton::transitionAspect(SensDeMarche sens) // 🟢
 {
     const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
@@ -103,12 +103,12 @@ uint8_t Canton::transitionAspect(SensDeMarche sens)
 /* ============================================================================
  *  transitionH() / transitionAH()
  * ==========================================================================*/
-uint8_t Canton::transitionH()
+uint8_t Canton::transitionH() // 🟢
 {
     return transitionAspect(SensHoraire);
 }
 
-uint8_t Canton::transitionAH()
+uint8_t Canton::transitionAH() // 🟢
 {
     return transitionAspect(SensAntiHoraire);
 }

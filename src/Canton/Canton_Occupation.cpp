@@ -24,13 +24,13 @@
  *  v = true  → canton occupé (courant détecté)
  *  v = false → canton libre
  * ==========================================================================*/
-void Canton::busy(bool v)
+void Canton::busy(bool v) // 🟢
 {
     m_busy = v;
     CC_LOG_TRACE("[Canton %u][Occ][CC] busy = %d\n", m_id, m_busy);
 }
 
-bool Canton::busy()
+bool Canton::busy() // 🟢
 {
     return m_busy;
 }
@@ -41,13 +41,13 @@ bool Canton::busy()
  *  addr = adresse DCC de la loco réservant le canton
  *  addr = 0 → aucune réservation
  * ==========================================================================*/
-void Canton::reserved(uint16_t addr)
+void Canton::reserved(uint16_t addr) // 🟢
 {
     m_reserved = addr;
     CC_LOG_TRACE("[Canton %u][Occ][CC] reserved = %u\n", m_id, m_reserved);
 }
 
-uint16_t Canton::reserved()
+uint16_t Canton::reserved() // 🟢
 {
     return m_reserved;
 }
@@ -59,7 +59,7 @@ uint16_t Canton::reserved()
  *    - courant détecté (busy)
  *    - OU réservation active (reserved != 0)
  * ==========================================================================*/
-bool Canton::estOccupe()
+bool Canton::estOccupe() // 🟢
 {
     return (m_busy || m_reserved != 0);
 }
@@ -69,13 +69,13 @@ bool Canton::estOccupe()
  * ---------------------------------------------------------------------------
  *  Valeur utilisée par la supervision pour brider la loco.
  * ==========================================================================*/
-void Canton::maxSpeed(uint8_t v)
+void Canton::maxSpeed(uint8_t v) // 🟢
 {
     m_maxSpeed = v;
     CC_LOG_TRACE("[Canton %u][Occ][CC] maxSpeed = %u\n", m_id, m_maxSpeed);
 }
 
-uint8_t Canton::maxSpeed()
+uint8_t Canton::maxSpeed() // 🟢
 {
     return m_maxSpeed;
 }
@@ -85,14 +85,14 @@ uint8_t Canton::maxSpeed()
  * ---------------------------------------------------------------------------
  *  SensHoraire / SensAntiHoraire
  * ==========================================================================*/
-void Canton::sensMarche(SensDeMarche v)
+void Canton::sensMarche(SensDeMarche v) // 🟢
 {
     m_sensMarche = v;
     CC_LOG_TRACE("[Canton %u][Occ][CC] sensMarche = %u\n",
                  m_id, (uint8_t)m_sensMarche);
 }
 
-SensDeMarche Canton::sensMarche()
+SensDeMarche Canton::sensMarche() // 🟢
 {
     return m_sensMarche;
 }

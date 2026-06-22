@@ -23,19 +23,19 @@
  *  Helpers topologiques
  * ==========================================================================*/
 
-bool Canton::estImpasse() const
+bool Canton::estImpasse() const // 🟢
 {
     bool aSP1 = (m_SP1_idx != UNUSED_ID);
     bool aSM1 = (m_SM1_idx != UNUSED_ID);
     return (aSP1 ^ aSM1); // XOR : un seul voisin → impasse
 }
 
-bool Canton::estZoneAiguilles() const
+bool Canton::estZoneAiguilles() const // 🟢
 {
     return (Exploration::comptAig() > 0);
 }
 
-bool Canton::prochainCantonEstDangereux(SensDeMarche sens) const
+bool Canton::prochainCantonEstDangereux(SensDeMarche sens) const // 🟢
 {
     CantonPeriph *v = (sens == SensHoraire)
                         ? getCantonP(m_SP1_idx)
@@ -44,12 +44,12 @@ bool Canton::prochainCantonEstDangereux(SensDeMarche sens) const
     return v && (v->masqueAig() != 0);
 }
 
-bool Canton::aBifurcation(SensDeMarche sens) const
+bool Canton::aBifurcation(SensDeMarche sens) const // 🟢
 {
     return (sens == SensHoraire) ? m_SP2_acces : m_SM2_acces;
 }
 
-bool Canton::cantonPrecedentEstEnRalentissement(SensDeMarche sens) const
+bool Canton::cantonPrecedentEstEnRalentissement(SensDeMarche sens) const // 🟢
 {
     CantonPeriph *v = (sens == SensHoraire)
                         ? getCantonP(m_SM1_idx)
@@ -71,17 +71,17 @@ bool Canton::cantonPrecedentEstEnRalentissement(SensDeMarche sens) const
  *  Besoins topologiques
  * ==========================================================================*/
 
-bool Canton::besoinRappel(SensDeMarche sens) const
+bool Canton::besoinRappel(SensDeMarche sens) const // 🟢
 {
     return cantonPrecedentEstEnRalentissement(sens);
 }
 
-bool Canton::besoinRalentissement(SensDeMarche sens) const
+bool Canton::besoinRalentissement(SensDeMarche sens) const // 🟢
 {
     return prochainCantonEstDangereux(sens) || aBifurcation(sens);
 }
 
-bool Canton::besoinCarre(SensDeMarche sens) const
+bool Canton::besoinCarre(SensDeMarche sens) const // 🟢
 {
     return estZoneAiguilles() || prochainCantonEstDangereux(sens);
 }
@@ -90,7 +90,7 @@ bool Canton::besoinCarre(SensDeMarche sens) const
  *  Déduction du type de mât (VERSION 2026)
  * ==========================================================================*/
 
-uint8_t Canton::deduireTypeSignal(SensDeMarche sens) const
+uint8_t Canton::deduireTypeSignal(SensDeMarche sens) const // 🟢
 {
     // 1) Impasse → manœuvre obligatoire
     if (estImpasse())

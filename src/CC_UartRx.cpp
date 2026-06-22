@@ -12,7 +12,7 @@
  *   - parser les données selon l’OPCODE
  *   - dispatcher vers les modules concernés :
  *        • Sensor (ponctuels)
- *        • ConsoCourant (occupation)
+ *        • Occupation (occupation)
  *        • Canton (compteur essieux)
  *        • SupervisionAiguilles (positions)
  *        • EXCC_Link (booster + pong)
@@ -27,8 +27,8 @@
 #include "CC_RS485.h"
 #include "Exploration_Protocol.h"
 
-#include "Sensor.h"
-#include "ConsoCourant.h"
+#include "CapteurPonctuel.h"
+#include "Occupation.h"
 #include "SupervisionAiguilles.h"
 #include "EXCC_Link.h"
 #include "Railcom.h"
@@ -45,7 +45,7 @@ static TaskHandle_t s_uartTask = nullptr;
 // ---------------------------------------------------------------------------
 // Initialisation
 // ---------------------------------------------------------------------------
-void CC_UartRx::begin()
+void CC_UartRx::begin() // 🟢
 {
     xTaskCreatePinnedToCore(
         CC_UartRx::uartTask,
@@ -62,12 +62,12 @@ void CC_UartRx::begin()
 // ---------------------------------------------------------------------------
 // Tâche UART : parsing byte par byte
 // ---------------------------------------------------------------------------
-void CC_UartRx::uartTask(void *param)
+void CC_UartRx::uartTask(void *param) // 🟢
 {
-    uint8_t step     = 0;
-    uint8_t opcode   = 0;
+    uint8_t step = 0;
+    uint8_t opcode = 0;
     uint8_t data[8];
-    uint8_t dataPos  = 0;
+    uint8_t dataPos = 0;
     uint8_t expected = 0;
 
     for (;;)
@@ -95,16 +95,33 @@ void CC_UartRx::uartTask(void *param)
             // Détermination du nombre d’octets attendus
             switch (opcode)
             {
-            case PROTO_03_H_PONCTUEL:        expected = 1; break;
-            case PROTO_03_AH_PONCTUEL:       expected = 1; break;
-            case PROTO_04_OCCUPATION:        expected = 1; break;
-            case PROTO_05_COMPTEUR_ESSIEUX:  expected = 1; break;
-            case PROTO_06_POSITION_AIGUILLE: expected = 3; break;
-            case PROTO_07_BOOSTER:           expected = 3; break; // etat, courant, tension
-            case PROTO_08_RAILCOM_ADRESSE:   expected = 2; break;
-            case PROTO_09_CALIB_BOOSTER:     expected = 4; break;
-            case PROTO_PONG:                 expected = 0; break;
-            default:                         expected = 0; break;
+            case PROTO_03_H_PONCTUEL:
+                expected = 1;
+                break;
+            case PROTO_03_AH_PONCTUEL:
+                expected = 1;
+                break;
+            case PROTO_04_OCCUPATION:
+                expected = 1;
+                break;
+            case PROTO_06_POSITION_AIGUILLE:
+                expected = 3;
+                break;
+            case PROTO_07_BOOSTER:
+                expected = 3;
+                break; // etat, courant, tension
+            case PROTO_08_RAILCOM_ADRESSE:
+                expected = 2;
+                break;
+            case PROTO_09_CALIB_BOOSTER:
+                expected = 4;
+                break;
+            case PROTO_PONG:
+                expected = 0;
+                break;
+            default:
+                expected = 0;
+                break;
             }
 
             if (expected == 0)
@@ -134,25 +151,20 @@ void CC_UartRx::uartTask(void *param)
 // ---------------------------------------------------------------------------
 // Dispatch des trames vers les modules concernés
 // ---------------------------------------------------------------------------
-void CC_UartRx::dispatch(uint8_t opcode, uint8_t *data, uint8_t len)
+void CC_UartRx::dispatch(uint8_t opcode, uint8_t *data, uint8_t len) // 🟢
 {
     switch (opcode)
     {
     case PROTO_03_H_PONCTUEL:
-        Sensor::onPonctuelH(data[0]);
+        CapteurPonctuel::onPonctuelH(data[0]);
         break;
 
     case PROTO_03_AH_PONCTUEL:
-        Sensor::onPonctuelAH(data[0]);
+        CapteurPonctuel::onPonctuelAH(data[0]);
         break;
 
     case PROTO_04_OCCUPATION:
-        ConsoCourant::onOccupation(data[0]);
-        break;
-
-    case PROTO_05_COMPTEUR_ESSIEUX:
-        Canton::s_instance->setCompteurEssieux(data[0]);
-        CC_LOG_TRACE("[CC_UartRx][CC] Compteur essieux = %d\n", data[0]);
+        Occupation::onOccupation(data[0]);
         break;
 
     case PROTO_06_POSITION_AIGUILLE:

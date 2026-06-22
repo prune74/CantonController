@@ -37,21 +37,21 @@ Canton *Exploration::canton = nullptr;
 // ---------------------------------------------------------------------------
 // Accesseurs
 // ---------------------------------------------------------------------------
-void Exploration::comptAig(byte v) { m_comptAig = v; }
-byte Exploration::comptAig() { return m_comptAig; }
+void Exploration::comptAig(byte v) { m_comptAig = v; } // 🟢
+byte Exploration::comptAig() { return m_comptAig; } // 🟢
 
-void Exploration::ID_satPeriph(byte v) { m_ID_satPeriph = v; }
-byte Exploration::ID_satPeriph() { return m_ID_satPeriph; }
+void Exploration::ID_satPeriph(byte v) { m_ID_satPeriph = v; } // 🟢
+byte Exploration::ID_satPeriph() { return m_ID_satPeriph; } // 🟢
 
-void Exploration::btnState(byte v) { m_btnState = v; }
-byte Exploration::btnState() { return m_btnState; }
+void Exploration::btnState(byte v) { m_btnState = v; } // 🟢
+byte Exploration::btnState() { return m_btnState; } // 🟢
 
-void Exploration::stopProcess(bool v) { m_stopProcess = v; }
+void Exploration::stopProcess(bool v) { m_stopProcess = v; } // 🟢
 
 // ---------------------------------------------------------------------------
 // Fonction interne : une PASSE de découverte
 // ---------------------------------------------------------------------------
-static void runExplorationPass(Canton *canton)
+static void runExplorationPass(Canton *canton) // 🟢
 {
     // Remise à zéro du compteur d’aiguilles
     Exploration::comptAig(0);
@@ -98,7 +98,7 @@ static void runExplorationPass(Canton *canton)
 // ---------------------------------------------------------------------------
 // begin() — initialisation du mode Exploration
 // ---------------------------------------------------------------------------
-void Exploration::begin(Canton *nd)
+void Exploration::begin(Canton *nd) // 🟢
 {
     canton = nd;
 
@@ -142,7 +142,7 @@ void Exploration::begin(Canton *nd)
 // ---------------------------------------------------------------------------
 // process() — gestion boutons + reset logique + CAN + MANOEUVRE
 // ---------------------------------------------------------------------------
-void Exploration::process(void *p)
+void Exploration::process(void *p) // 🟢
 {
     Canton *canton = (Canton *)p;
     bool ledAllumee = false;
@@ -308,7 +308,7 @@ void Exploration::process(void *p)
 // ---------------------------------------------------------------------------
 // createAigEtCibles() — 1ère passe au boot
 // ---------------------------------------------------------------------------
-void Exploration::createAigEtCibles(void *p)
+void Exploration::createAigEtCibles(void *p) // 🟢
 {
     Canton *canton = (Canton *)p;
 

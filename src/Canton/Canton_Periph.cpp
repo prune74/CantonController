@@ -31,7 +31,7 @@ uint8_t CantonPeriph::comptInst = 0;
 /* ============================================================================
  *  Constructeur
  * ==========================================================================*/
-CantonPeriph::CantonPeriph()
+CantonPeriph::CantonPeriph() // 🟢
     : m_id(NODE_UNUSED_ID),
       m_busy(false),
       m_reserved(0),
@@ -50,7 +50,7 @@ CantonPeriph::CantonPeriph()
 /* ============================================================================
  *  Destructeur
  * ==========================================================================*/
-CantonPeriph::~CantonPeriph()
+CantonPeriph::~CantonPeriph() // 🟢
 {
     --comptInst;
     CC_LOG_TRACE("[CantonPeriph][CC] Destruction instance (restant=%u)\n", comptInst);
@@ -60,63 +60,66 @@ CantonPeriph::~CantonPeriph()
  *  Getters / Setters
  * ==========================================================================*/
 
-void CantonPeriph::ID(uint8_t id)
+void CantonPeriph::ID(uint8_t id) // 🟢
 {
     m_id = id;
     CC_LOG_TRACE("[CantonPeriph][CC] ID = %u\n", m_id);
 }
 
-uint8_t CantonPeriph::ID()
+uint8_t CantonPeriph::ID() // 🟢
+
 {
     return m_id;
 }
 
-void CantonPeriph::busy(bool busy)
+void CantonPeriph::busy(bool busy) // 🟢
 {
     m_busy = busy;
 }
 
-bool CantonPeriph::busy()
+bool CantonPeriph::busy() // 🟢
 {
     return m_busy;
 }
 
-void CantonPeriph::reserved(uint16_t locoAddr)
+void CantonPeriph::reserved(uint16_t locoAddr) // 🟢
 {
     m_reserved = locoAddr;
 }
 
-uint16_t CantonPeriph::reserved()
+uint16_t CantonPeriph::reserved() // 🟢
 {
     return m_reserved;
 }
 
-void CantonPeriph::acces(bool acces)
+void CantonPeriph::acces(bool acces) // 🟢
 {
     m_acces = acces;
 }
 
-bool CantonPeriph::acces()
+bool CantonPeriph::acces() // 🟢
 {
     return m_acces;
 }
 
-void CantonPeriph::locoAddr(uint16_t addr)
+void CantonPeriph::locoAddr(uint16_t addr) // 🟢
 {
     m_locoAddr = addr;
 }
 
-uint16_t CantonPeriph::locoAddr()
+uint16_t CantonPeriph::locoAddr() // 🟢
+
 {
     return m_locoAddr;
 }
 
-void CantonPeriph::masqueAig(byte masqueAig)
+void CantonPeriph::masqueAig(byte masqueAig) // 🟢
 {
     m_masqueAig = masqueAig;
 }
 
-byte CantonPeriph::masqueAig()
+byte CantonPeriph::masqueAig() // 🟢
+
 {
     return m_masqueAig;
 }

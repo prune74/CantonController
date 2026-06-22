@@ -9,7 +9,7 @@ namespace FeuxDirection
      *  10 → V3
      *  11 → V4
      * ========================================================================= */
-    static FaisceauType detectTypeFromSuffix(const std::string &code)
+    static FaisceauType detectTypeFromSuffix(const std::string &code) // 🟢
     {
         if (code.size() < 2)
             return FaisceauType::Invalide;
@@ -39,7 +39,7 @@ namespace FeuxDirection
      *    - result.valide = false
      *    - result.erreur contient un message explicite
      * ========================================================================= */
-    CodeBarreDecoded CodeBarre::decode(const std::string &code)
+    CodeBarreDecoded CodeBarre::decode(const std::string &code) // 🟢
     {
         CodeBarreDecoded result;
 

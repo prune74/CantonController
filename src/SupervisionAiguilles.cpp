@@ -25,7 +25,7 @@ Canton *SupervisionAiguilles::s_canton = nullptr;
 // ---------------------------------------------------------------------------
 // begin()
 // ---------------------------------------------------------------------------
-void SupervisionAiguilles::begin(Canton *canton)
+void SupervisionAiguilles::begin(Canton *canton) // 🟢
 {
     s_canton = canton;
     CC_LOG_INFO("[Aiguilles][CC] Supervision initialisée pour Canton %d\n", canton->ID());
@@ -35,9 +35,7 @@ void SupervisionAiguilles::begin(Canton *canton)
 // onPosition()
 // Mise à jour d’une aiguille suite à une notification EXCC
 // ---------------------------------------------------------------------------
-void SupervisionAiguilles::onPosition(uint8_t idAig,
-                                      uint8_t pos,
-                                      uint8_t etat)
+void SupervisionAiguilles::onPosition(uint8_t idAig, uint8_t pos, uint8_t etat) // 🟢 
 {
     if (!s_canton)
         return;

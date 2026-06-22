@@ -19,7 +19,7 @@
 // ---------------------------------------------------------------------------
 // mountSPIFFS()
 // ---------------------------------------------------------------------------
-bool Settings::mountSPIFFS()
+bool Settings::mountSPIFFS() // 🟢
 {
     CC_LOG_INFO("[Settings][SPIFFS][CC] Montage du système de fichiers...\n");
 

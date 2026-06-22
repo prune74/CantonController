@@ -25,7 +25,7 @@ extern HardwareSerial Serial1;
  *  Envoie F0 pour chaque aiguille logique active.
  *  F0 = mouvement réel → EXCC choisit posDroit() ou posDevie().
  * ==========================================================================*/
-void envoyerAiguillesDepuisEtatCourant()
+void envoyerAiguillesDepuisEtatCourant() // 🟣 
 {
     for (uint8_t idx = 0; idx < aigSize; ++idx)
     {

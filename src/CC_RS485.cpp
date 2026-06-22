@@ -26,7 +26,7 @@ static HardwareSerial &uart = Settings::uart();
 // ---------------------------------------------------------------------------
 // Initialisation RS485
 // ---------------------------------------------------------------------------
-void CC_RS485::begin()
+void CC_RS485::begin() // 🟢
 {
     pinMode(RS485_DE_RE, OUTPUT);
     digitalWrite(RS485_DE_RE, LOW); // réception par défaut
@@ -39,7 +39,7 @@ void CC_RS485::begin()
 // ---------------------------------------------------------------------------
 // Passage en émission
 // ---------------------------------------------------------------------------
-void CC_RS485::setTx()
+void CC_RS485::setTx() // 🟢
 {
     digitalWrite(RS485_DE_RE, HIGH);
     delayMicroseconds(50);
@@ -48,7 +48,7 @@ void CC_RS485::setTx()
 // ---------------------------------------------------------------------------
 // Passage en réception
 // ---------------------------------------------------------------------------
-void CC_RS485::setRx()
+void CC_RS485::setRx() // 🟢
 {
     delayMicroseconds(50);
     digitalWrite(RS485_DE_RE, LOW);
@@ -57,7 +57,7 @@ void CC_RS485::setRx()
 // ---------------------------------------------------------------------------
 // Envoi d’un octet
 // ---------------------------------------------------------------------------
-void CC_RS485::sendByte(uint8_t b)
+void CC_RS485::sendByte(uint8_t b) // 🔴 
 {
     setTx();
     uart.write(b);
@@ -68,7 +68,7 @@ void CC_RS485::sendByte(uint8_t b)
 // ---------------------------------------------------------------------------
 // Envoi d’une trame complète
 // ---------------------------------------------------------------------------
-void CC_RS485::sendFrame(const uint8_t *data, size_t len)
+void CC_RS485::sendFrame(const uint8_t *data, size_t len) // 🟢
 {
     setTx();
     uart.write(data, len);
@@ -79,7 +79,7 @@ void CC_RS485::sendFrame(const uint8_t *data, size_t len)
 // ---------------------------------------------------------------------------
 // Lecture non bloquante d’un octet
 // ---------------------------------------------------------------------------
-int CC_RS485::readByte()
+int CC_RS485::readByte() // 🟢
 {
     if (uart.available())
         return uart.read();

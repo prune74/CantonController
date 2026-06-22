@@ -26,7 +26,7 @@ static uint8_t  comptCmdLoco  = 0;
 // ---------------------------------------------------------------------------
 // envoyerCommandeDCC()
 // ---------------------------------------------------------------------------
-void envoyerCommandeDCC(Canton *canton)
+void envoyerCommandeDCC(Canton *canton) // 🟢
 {
     Loco *loco = canton->getLoco();
     if (!loco)

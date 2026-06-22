@@ -21,7 +21,7 @@
 // ---------------------------------------------------------------------------
 // Pilotage distribué principal
 // ---------------------------------------------------------------------------
-void executerPilotageDistribue(Canton *canton)
+void executerPilotageDistribue(Canton *canton) // 🟢
 {
     if (!canton)
         return;

@@ -24,7 +24,7 @@
 /* ============================================================================
  *  Chargement des paramètres généraux
  * ==========================================================================*/
-void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc)
+void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc) // 🟢
 {
     // ID du canton
     canton->ID(doc["idCanton"] | UNUSED_ID);
@@ -55,7 +55,7 @@ void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc)
 /* ============================================================================
  *  Sauvegarde des paramètres généraux
  * ==========================================================================*/
-void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc)
+void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc) // 🟢
 {
     doc["idCanton"]       = canton->ID();
     doc["comptAig"]       = Exploration::comptAig();

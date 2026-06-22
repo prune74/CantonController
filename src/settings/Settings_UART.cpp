@@ -27,7 +27,7 @@ HardwareSerial Settings::SerialUART(UART_PORT_NUM);
 /* ============================================================================
  *  uart() — Accès centralisé à l’UART RS485
  * ==========================================================================*/
-HardwareSerial &Settings::uart()
+HardwareSerial &Settings::uart() // 🟢
 {
     return SerialUART;
 }
@@ -35,7 +35,7 @@ HardwareSerial &Settings::uart()
 /* ============================================================================
  *  setupUART() — Initialisation de l’UART RS485
  * ==========================================================================*/
-void Settings::setupUART()
+void Settings::setupUART() // 🟢
 {
     SerialUART.begin(
         UART_BAUDRATE,

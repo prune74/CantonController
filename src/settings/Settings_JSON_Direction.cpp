@@ -30,7 +30,7 @@
 /* ============================================================================
  *  Chargement des feux directionnels
  * ==========================================================================*/
-void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc)
+void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc) // 🟢
 {
     if (!doc.containsKey("direction"))
         return;
@@ -88,7 +88,7 @@ void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc)
 /* ============================================================================
  *  Sauvegarde des feux directionnels
  * ==========================================================================*/
-void Settings_JSON_saveDirection(Canton *canton, JsonDocument &doc)
+void Settings_JSON_saveDirection(Canton *canton, JsonDocument &doc) // 🟢
 {
     JsonObject dir = doc.createNestedObject("direction");
 

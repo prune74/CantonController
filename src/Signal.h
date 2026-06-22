@@ -66,7 +66,7 @@ public:
 private:
     uint8_t m_type;     // Profil du signal (nombre de feux)
     uint8_t m_position; // 0 = horaire, 1 = anti‑horaire
-    uint8_t m_length;   // Nombre de feux physiques
+    //uint8_t m_length;   // Nombre de feux physiques
 
     // Capacités internes
     bool m_hasCarre;

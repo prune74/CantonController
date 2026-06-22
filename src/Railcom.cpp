@@ -23,7 +23,7 @@ volatile uint16_t Railcom::s_address = 0;
 // ---------------------------------------------------------------------------
 // Initialisation
 // ---------------------------------------------------------------------------
-void Railcom::begin()
+void Railcom::begin() // 🟢
 {
     s_address = 0;
     CC_LOG_INFO("[Railcom][CC] Initialisé (réception EXCC → CC)\n");
@@ -32,7 +32,7 @@ void Railcom::begin()
 // ---------------------------------------------------------------------------
 // Lecture de l’adresse RailCom courante
 // ---------------------------------------------------------------------------
-uint16_t Railcom::address()
+uint16_t Railcom::address() // 🟢
 {
     return s_address;
 }
@@ -40,7 +40,7 @@ uint16_t Railcom::address()
 // ---------------------------------------------------------------------------
 // Callback : réception d’une adresse RailCom depuis EXCC
 // ---------------------------------------------------------------------------
-void Railcom::onRailcom(uint8_t low, uint8_t high)
+void Railcom::onRailcom(uint8_t low, uint8_t high) // 🟢
 {
     uint16_t adr = (uint16_t(high) << 8) | low;
     s_address = adr;

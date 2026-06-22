@@ -18,7 +18,7 @@
 #include "Signal.h"
 #include "Booster.h"
 
-void WebHandler::notifyClients()
+void WebHandler::notifyClients() // 🟢
 {
     if (!_ws || _ws->count() == 0)
         return;

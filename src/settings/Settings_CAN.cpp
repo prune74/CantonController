@@ -23,7 +23,7 @@
 /* ============================================================================
  *  Callback : la carte Main a envoyé CMD_SAT_TEST_BUS_REPLY
  * ==========================================================================*/
-void Settings::sMainReady(bool val)
+void Settings::sMainReady(bool val) // 🟢
 {
     Settings::isMainReady = val;
     CC_LOG_INFO("[Settings][CAN][CC] MainBoard ready = %d\n", val);
@@ -32,7 +32,7 @@ void Settings::sMainReady(bool val)
 /* ============================================================================
  *  beginCAN() — Dialogue CAN initial
  * ==========================================================================*/
-bool Settings::beginCAN()
+bool Settings::beginCAN() // 🟢
 {
     Serial.printf("[Settings][CAN][CC] Attente de la carte Main (CMD_SAT_TEST_BUS_REPLY)...\n");
 

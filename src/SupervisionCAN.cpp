@@ -26,7 +26,7 @@
 // envoyerEtatCAN()
 // Envoie les trames 0xE0 et 0xE3 selon l’état du canton
 // ---------------------------------------------------------------------------
-void envoyerEtatCAN(Canton *canton)
+void envoyerEtatCAN(Canton *canton) // 🟢
 {
     // Récupération des voisins via l’API moderne
     CantonPeriph *sp1 = canton->getCantonP(canton->SP1_idx());

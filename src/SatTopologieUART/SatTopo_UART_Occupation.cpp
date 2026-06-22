@@ -20,7 +20,7 @@
  *   - aucune lecture de capteurs physiques
  *   - aucune interprétation RailCom / essieux
  *
- * Toute la logique d’occupation est gérée dans CantonPeriph et ConsoCourant.
+ * Toute la logique d’occupation est gérée dans CantonPeriph et Occupation.
  */
 
 #include "SatTopologieUART.h"
@@ -38,7 +38,7 @@ extern HardwareSerial Serial1;
  * ---------------------------------------------------------------------------
  *  Lit l’occupation SP1 / SM1 et envoie l’octet EA correspondant.
  * ==========================================================================*/
-void envoyerOccupationDepuisEtatCourant()
+void envoyerOccupationDepuisEtatCourant() // 🟢
 {
     uint8_t occSP1 = 0;
     uint8_t occSM1 = 0;
@@ -63,7 +63,7 @@ void envoyerOccupationDepuisEtatCourant()
 /* ============================================================================
  *  envoyerOccupationVoisins() — opcode EA
  * ==========================================================================*/
-void envoyerOccupationVoisins(uint8_t valeur)
+void envoyerOccupationVoisins(uint8_t valeur) // 🟢
 {
     CC_LOG_TRACE("[TopoUART][CC] Occupation voisins (EA) = %u\n", valeur);
 

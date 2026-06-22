@@ -27,7 +27,7 @@ namespace FeuxDirection
      * ========================================================================= */
     bool Conditions::voieOuverte(const CodeBarreDecoded &cb,
                                  uint8_t voie,
-                                 const IAiguillesPhysiques &aiguilles)
+                                 const IAiguillesPhysiques &aiguilles) // 🟢
     {
         // ---------------------------------------------------------------------
         // 1) Vérifications de base

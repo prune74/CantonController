@@ -76,16 +76,3 @@ uint16_t Loco::speed() const
 {
     return m_speed;
 }
-
-// ---------------------------------------------------------------------------
-// Commandes rapides
-// ---------------------------------------------------------------------------
-void Loco::stop()
-{
-    m_speed = 0;
-}
-
-void Loco::ralentis(uint16_t speed)
-{
-    m_speed = speed;
-}

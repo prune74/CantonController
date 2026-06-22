@@ -28,7 +28,7 @@ static const char *VOISIN_KEY[cantonPsize] =
 /* ============================================================================
  *  Chargement des voisins
  * ==========================================================================*/
-void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc)
+void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc) // 🟢
 {
     for (byte i = 0; i < cantonPsize; i++)
     {
@@ -82,7 +82,7 @@ void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc)
 /* ============================================================================
  *  Sauvegarde des voisins
  * ==========================================================================*/
-void Settings_JSON_saveVoisins(Canton *canton, JsonDocument &doc)
+void Settings_JSON_saveVoisins(Canton *canton, JsonDocument &doc) // 🟢
 {
     for (byte i = 0; i < cantonPsize; i++)
     {

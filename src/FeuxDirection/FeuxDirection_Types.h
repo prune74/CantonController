@@ -78,7 +78,7 @@ namespace FeuxDirection
      *
      *  Ce struct décrit UNIQUEMENT la géométrie du faisceau.
      * ========================================================================= */
-    struct VoieCodeBarre
+    struct VoieCodeBarre // 🟢
     {
         uint8_t P0{0};
         uint8_t P1{0};
@@ -97,7 +97,7 @@ namespace FeuxDirection
      *    - FeuxDirection_Conditions::voieOuverte()
      *    - FeuxDirection::compute()
      * ========================================================================= */
-    struct CodeBarreDecoded
+    struct CodeBarreDecoded // 🟢
     {
         FaisceauType type{FaisceauType::Invalide};
         uint8_t nbVoies{0};
@@ -119,7 +119,7 @@ namespace FeuxDirection
      *
      *  ok = false → erreur de configuration ou code‑barres invalide
      * ========================================================================= */
-    struct DirectionState
+    struct DirectionState // 🟢
     {
         uint8_t voieActive{0};     ///< 0 = aucun feu, sinon 1..nbVoies
         CodeBarreDecoded geometry; ///< Code‑barres décodé (debug)

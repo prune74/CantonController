@@ -15,7 +15,7 @@
 #include "CanConfig.h"
 #include "debug_cc.h"
 
-void CanConfig::setup()
+void CanConfig::setup() // 🟢
 {
     CC_LOG_INFO("[CanConfig][CC] Initialisation du CAN interne\n");
 

@@ -27,10 +27,7 @@ namespace FeuxDirection
     // -----------------------------------------------------------------------
     // compute() — Fonction principale appelée par GestionReseau
     // -----------------------------------------------------------------------
-    DirectionState FeuxDirection::compute(const std::string &codeBarre,
-                                          uint8_t voieDemandee,
-                                          bool cantonOccupe,
-                                          const IAiguillesPhysiques &aiguilles)
+    DirectionState FeuxDirection::compute(const std::string &codeBarre, uint8_t voieDemandee, bool cantonOccupe, const IAiguillesPhysiques &aiguilles) // 🟢
     {
         DirectionState st;
 

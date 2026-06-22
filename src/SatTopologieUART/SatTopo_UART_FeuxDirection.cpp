@@ -38,7 +38,7 @@ extern HardwareSerial Serial1;
  *    → E8 (horaire)
  *    → E9 (anti‑horaire)
  * ==========================================================================*/
-void envoyerFeuxDepuisEtatCourant()
+void envoyerFeuxDepuisEtatCourant() // 🟢
 {
     // -----------------------------------------------------------------------
     // Mise à jour logique (calcul métier dans Canton_FeuxDirection)
@@ -65,7 +65,7 @@ void envoyerFeuxDepuisEtatCourant()
 /* ============================================================================
  *  envoyerFeuDirectionHoraire() — opcode E8
  * ==========================================================================*/
-void envoyerFeuDirectionHoraire(uint8_t code)
+void envoyerFeuDirectionHoraire(uint8_t code) // 🟢 
 {
     CC_LOG_TRACE("[TopoUART][CC] Feu direction horaire (E8) = %u\n", code);
 
@@ -77,7 +77,7 @@ void envoyerFeuDirectionHoraire(uint8_t code)
 /* ============================================================================
  *  envoyerFeuDirectionAntiHoraire() — opcode E9
  * ==========================================================================*/
-void envoyerFeuDirectionAntiHoraire(uint8_t code)
+void envoyerFeuDirectionAntiHoraire(uint8_t code) // 🟢
 {
     CC_LOG_TRACE("[TopoUART][CC] Feu direction anti-horaire (E9) = %u\n", code);
 

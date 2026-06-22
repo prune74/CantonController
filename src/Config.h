@@ -95,9 +95,6 @@ static constexpr uint8_t aigSize     = 6;  // Aiguilles logiques
 static constexpr uint8_t sensorSize  = 2;  // Capteurs ponctuels
 static constexpr uint8_t signalSize  = 2;  // Signaux H / AH
 
-static constexpr uint8_t IDX_CAPT_ANTIHORAIRE = 0;
-static constexpr uint8_t IDX_CAPT_HORAIRE     = 1;
-
 /* ============================================================================
  *  RAILCOM — Détection adresse loco
  * ============================================================================

@@ -36,7 +36,7 @@ extern HardwareSerial Serial1;
  *    → E6 (horaire)
  *    → E7 (anti‑horaire)
  * ==========================================================================*/
-void envoyerAspectsDepuisEtatCourant()
+void envoyerAspectsDepuisEtatCourant() // 🟢
 {
     // -----------------------------------------------------------------------
     // Calcul des aspects (logique métier dans SupervisionCanton)

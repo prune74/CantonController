@@ -31,17 +31,18 @@
 #include "FeuxDirection.h"
 
 /* ============================================================================
- *  Implémentation IAiguillesPhysiques pour un Canton
+ *  Implémentation IAiguillesPhysiques pour un Canton // 🟢
  * ==========================================================================*/
 class AiguillesPhysiquesFromCanton : public FeuxDirection::IAiguillesPhysiques
 {
 public:
-    explicit AiguillesPhysiquesFromCanton(const Canton *c) : m_canton(c) {}
+    explicit AiguillesPhysiquesFromCanton(const Canton *c) : m_canton(c) {} // 🟢
 
-    uint8_t getPositionAig(uint8_t indexAig) const override
+    uint8_t getPositionAig(uint8_t indexAig) const override // 🟢
     {
         // Canton fournit la position logique (0=droit, 1=devie)
-        return m_canton->getAiguillePosition(indexAig);
+        return m_canton->getAiguillePosition(indexAig); // 🟢
+
     }
 
 private:
@@ -51,7 +52,7 @@ private:
 /* ============================================================================
  *  updateFeuDirection() — Mise à jour du feu directionnel pour un sens donné
  * ==========================================================================*/
-void Canton::updateFeuDirection(SensDeMarche sens)
+void Canton::updateFeuDirection(SensDeMarche sens) // 🟢
 {
     /* ------------------------------------------------------------------------
      * 1) Sélection du bloc directionnel (H ou AH)
@@ -146,12 +147,12 @@ void Canton::updateFeuDirection(SensDeMarche sens)
 /* ============================================================================
  *  Accesseurs
  * ==========================================================================*/
-uint8_t Canton::getFeuDirection(SensDeMarche sens) const
+uint8_t Canton::getFeuDirection(SensDeMarche sens) const // 🟢
 {
     return m_feuDirection[sens];
 }
 
-void Canton::setFeuDirection(SensDeMarche sens, uint8_t valeur)
+void Canton::setFeuDirection(SensDeMarche sens, uint8_t valeur) // 🟢
 {
     m_feuDirection[sens] = valeur;
 }

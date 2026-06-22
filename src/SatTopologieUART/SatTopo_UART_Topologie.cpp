@@ -35,7 +35,7 @@ extern HardwareSerial Serial1;
 /* ============================================================================
  *  Vérifie si au moins un voisin est connu dans settings.json
  * ==========================================================================*/
-static bool tousLesVoisinsSontConnus()
+static bool tousLesVoisinsSontConnus() // 🟢
 {
     CC_LOG_TRACE("[TopoUART][CC] Vérification des voisins dans settings.json\n");
 
@@ -78,7 +78,7 @@ static bool tousLesVoisinsSontConnus()
 /* ============================================================================
  *  Envoie la topologie CAN depuis settings.json — opcode E4
  * ==========================================================================*/
-void envoyerTopologieDepuisSettings()
+void envoyerTopologieDepuisSettings() // 🟢
 {
     CC_LOG_INFO("[TopoUART][CC] Envoi de la topologie EXCC...\n");
 
@@ -156,7 +156,7 @@ void envoyerTopologieDepuisSettings()
 /* ============================================================================
  *  Envoi conditionnel de la topologie (une seule fois)
  * ==========================================================================*/
-void envoyerTopologieSiPret()
+void envoyerTopologieSiPret() // 🟢
 {
     static bool dejaEnvoyee = false;
 

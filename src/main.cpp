@@ -6,12 +6,13 @@
 // Rôle :
 //   - Initialisation générale (UART, SPIFFS, settings.json)
 //   - Initialisation CAN (ACAN / MCP2515 selon config)
-//   - Dialogue CAN avec la carte Main
+//   - Dialogue CAN avec la carte Main (attribution ID, test bus…)
 //   - Initialisation EXCC (Extension Canton Controller)
 //   - Gestion RailCom (mode normal) ou Exploration (mode interne)
 //   - Interface Web + WiFi
+//   - Démarrage du Watchdog CC → Master (heartbeat 0x200)
 //
-// Ce fichier ne contient aucune logique ferroviaire :
+// Ce fichier NE CONTIENT AUCUNE LOGIQUE FERROVIAIRE :
 //   → tout est délégué à Canton, GestionReseau, Exploration, EXCC_Link.
 // ---------------------------------------------------------------------------
 
@@ -39,10 +40,14 @@
 
 // --- EXCC (Extension Canton Controller) -------------------------------------
 #include "EXCC_Link.h"
+#include "SupervisionAiguilles.h"
 
 // --- Interface Web + WiFi ---------------------------------------------------
 #include "WebHandler.h"
 #include "Wifi_fl.h"
+
+// --- Watchdog CC → Master ---------------------------------------------------
+#include "CCWatchdog.h"
 
 // --- Logs CC ----------------------------------------------------------------
 #include "debug_cc.h"
@@ -58,6 +63,9 @@ bool wifiOn = false;
 ============================================================================*/
 void setup()
 {
+    // ------------------------------------------------------------------------
+    // UART debug
+    // ------------------------------------------------------------------------
     Serial.begin(115200);
     while (!Serial) {}
     delay(100);
@@ -88,7 +96,7 @@ void setup()
     vTaskDelay(pdMS_TO_TICKS(100));
 
     // ------------------------------------------------------------------------
-    // Dialogue CAN avec la carte Main
+    // Dialogue CAN avec la carte Main (test bus, attribution ID…)
     // ------------------------------------------------------------------------
     if (!Settings::begin())
     {
@@ -126,7 +134,29 @@ void setup()
     // ------------------------------------------------------------------------
     // Initialisation EXCC (Extension Canton Controller)
     // ------------------------------------------------------------------------
+    SupervisionAiguilles::begin(canton);
     EXCC_Link::begin();
+
+    // ------------------------------------------------------------------------
+    // Watchdog CC → Master (Heartbeat 0x200)
+    // ------------------------------------------------------------------------
+    // Rôle :
+    //   - envoi périodique d’un heartbeat toutes les 100 ms
+    //   - permet au Master de superviser la présence du CC
+    //
+    // Important :
+    //   - si le CC entre en STOP local → Canton_Stop.cpp suspend le heartbeat
+    //   - le Master détecte l’absence de heartbeat → STOP global réseau
+    //
+    // Le watchdog doit être démarré APRÈS :
+    //   - l’attribution de l’ID canton
+    //   - l’initialisation CAN
+    //   - l’initialisation EXCC
+    //
+    // Et AVANT :
+    //   - l’interface Web (pour éviter un délai de démarrage)
+    // ------------------------------------------------------------------------
+    CCWatchdog_begin();
 
     // ------------------------------------------------------------------------
     // WiFi + Interface Web

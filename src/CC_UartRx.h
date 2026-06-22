@@ -14,7 +14,7 @@
  *   - parser les trames reçues
  *   - dispatcher les données vers les modules concernés :
  *        • Sensor (ponctuels)
- *        • ConsoCourant (occupation)
+ *        • Occupation (occupation)
  *        • Canton (compteur essieux)
  *        • SupervisionAiguilles (positions)
  *        • EXCC_Link (booster + pong)

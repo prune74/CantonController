@@ -68,7 +68,7 @@ void Settings::explorationOn(bool val) { EXPLORATION_ON = val; }
  *  setup() — Initialisation complète du Canton Controller (hors CAN)
  * ==========================================================================*/
 
-void Settings::setup(Canton *nd)
+void Settings::setup(Canton *nd) // 🟢
 {
     canton = nd;
 
@@ -98,7 +98,7 @@ void Settings::setup(Canton *nd)
  *  begin() — Dialogue CAN avec la carte Main (EXCC)
  * ==========================================================================*/
 
-bool Settings::begin()
+bool Settings::begin() // 🟢
 {
     CC_LOG_INFO("[Settings][CC] Début du dialogue CAN...\n");
 
@@ -116,7 +116,7 @@ bool Settings::begin()
  *  JSON 2026 — loadFile() : settings.json → objets Canton
  * ==========================================================================*/
 
-void Settings::loadFile(Canton *canton)
+void Settings::loadFile(Canton *canton) // 🟢
 {
     File file = SPIFFS.open("/settings.json", "r");
     if (!file)
@@ -154,7 +154,7 @@ void Settings::loadFile(Canton *canton)
  *  JSON 2026 — writeFile() : objets Canton → settings.json
  * ==========================================================================*/
 
-void Settings::writeFile(Canton *canton)
+void Settings::writeFile(Canton *canton) // 🟢
 {
     StaticJsonDocument<8192> doc;
 

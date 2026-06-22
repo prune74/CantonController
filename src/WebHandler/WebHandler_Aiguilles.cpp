@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------
 // handleServoSettings()
 // ---------------------------------------------------------------------------
-void WebHandler::handleServoSettings(JsonDocument &doc)
+void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
 {
     const char *servoId     = doc["servoSettings"][0];
     const uint16_t value    = doc["servoSettings"][1];
@@ -89,7 +89,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
 // ---------------------------------------------------------------------------
 // handleServoTest()
 // ---------------------------------------------------------------------------
-void WebHandler::handleServoTest(JsonDocument &doc)
+void WebHandler::handleServoTest(JsonDocument &doc) // 🟢
 {
     const uint8_t servoName = doc["servoTest"][0];
 

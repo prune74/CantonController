@@ -31,8 +31,7 @@
  *
  * Ce handler ne modifie JAMAIS la topologie ni l’exploitation.
  * ==========================================================================*/
-void handleSystemCommand(uint8_t commande, const CANMessage &frameIn,
-                         Canton *canton, uint16_t idSatExpediteur)
+void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Canton *canton, uint16_t idSatExpediteur)
 {
     (void)idSatExpediteur; // non utilisé
 

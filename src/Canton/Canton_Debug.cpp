@@ -19,7 +19,7 @@
  *    - ce diagnostic n’effectue AUCUNE logique métier
  * ============================================================================
  */
-void Canton::debugTopologieEtAiguilles()
+void Canton::debugTopologieEtAiguilles() // 🟣
 {
     CC_LOG_INFO("============================================================\n");
     CC_LOG_INFO("[Canton %u][Debug][CC] Diagnostic topologie & aiguilles\n", m_id);

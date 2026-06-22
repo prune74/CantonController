@@ -28,9 +28,7 @@ uint16_t Booster::s_seuilOccupe  = 0;
 // ---------------------------------------------------------------------------
 // Mise à jour Booster (tension / courant / état)
 // ---------------------------------------------------------------------------
-void Booster::onBooster(uint8_t tension,
-                        uint8_t courant,
-                        uint8_t etat)
+void Booster::onBooster(uint8_t tension, uint8_t courant, uint8_t etat) // 🟢
 {
     s_tension = tension;
     s_courant = courant;
@@ -43,10 +41,7 @@ void Booster::onBooster(uint8_t tension,
 // ---------------------------------------------------------------------------
 // Calibration Booster (seuils libre / occupé)
 // ---------------------------------------------------------------------------
-void Booster::onCalib(uint8_t libre_L,
-                      uint8_t libre_H,
-                      uint8_t occupe_L,
-                      uint8_t occupe_H)
+void Booster::onCalib(uint8_t libre_L, uint8_t libre_H, uint8_t occupe_L, uint8_t occupe_H) // 🟢
 {
     uint16_t libre  = (uint16_t(libre_H)  << 8) | libre_L;
     uint16_t occupe = (uint16_t(occupe_H) << 8) | occupe_L;
@@ -68,7 +63,7 @@ void Booster::onCalib(uint8_t libre_L,
 // ---------------------------------------------------------------------------
 // Chargement manuel des seuils (depuis Settings)
 // ---------------------------------------------------------------------------
-void Booster::setSeuils(uint16_t libre, uint16_t occupe)
+void Booster::setSeuils(uint16_t libre, uint16_t occupe) // 🟢
 {
     s_seuilLibre  = libre;
     s_seuilOccupe = occupe;

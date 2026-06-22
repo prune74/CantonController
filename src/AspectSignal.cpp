@@ -42,7 +42,7 @@ const TickType_t tempoEnvoi = pdMS_TO_TICKS(300);
 // ---------------------------------------------------------------------------
 // Fonction principale : mettreAJourAspectSignal()
 // ---------------------------------------------------------------------------
-void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
+void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue) // 🟢
 {
     TickType_t now = xTaskGetTickCount();
 

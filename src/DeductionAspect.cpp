@@ -23,7 +23,7 @@
 // ---------------------------------------------------------------------------
 // Déduction d’aspect local depuis l’aspect aval
 // ---------------------------------------------------------------------------
-ExccAspect deduireAspectDepuisAval(ExccAspect aval, bool voieDevie)
+ExccAspect deduireAspectDepuisAval(ExccAspect aval, bool voieDevie) // 🟢
 {
     switch (aval)
     {

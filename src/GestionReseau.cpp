@@ -24,6 +24,7 @@
  */
 
 #include "GestionReseau.h"
+#include "GestionLoco.h"          // Mise à jour de l’état de la loco
 #include "FeuxDirection.h"        // Feux directionnels (0..4)
 #include "Exploration_Protocol.h" // ExccAspect + opcodes UART/CAN
 #include "AspectSignal.h"         // mettreAJourAspectSignal()
@@ -37,7 +38,7 @@ ExccAspect GestionReseau::signalValue[2] = {ASPECT_CARRE, ASPECT_CARRE};
 // ---------------------------------------------------------------------------
 // Création de la tâche FreeRTOS
 // ---------------------------------------------------------------------------
-void GestionReseau::setup(Canton *canton)
+void GestionReseau::setup(Canton *canton) // 🟢
 {
     xTaskCreatePinnedToCore(
         loopTask,
@@ -52,7 +53,7 @@ void GestionReseau::setup(Canton *canton)
 // ---------------------------------------------------------------------------
 // Boucle principale de supervision
 // ---------------------------------------------------------------------------
-void IRAM_ATTR GestionReseau::loopTask(void *pvParameters)
+void IRAM_ATTR GestionReseau::loopTask(void *pvParameters) // 🟢
 {
     Canton *canton = static_cast<Canton *>(pvParameters);
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -62,7 +63,7 @@ void IRAM_ATTR GestionReseau::loopTask(void *pvParameters)
         // -------------------------------------------------------------------
         // 1) Mise à jour des capteurs
         // -------------------------------------------------------------------
-        mettreAJourCapteurs(canton);
+        gestionLoco_update(canton);
 
         // -------------------------------------------------------------------
         // 2) Déduction du sens de roulage

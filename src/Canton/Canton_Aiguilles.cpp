@@ -26,9 +26,9 @@
 #include "SatTopologieUART.h"
 
 /* ============================================================================
- *  aigRun() — Envoi d’une commande F0 à l’EXCC
+ *  aigRun() — Envoi d’une commande F0 à l’EXCC 🟢
  * ==========================================================================*/
-void Canton::aigRun(byte idx)
+void Canton::aigRun(byte idx) // 🟢
 {
     // ------------------------------------------------------------------------
     // STOP global Exploration 2026 : aucune commande d’aiguille autorisée
@@ -74,9 +74,9 @@ void Canton::aigRun(byte idx)
 }
 
 /* ============================================================================
- *  getAiguillePosition() — Lecture logique de l’aiguille
+ *  getAiguillePosition() — Lecture logique de l’aiguille 
  * ==========================================================================*/
-uint8_t Canton::getAiguillePosition(uint8_t idx) const
+uint8_t Canton::getAiguillePosition(uint8_t idx) const // 🟢
 {
     Aig *a = const_cast<Canton *>(this)->getAig(idx);
     if (!a)

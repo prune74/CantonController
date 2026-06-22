@@ -26,7 +26,7 @@
 /* ============================================================================
  *  Chargement des signaux depuis settings.json
  * ==========================================================================*/
-void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc)
+void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc) // 🟢
 {
     for (byte i = 0; i < signalSize; i++)
     {
@@ -68,7 +68,7 @@ void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc)
 /* ============================================================================
  *  Sauvegarde des signaux vers settings.json
  * ==========================================================================*/
-void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc)
+void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc) // 🟢
 {
     for (byte i = 0; i < signalSize; i++)
     {

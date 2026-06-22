@@ -75,7 +75,7 @@ void CanMsg::testMemory(void *pvParameters)
 // ---------------------------------------------------------------------------
 // canReceiveMsg() — tâche FreeRTOS de réception / dispatch CAN
 // ---------------------------------------------------------------------------
-void CanMsg::canReceiveMsg(void *pvParameters)
+void CanMsg::canReceiveMsg(void *pvParameters) // 🟢
 {
     Canton *canton = (Canton *)pvParameters;
     TickType_t xLastWakeTime = xTaskGetTickCount();
