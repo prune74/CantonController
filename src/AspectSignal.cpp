@@ -42,7 +42,7 @@ const TickType_t tempoEnvoi = pdMS_TO_TICKS(300);
 // ---------------------------------------------------------------------------
 // Fonction principale : mettreAJourAspectSignal()
 // ---------------------------------------------------------------------------
-void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue) // 🟢
+void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
 {
     TickType_t now = xTaskGetTickCount();
 
@@ -55,13 +55,16 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue) // 🟢
     // -----------------------------------------------------------------------
     // 2) Récupération des aspects aval SP1 / SM1
     // -----------------------------------------------------------------------
-    CantonPeriph *sp1 = canton->getCantonP(canton->SP1_idx());
-    CantonPeriph *sm1 = canton->getCantonP(canton->SM1_idx());
+    CantonPeriph *sp1 = canton->voisinSP1();
+    CantonPeriph *sm1 = canton->voisinSM1();
 
+    // sens horaire → aspect côté H → index 1
     if (sp1)
-        aspectAval = static_cast<ExccAspect>(sp1->aspectRecu[0]);
+        aspectAval = static_cast<ExccAspect>(sp1->aspectRecu[1]);
+
+    // sens antihoraire → aspect côté AH → index 0
     if (sm1)
-        aspectAvalAH = static_cast<ExccAspect>(sm1->aspectRecu[1]);
+        aspectAvalAH = static_cast<ExccAspect>(sm1->aspectRecu[0]);
 
     // -----------------------------------------------------------------------
     // 3) Vérification des aiguilles locales
@@ -190,7 +193,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue) // 🟢
         }
 
         // ---------------------------------------------------------------
-        // 8D) OCCUPATION DES CANTONS VOISINS
+        // 8D) OCCUPATION DES CANTONS VOISINS (SP1 / SM1)
         // ---------------------------------------------------------------
         uint8_t occVoisins = 0;
 

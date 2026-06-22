@@ -22,6 +22,7 @@
 
 #pragma once
 #include <Arduino.h>
+#include "FeuxDirection/FeuxDirection_Types.h"   // pour SensDeMarche
 
 class CantonPeriph
 {
@@ -68,7 +69,11 @@ public:
     /* ------------------------------------------------------------------------
      * Aspects reçus depuis EXCC (H / AH)
      * ------------------------------------------------------------------------ */
-    uint8_t aspectRecu[2];
+    void aspectRecuH(uint8_t asp);     // sens horaire
+    void aspectRecuAH(uint8_t asp);    // sens antihoraire
+    void setAspect(SensDeMarche sens, uint8_t asp);
+
+    uint8_t aspectRecu[2]; // [0]=AH, [1]=H
 
     /* ------------------------------------------------------------------------
      * Debug : compteur d’instances

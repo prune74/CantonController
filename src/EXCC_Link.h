@@ -36,7 +36,6 @@ public:
     // -----------------------------------------------------------------------
     // Supervision EXCC
     // -----------------------------------------------------------------------
-    static bool isOnline();
     static void onPong();
     static void onExccOnline();
     static void onExccOffline();

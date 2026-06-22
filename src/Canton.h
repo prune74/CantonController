@@ -76,31 +76,32 @@ public:
     bool estOccupe();
 
     // -----------------------------------------------------------------------
-    // Topologie SP1 / SM1 / SP2 / SM2
+    // Topologie SP1 / SM1 / SP2 / SM2 (indices uniquement)
     // -----------------------------------------------------------------------
     void SP1_idx(uint8_t idx);
     uint8_t SP1_idx();
     void SM1_idx(uint8_t idx);
     uint8_t SM1_idx();
 
-    void SP2_acces(bool v);
-    bool SP2_acces();
-    void SP2_busy(bool v);
-    bool SP2_busy();
-
-    void SM2_acces(bool v);
-    bool SM2_acces();
-    void SM2_busy(bool v);
-    bool SM2_busy();
+    void SP2_idx(uint8_t idx);
+    uint8_t SP2_idx();
+    void SM2_idx(uint8_t idx);
+    uint8_t SM2_idx();
 
     // -----------------------------------------------------------------------
-    // Voisins directs
+    // Voisins directs (CantonPeriph)
     // -----------------------------------------------------------------------
-    CantonPeriph *voisinSP1();
-    CantonPeriph *voisinSM1();
-    CantonPeriph *voisinSP2();
-    CantonPeriph *voisinSM2();
+    CantonPeriph *voisinSP1() const;
+    CantonPeriph *voisinSM1() const;
+    CantonPeriph *voisinSP2() const;
+    CantonPeriph *voisinSM2() const;
 
+    // Choix automatique SP1→SP2 / SM1→SM2
+    CantonPeriph *choisirVoisin(SensDeMarche sens);
+
+    // -----------------------------------------------------------------------
+    // Helpers topologiques
+    // -----------------------------------------------------------------------
     bool SP1_estAccessible();
     bool SM1_estAccessible();
     bool SP2_estAccessible();
@@ -234,12 +235,8 @@ private:
 
     uint8_t m_SP1_idx;
     uint8_t m_SM1_idx;
-
-    bool m_SP2_acces;
-    bool m_SP2_busy;
-
-    bool m_SM2_acces;
-    bool m_SM2_busy;
+    uint8_t m_SP2_idx;
+    uint8_t m_SM2_idx;
 
     uint8_t m_maxSpeed;
     SensDeMarche m_sensMarche;

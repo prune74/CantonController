@@ -6,8 +6,8 @@
  *
  * Ce module détermine l’aspect à afficher en fonction :
  *   - de la topologie locale (SP1 / SM1)
- *   - de l’état du canton aval
- *   - de l’accessibilité ferroviaire (SP2 / SM2)
+ *   - de l’état du canton aval (CantonPeriph aval)
+ *   - de l’accessibilité ferroviaire secondaire (SP2 / SM2)
  *   - de l’état des aiguilles
  *   - de l’adresse RailCom reçue de l’EXCC
  *
@@ -31,7 +31,7 @@
  * Recherche l’aiguille correspondant au sens donné
  * en fonction de l’index du canton aval.
  */
-static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval) // 🟢
+static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval)
 {
     for (uint8_t k = 0; k < aigSize; ++k)
     {
@@ -50,32 +50,31 @@ static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval) // 🟢
  * i = 0 → sens horaire
  * i = 1 → sens anti‑horaire
  */
-ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i) // 🟢
+ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i)
 {
+    CantonPeriph *aval = nullptr;   // voisin principal (SP1 / SM1)
+    CantonPeriph *s2   = nullptr;   // voisin secondaire (SP2 / SM2)
+
     uint8_t indexAval = 0;
-    bool s2access = false;
-    bool s2busy = false;
 
     switch (i)
     {
     case 0: // sens horaire
+        aval      = canton->voisinSP1();
+        s2        = canton->voisinSP2();
         indexAval = canton->SP1_idx();
-        s2access = canton->SP2_acces();
-        s2busy = canton->SP2_busy();
         break;
 
     case 1: // sens anti‑horaire
+        aval      = canton->voisinSM1();
+        s2        = canton->voisinSM2();
         indexAval = canton->SM1_idx();
-        s2access = canton->SM2_acces();
-        s2busy = canton->SM2_busy();
         break;
 
     default:
         CC_LOG_ERROR("[Canton][CC] Sens invalide (%u) → Carré\n", i);
         return ASPECT_CARRE;
     }
-
-    CantonPeriph *aval = canton->getCantonP(indexAval);
 
     if (!aval)
     {
@@ -126,10 +125,17 @@ ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i) // 🟢
 
     /*
      * CAS 2 : canton aval libre → vérifier SP2/SM2
+     *
+     * S2 est considéré :
+     *   - inaccessible si s2 == nullptr ou !s2->acces()
+     *   - occupé si s2 && s2->busy()
      */
+    bool s2access = (s2 && s2->acces());
+    bool s2busy   = (s2 && s2->busy());
+
     if (!s2access)
     {
-        CC_LOG_INFO("[Canton][CC] S2 inaccessible → Avertissement\n");
+        CC_LOG_INFO("[Canton][CC] S2 inexistant ou inaccessible → Avertissement\n");
         return ASPECT_AVERTISSEMENT;
     }
 

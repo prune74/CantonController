@@ -72,11 +72,10 @@ static void runExplorationPass(Canton *canton) // 🟢
         a->cantonPdroitIdx(nodP0);
         a->cantonPdevieIdx(nodP1);
 
-        // On ne gère plus de masque d’aiguilles ici (2026)
         Exploration::comptAig(Exploration::comptAig() + 1);
     };
 
-    // Conditions de création des aiguilles (héritées de Discovery)
+    // Conditions de création des aiguilles
     const byte aigConditions[aigSize][2] = {
         {p00, p01}, {p00, p10}, {p01, p11},
         {m00, m01}, {m00, m10}, {m01, m11}

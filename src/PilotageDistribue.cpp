@@ -21,7 +21,7 @@
 // ---------------------------------------------------------------------------
 // Pilotage distribué principal
 // ---------------------------------------------------------------------------
-void executerPilotageDistribue(Canton *canton) // 🟢
+void executerPilotageDistribue(Canton *canton)
 {
     if (!canton)
         return;
@@ -42,27 +42,57 @@ void executerPilotageDistribue(Canton *canton) // 🟢
     {
     case SensHoraire:
     {
-        uint8_t idx = canton->SP1_idx();
-        voisin = canton->getCantonP(idx);
-
+        // SP1 prioritaire
+        voisin = canton->voisinSP1();
         if (voisin)
-            aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[0]);
-
-        CC_LOG_TRACE("[PilotageDistribue][CC] Sens H → SP1=%u aspect=%u\n",
-                     idx, aspectCommande);
+        {
+            aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[1]);
+            CC_LOG_TRACE("[PilotageDistribue][CC] Sens H → SP1=%u aspect(H)=%u\n",
+                         canton->SP1_idx(), aspectCommande);
+        }
+        else
+        {
+            // fallback SP2
+            voisin = canton->voisinSP2();
+            if (voisin)
+            {
+                aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[1]);
+                CC_LOG_TRACE("[PilotageDistribue][CC] Sens H → SP1 absent → SP2=%u aspect(H)=%u\n",
+                             canton->SP2_idx(), aspectCommande);
+            }
+            else
+            {
+                CC_LOG_WARN("[PilotageDistribue][CC] Sens H → aucun voisin SP1/SP2\n");
+            }
+        }
         break;
     }
 
     case SensAntiHoraire:
     {
-        uint8_t idx = canton->SM1_idx();
-        voisin = canton->getCantonP(idx);
-
+        // SM1 prioritaire
+        voisin = canton->voisinSM1();
         if (voisin)
-            aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[1]);
-
-        CC_LOG_TRACE("[PilotageDistribue][CC] Sens AH → SM1=%u aspect=%u\n",
-                     idx, aspectCommande);
+        {
+            aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[0]);
+            CC_LOG_TRACE("[PilotageDistribue][CC] Sens AH → SM1=%u aspect(AH)=%u\n",
+                         canton->SM1_idx(), aspectCommande);
+        }
+        else
+        {
+            // fallback SM2
+            voisin = canton->voisinSM2();
+            if (voisin)
+            {
+                aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[0]);
+                CC_LOG_TRACE("[PilotageDistribue][CC] Sens AH → SM1 absent → SM2=%u aspect(AH)=%u\n",
+                             canton->SM2_idx(), aspectCommande);
+            }
+            else
+            {
+                CC_LOG_WARN("[PilotageDistribue][CC] Sens AH → aucun voisin SM1/SM2\n");
+            }
+        }
         break;
     }
 

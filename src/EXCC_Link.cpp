@@ -143,10 +143,6 @@ void EXCC_Link::loop() // 🟢
 // ---------------------------------------------------------------------------
 // Gestion ONLINE / OFFLINE
 // ---------------------------------------------------------------------------
-bool EXCC_Link::isOnline() // 🔴
-{
-    return g_excc.online;
-}
 
 void EXCC_Link::onExccOnline() // 🟢
 {
@@ -159,6 +155,7 @@ void EXCC_Link::onExccOnline() // 🟢
     envoyerOccupationDepuisEtatCourant();
     envoyerAspectsDepuisEtatCourant();
     envoyerFeuxDepuisEtatCourant();
+    envoyerAiguillesDepuisEtatCourant();
 
     // Envoi des seuils calibrés
     uint16_t libre  = Settings::boosterSeuilLibre();
@@ -166,6 +163,7 @@ void EXCC_Link::onExccOnline() // 🟢
 
     EXCC_Link::envoyerSeuilsBooster(libre, occupe);
 }
+
 
 void EXCC_Link::onExccOffline() // 🟢
 {

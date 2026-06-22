@@ -3,15 +3,19 @@
  * ---------------------------------------------------------------------------
  * Logique SNCF des transitions d’aspects :
  *
- *   - sécurité absolue (STOP, occupation)
+ *   - STOP global
+ *   - sécurité absolue (occupation / réservation)
  *   - propagation des aspects restrictifs
+ *   - prise en compte des voies secondaires (SP2 / SM2)
  *   - défaut → voie libre
  *
- * IMPORTANT:
+ * IMPORTANT 2026 :
  *   - La logique d’aspect dépend uniquement :
  *       → de la sécurité
- *       → de l’occupation
- *       → de l’aspect du voisin
+ *       → de l’occupation des voisins (SP1/SP2 ou SM1/SM2)
+ *       → de l’aspect reçu des voisins
+ *   - Aucune logique métier externe ici
+ *   - Aucune logique de mât ou de type de signal
  */
 
 #include "Canton.h"
@@ -22,17 +26,24 @@
  *  Mini‑helpers internes
  * ==========================================================================*/
 
-static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens) // 🟢
+/**
+ * Retourne l’aspect reçu d’un voisin dans le sens donné.
+ * Si le voisin n’existe pas → CARRÉ (sécurité).
+ */
+static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens)
 {
     if (!v)
         return ASPECT_CARRE;
 
     return (sens == SensHoraire)
-           ? v->aspectRecu[0]
-           : v->aspectRecu[1];
+           ? v->aspectRecu[0]   // aspect côté H
+           : v->aspectRecu[1];  // aspect côté AH
 }
 
-static inline bool estOccupeOuReserve(CantonPeriph *v) // 🟢
+/**
+ * Retourne vrai si le voisin est occupé ou réservé.
+ */
+static inline bool estOccupeOuReserve(CantonPeriph *v)
 {
     return v && (v->busy() || v->reserved() != 0);
 }
@@ -43,11 +54,16 @@ static inline bool estOccupeOuReserve(CantonPeriph *v) // 🟢
  *  Ordre des règles :
  *
  *    0. STOP global → CARRÉ
- *    1. Voisin occupé ou réservé → CARRÉ
- *    2. Propagation des aspects restrictifs
+ *    1. SP1 ou SP2 (ou SM1/SM2) occupé ou réservé → CARRÉ
+ *    2. Propagation de l’aspect le plus restrictif des voisins
  *    3. Défaut → Voie libre
+ *
+ *  NOTE 2026 :
+ *    - SP2/SM2 sont désormais intégrés dans la logique SNCF.
+ *    - Le plus restrictif des deux voisins (principal + secondaire)
+ *      est appliqué.
  * ==========================================================================*/
-uint8_t Canton::transitionAspect(SensDeMarche sens) // 🟢
+uint8_t Canton::transitionAspect(SensDeMarche sens)
 {
     const char *sensStr = (sens == SensHoraire) ? "H" : "AH";
 
@@ -62,16 +78,15 @@ uint8_t Canton::transitionAspect(SensDeMarche sens) // 🟢
     }
 
     /* ------------------------------------------------------------------------
-     * Voisin principal
+     * 1) Récupération des voisins (principal + secondaire)
      * ------------------------------------------------------------------------ */
-    CantonPeriph *v = (sens == SensHoraire)
-                      ? voisinSP1()
-                      : voisinSM1();
+    CantonPeriph *v1 = (sens == SensHoraire) ? voisinSP1() : voisinSM1();
+    CantonPeriph *v2 = (sens == SensHoraire) ? voisinSP2() : voisinSM2();
 
     /* ------------------------------------------------------------------------
-     * 1) Sécurité absolue : voisin occupé ou réservé → CARRÉ
+     * 2) Sécurité absolue : SP1 ou SP2 occupé → CARRÉ
      * ------------------------------------------------------------------------ */
-    if (estOccupeOuReserve(v))
+    if (estOccupeOuReserve(v1) || estOccupeOuReserve(v2))
     {
         CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → CARRÉ (voisin occupé)\n",
                      m_id, sensStr);
@@ -79,21 +94,30 @@ uint8_t Canton::transitionAspect(SensDeMarche sens) // 🟢
     }
 
     /* ------------------------------------------------------------------------
-     * 2) Propagation des aspects restrictifs
+     * 3) Propagation des aspects restrictifs
      * ------------------------------------------------------------------------ */
-    uint8_t aspV = aspectVoisin(v, sens);
+    uint8_t asp1 = aspectVoisin(v1, sens);
+    uint8_t asp2 = aspectVoisin(v2, sens);
 
-    if (aspV == ASPECT_CARRE ||
-        aspV == ASPECT_SEMAPHORE ||
-        aspV == ASPECT_AVERTISSEMENT)
+    // On sélectionne l’aspect le plus restrictif des deux
+    uint8_t asp = ASPECT_VOIE_LIBRE;
+
+    if (asp1 == ASPECT_CARRE || asp2 == ASPECT_CARRE)
+        asp = ASPECT_CARRE;
+    else if (asp1 == ASPECT_SEMAPHORE || asp2 == ASPECT_SEMAPHORE)
+        asp = ASPECT_SEMAPHORE;
+    else if (asp1 == ASPECT_AVERTISSEMENT || asp2 == ASPECT_AVERTISSEMENT)
+        asp = ASPECT_AVERTISSEMENT;
+
+    if (asp != ASPECT_VOIE_LIBRE)
     {
-        CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → aspect voisin = %u\n",
-                     m_id, sensStr, aspV);
-        return aspV;
+        CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → aspect propagé = %u\n",
+                     m_id, sensStr, asp);
+        return asp;
     }
 
     /* ------------------------------------------------------------------------
-     * 3) Défaut → Voie libre
+     * 4) Défaut → Voie libre
      * ------------------------------------------------------------------------ */
     CC_LOG_TRACE("[Canton %u][Signaux][CC] transitionAspect(%s) → Voie libre (défaut)\n",
                  m_id, sensStr);
@@ -103,12 +127,12 @@ uint8_t Canton::transitionAspect(SensDeMarche sens) // 🟢
 /* ============================================================================
  *  transitionH() / transitionAH()
  * ==========================================================================*/
-uint8_t Canton::transitionH() // 🟢
+uint8_t Canton::transitionH()
 {
     return transitionAspect(SensHoraire);
 }
 
-uint8_t Canton::transitionAH() // 🟢
+uint8_t Canton::transitionAH()
 {
     return transitionAspect(SensAntiHoraire);
 }

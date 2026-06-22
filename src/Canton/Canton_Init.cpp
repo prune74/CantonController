@@ -31,17 +31,21 @@ Canton::Canton()
       m_reserved(0),
       m_SP1_idx(0),
       m_SM1_idx(0),
-      m_SP2_acces(true),
-      m_SP2_busy(false),
-      m_SM2_acces(true),
-      m_SM2_busy(false),
+      m_SP2_idx(0),
+      m_SM2_idx(0),
       m_maxSpeed(128),
       m_sensMarche(SensHoraire),
+      m_feuDirection{0, 0},
       cantonP{},
       aig{},
       signal{},
       loco(nullptr),
-      occupation(nullptr)
+      occupation(nullptr),
+      m_stopActive(false),
+      m_modeManoeuvre(false),
+      m_compteurEssieux(0),
+      m_ponctuelH(false),
+      m_ponctuelAH(false)
 {
     /* ------------------------------------------------------------------------
      *  Singleton
@@ -109,8 +113,7 @@ Canton::~Canton()
 /* ============================================================================
  *  Initialisation du MCP23017 (GPIO expander)
  * ==========================================================================*/
-void Canton::initMCP() // 🟢
-
+void Canton::initMCP()
 {
     if (!mcp.begin_I2C(0x20)) // adresse par défaut
     {
@@ -124,12 +127,12 @@ void Canton::initMCP() // 🟢
 /* ============================================================================
  *  Identité du canton
  * ==========================================================================*/
-void Canton::ID(uint16_t id) // 🟢
+void Canton::ID(uint16_t id)
 {
     m_id = id;
 }
 
-uint16_t Canton::ID() // 🟢
+uint16_t Canton::ID()
 {
     return m_id;
 }
@@ -137,7 +140,7 @@ uint16_t Canton::ID() // 🟢
 /* ============================================================================
  *  Validation de la topologie (SP1_idx / SM1_idx)
  * ==========================================================================*/
-void Canton::validateTopology() // 🟣
+void Canton::validateTopology()
 {
     if (m_SP1_idx >= cantonPsize)
     {

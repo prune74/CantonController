@@ -25,7 +25,7 @@
   "booster_seuil_libre": 50,
   "booster_seuil_occupe": 200,
 
-  // Voisins EXCC (p00…m11)
+  // Voisins CC (p00…m11)
   // "null" = pas de voisin
   "p00": "null",
   "p01": "null",
@@ -40,9 +40,9 @@
   "SP1_idx": 0,
   "SM1_idx": 0,
 
-  // Accès secondaires autorisés
-  "SP2_acces": true,
-  "SM2_acces": true,
+  // Accès secondaires (2026 → remplacés par SP2_idx / SM2_idx)
+  "SP2_idx": 0,
+  "SM2_idx": 0,
 
   // Nombre d’aiguilles
   "comptAig": 0,
