@@ -8,8 +8,8 @@
  *   - charger les paramètres logiques :
  *        • ID
  *        • posDroit / posDevie
- *        • vitesse logique (speed)
  *        • index EXCC côté H / AH
+ *        • vitesse (stockée dans servoCfg, plus dans Aig)
  *   - sauvegarder ces mêmes paramètres dans settings.json
  *
  * Ce module ne contient aucune logique métier :
@@ -25,7 +25,7 @@
 /* ============================================================================
  *  Chargement des aiguilles LOGIQUES
  * ==========================================================================*/
-void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc)
 {
     for (byte i = 0; i < aigSize; i++)
     {
@@ -58,15 +58,19 @@ void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc) // 🟢
         a->posDroit(doc[base + "posDroit"] | 1500);
         a->posDevie(doc[base + "posDevie"] | 1500);
 
-        // Vitesse logique (Exploration 2026)
-        a->speed(doc[base + "speed"] | 0);
+        // -------------------------------------------------------------------
+        // Vitesse (stockée dans servoCfg, plus dans Aig)
+        // -------------------------------------------------------------------
+        canton->getServoCfg(i).speed = doc[base + "speed"] | 0;
 
+        // -------------------------------------------------------------------
         // Index EXCC côté H / AH
+        // -------------------------------------------------------------------
         a->cantonPdroitIdx(doc[base + "cantonPdroitIdx"] | 0);
         a->cantonPdevieIdx(doc[base + "cantonPdevieIdx"] | 0);
     }
 
-    CC_LOG_INFO("[Settings][Aiguilles][CC] Aiguilles logiques chargées (avec speed)\n");
+    CC_LOG_INFO("[Settings][Aiguilles][CC] Aiguilles logiques chargées (speed via servoCfg)\n");
 }
 
 /* ============================================================================
@@ -96,10 +100,14 @@ void Settings_JSON_saveAiguilles(Canton *canton, JsonDocument &doc)
         doc[base + "posDroit"]        = a->posDroit();
         doc[base + "posDevie"]        = a->posDevie();
 
-        // Vitesse logique
-        doc[base + "speed"]           = a->speed();
+        // -------------------------------------------------------------------
+        // Vitesse logique (désormais dans servoCfg)
+        // -------------------------------------------------------------------
+        doc[base + "speed"]           = canton->getServoCfg(i).speed;
 
+        // -------------------------------------------------------------------
         // Index EXCC côté H / AH
+        // -------------------------------------------------------------------
         doc[base + "cantonPdroitIdx"] = a->cantonPdroitIdx();
         doc[base + "cantonPdevieIdx"] = a->cantonPdevieIdx();
     }

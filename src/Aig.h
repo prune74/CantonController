@@ -15,7 +15,6 @@
  *        • position logique courante
  *        • index EXCC côté H (SP1)
  *        • index EXCC côté AH (SM1)
- *        • vitesse logique (Exploration 2026)
  *
  * Aucun PWM local n’est utilisé dans l’architecture 2026.
  * Le CC transmet les paramètres à l’EXCC via RS485 (F0/F1/F2).
@@ -38,17 +37,11 @@ protected:
     // État logique actuel (true = droite)
     bool m_estDroit;
 
-    // Position logique courante (EXCC effectuera le mouvement réel)
-    uint16_t m_curPos;
-
     // Index EXCC côté H (SP1)
     uint8_t m_cantonPdroitIdx;
 
     // Index EXCC côté AH (SM1)
     uint8_t m_cantonPdevieIdx;
-
-    // Vitesse logique (Exploration 2026)
-    uint16_t m_speed = 0;
 
 public:
     Aig();
@@ -68,10 +61,6 @@ public:
     uint16_t posDroit() const;
     uint16_t posDevie() const;
 
-    // Position logique courante
-    void curPos(uint16_t);
-    uint16_t curPos() const;
-
     // Index EXCC côté H (SP1)
     void cantonPdroitIdx(uint8_t);
     uint8_t cantonPdroitIdx() const;
@@ -79,13 +68,4 @@ public:
     // Index EXCC côté AH (SM1)
     void cantonPdevieIdx(uint8_t);
     uint8_t cantonPdevieIdx() const;
-
-    // Vitesse logique (transmise à EXCC)
-    void speed(uint16_t v);
-    uint16_t speed() const;
 };
-
-/* ---------------------------------------------------------------------------
- * Fin de Aig.h
- * ---------------------------------------------------------------------------
- */

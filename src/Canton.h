@@ -43,6 +43,16 @@ struct DirectionSettings
     DirectionConfig AH;
 };
 
+// -----------------------------------------------------------------------
+// Configuration interne des servos (positions + vitesse)
+// -----------------------------------------------------------------------
+struct ServoCfg
+{
+    uint16_t posDroit = 1500;
+    uint16_t posDevie = 1500;
+    uint16_t speed = 5; // slider 0–10
+};
+
 class Canton
 {
     friend class Exploration;
@@ -53,6 +63,9 @@ public:
     ~Canton();
 
     static Canton *s_instance;
+    static bool topoValide;
+
+    ServoCfg &getServoCfg(uint8_t idx) { return servoCfg[idx]; }
 
     // -----------------------------------------------------------------------
     // MCP23017 — E/S locales
@@ -106,6 +119,11 @@ public:
     bool SM1_estAccessible();
     bool SP2_estAccessible();
     bool SM2_estAccessible();
+
+    // -----------------------------------------------------------------------
+    // checkTopoValidity() — Vérification locale de la topologie
+    // -----------------------------------------------------------------------
+    void checkTopoValidity(uint16_t offlineId);
 
     // -----------------------------------------------------------------------
     // Aiguilles logiques
@@ -218,11 +236,6 @@ public:
     }
 
     // -----------------------------------------------------------------------
-    // Initialisation avancée
-    // -----------------------------------------------------------------------
-    void validateTopology();
-
-    // -----------------------------------------------------------------------
     // Debug
     // -----------------------------------------------------------------------
     void debugTopologieEtAiguilles();
@@ -244,6 +257,8 @@ private:
     uint8_t m_feuDirection[2];
 
     DirectionSettings direction;
+
+    ServoCfg servoCfg[6];
 
     CantonPeriph *cantonP[8];
     Aig *aig[6];

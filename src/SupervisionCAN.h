@@ -21,3 +21,6 @@
 
 // Envoie les trames 0xE0 (état ferroviaire) et 0xE3 (réservation)
 void envoyerEtatCAN(Canton *canton);
+
+// Met à jour la LED topologie (OK / erreur)
+void updateTopoLed();

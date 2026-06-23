@@ -54,18 +54,6 @@ private:
     Canton *canton;            // Référence vers le Canton Controller (CC)
 
     // -----------------------------------------------------------------------
-    // Configuration interne des servos (positions + vitesse)
-    // -----------------------------------------------------------------------
-    struct ServoConfig
-    {
-        uint16_t posDroit;   // Position droite (µs)
-        uint16_t posDevie;   // Position déviée (µs)
-        uint16_t speed;      // Vitesse (slider 0–10)
-    };
-
-    ServoConfig servoCfg[6];   // 6 servos maximum
-
-    // -----------------------------------------------------------------------
     // Déclaration des sous‑modules
     // -----------------------------------------------------------------------
     void route();  // Routes HTTP (défini dans WebHandler_Routes.cpp)

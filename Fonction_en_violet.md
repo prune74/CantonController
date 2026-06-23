@@ -1,202 +1,100 @@
-### void Canton::validateTopology() // 🟣:
-🎯 Pourquoi je la mets en 🟣 (morte mais à réfléchir)
-Parce que cette fonction :
-valide SP1_idx / SM1_idx
-protège contre des erreurs de topologie
-évite des crashs si un JSON ou une trame EXCC est mal formée
-était utile dans l’ancienne architecture
-pourrait redevenir utile si tu ajoutes une validation dynamique
+### void Canton::debugTopologieEtAiguilles()
+Très bon réflexe Bruno.
+Activer debugTopologieEtAiguilles() depuis la WebUI, c’est exactement le genre d’outil qui te fera gagner un temps fou quand tu veux vérifier :
+
+la topologie chargée depuis le JSON
+les aiguilles et leurs index
+les voisins cantonP[]
+les signaux AH/H
+les incohérences SP1/SM1
+les aiguilles orphelines
+les erreurs d’exploration
+les erreurs de sauvegarde
+
 Et surtout :
+👉 tu n’auras plus besoin d’ouvrir un terminal série pour comprendre ce qui se passe.
 
-👉 Gestion Canton 2026 repose énormément sur la topologie dynamique.  
-👉 Une validation de cohérence n’est jamais une mauvaise idée.
+Je te propose maintenant la manière la plus propre, la plus simple et la plus efficace d’intégrer ce debug dans la WebUI.
 
-Donc oui, elle est morte dans le code actuel, mais elle a un rôle conceptuel important.
+🟩 1) Principe : un bouton WebUI → un message WebSocket → CC affiche le debug
+Tu ajoutes dans la WebUI un bouton :
 
-### void Canton::SP2_busy(bool v) // 🟡
+```Code
+[ Diagnostic topologie & aiguilles ]
+```
 
-📌 Analyse
-Cette méthode est appelée uniquement dans :
+Quand tu cliques dessus, la WebUI envoie :
 
-✔ CAN exploitation
-→ mise à jour de l’état d’occupation du voisin secondaire SP2
-→ typiquement envoyé par EXCC dans les trames d’exploitation
+```json
+{ "debugTopo": true }
 
-Elle n’apparaît pas dans :
-SupervisionCanton
-SupervisionCAN
-SupervisionEssieux
-AspectSignal
-PilotageDistribue
-TopologieSat
-JSON save
-JSON debug
-Navigation topologique
-Propagation d’occupation
-Logique de rôle
-Signaux SNCF
+```
+Et côté CC, tu fais :
 
-Donc :
-SP2_busy est reçu,
-mais jamais utilisé dans la logique interne.
+```cpp
+if (doc.containsKey("debugTopo"))
+    canton->debugTopologieEtAiguilles();
+```  
+C’est tout.
 
-📌 Utilité réelle
-SP2_busy() devrait indiquer :
-si le voisin secondaire SP2 est occupé
-pour éviter d’envoyer un train dans un chemin secondaire occupé
-pour la sécurité
-pour la signalisation
-pour la supervision
+🟦 2) Pourquoi c’est propre ?
+pas de modification de la logique métier
+pas de dépendance EXCC
+pas de risque de casser l’exploitation
+pas de surcharge CPU
+pas de modification de la topologie
+pas de modification du JSON
+pas de persistance
+pas de side‑effects
 
-Mais dans l’état actuel du code :
-❗ L’information est stockée… mais jamais exploitée.
-Aucun module ne lit m_SP2_busy.
+👉 C’est un outil de diagnostic pur.
 
-Donc :
-l’occupation SP2 n’est jamais utilisée pour la sécurité
-les signaux ne l’utilisent pas
-la supervision ne l’utilise pas
-la topologie ne l’utilise pas
-l’UI ne l’affiche pas
-JSON ne la sauvegarde pas
+🟨 3) Où l’intégrer dans la WebUI ?
+Tu as deux options :
 
-### void Aig::speed(uint16_t v)
+✔ Option A — Dans la page “Canton”
+Logique : c’est un diagnostic du canton.
 
-📌 Utilité réelle
-Aig::speed() sert à :
-charger la vitesse du servo depuis les paramètres JSON
-permettre à l’utilisateur de configurer la vitesse dans l’UI (si exposée)
-stocker la valeur dans l’objet Aig
+✔ Option B — Dans une page “Debug”
+Encore plus propre si tu veux regrouper :
+debugTopologieEtAiguilles
+debugSignaux
+debugAiguilles
+debugCantonP
+debugRailCom
+debugBooster
 
-Mais attention :
-❗ Elle n’est pas utilisée ailleurs dans le code
-→ ni dans WebHandler
-→ ni dans Supervision
-→ ni dans l’exécution du mouvement
-→ ni dans l’UART
-→ ni dans l’EXCC
-→ ni dans la logique interne
+Tu peux même faire une page “Console” qui affiche les logs en direct.
 
-Donc :
-la valeur est chargée,
-mais jamais utilisée pour piloter quoi que ce soit.
+🟧 4) Ce que tu vas gagner
+✔ Compréhension immédiate de la topologie
+Tu vois en un clic :
+SP1 / SM1
+SP2 / SM2
+aiguilles reliées / orphelines
+voisins cantonP
+signaux AH/H
 
-Pourquoi ?
-Elle est appelée dans Settings JSON → donc pas morte
-Mais elle n’est jamais utilisée pour piloter un servo
-Elle n’a aucun impact fonctionnel dans l’état actuel du code
-Elle pourrait être supprimée sans rien casser
-…sauf si tu prévois d’utiliser la vitesse plus tard
+✔ Détection instantanée des erreurs JSON
+Si un JSON est mal formé → tu le vois.
 
-### 📌 uint16_t Aig::speed() const // 🟡
+✔ Détection des erreurs d’exploration
+Si une aiguille n’est pas reliée → tu le vois.
 
-📌 Utilité réelle
-Aig::speed() const sert à :
-exporter la vitesse du servo dans le JSON
-permettre à l’UI ou à un autre module de la relire (si un jour utilisé)
+✔ Détection des erreurs d’aiguilles
+Si un index est incohérent → tu le vois.
 
-Mais attention :
-❗ Elle n’est jamais utilisée dans la logique interne
-→ pas dans WebHandler
-→ pas dans l’UART
-→ pas dans la supervision
-→ pas dans l’exécution du mouvement
-→ pas dans EXSA
-→ pas dans la topologie
-→ pas dans les signaux
+✔ Détection des erreurs de signaux
+Si un signal n’est pas initialisé → tu le vois.
 
-Donc :
-la valeur est sauvegardée,
-mais jamais utilisée pour quoi que ce soit.
+🟪 5) Tu veux que je te génère le code complet ?
+Je peux te fournir :
 
-Pourquoi ?
-Elle est appelée dans Settings JSON → donc pas morte
-Mais elle n’est jamais utilisée dans la logique du système
-Elle n’a aucun effet réel
-Elle pourrait être supprimée sans rien casser
-…sauf si tu prévois d’utiliser la vitesse plus tard
+🔹 Le bouton HTML
+🔹 Le JS WebSocket
+🔹 Le handler dans WebHandler_HandleData.cpp
+🔹 Une version améliorée de debugTopologieEtAiguilles()
+🔹 Une page Web “Debug” complète
+🔹 Une console Web qui affiche les logs CC en direct
 
-📌 Le paradoxe SP2_busy
-👉 Le setter est douteux (valeur reçue mais jamais exploitée ailleurs).
-👉 Le getter est vivant (valeur lue dans la supervision).
-
-Cela signifie :
-soit la valeur vient d’ailleurs (ex : calcul interne, fusion occupation)
-soit la logique est incomplète
-soit SP2_busy est un vestige partiellement utilisé
-soit EXCC envoie l’info mais CC ne l’exploite pas encore
-Mais le getter est bel et bien utilisé, donc il doit rester.
-
-
-### envoyerAiguillesDepuisEtatCourant() // 🟣
-
-📌 1. Fonction analysée
-cpp
-void envoyerAiguillesDepuisEtatCourant()
-{
-    for (uint8_t idx = 0; idx < aigSize; ++idx)
-    {
-        Aig *aig = Settings::canton->getAig(idx);
-        if (!aig)
-            continue;
-
-        uint8_t direction = aig->estDroit() ? 0 : 1;
-
-        Settings::canton->aigRun(idx);
-
-        CC_LOG_INFO("[TopoUART][CC] F0 → servo=%u direction=%u (estDroit=%u)\n",
-                    idx, direction, aig->estDroit());
-    }
-
-    CC_LOG_INFO("[TopoUART][CC] Aiguilles renvoyées (F0) après reboot EXCC\n");
-}
-📌 2. Occurrences trouvées
-Code
-src/SatTopologieUART.h
-src/SatTopologieUART/SatTopo_UART_Aiguilles.cpp
-⚠️ Aucune autre occurrence.
-Elle n’est JAMAIS appelée.
-
-📌 3. Analyse fonctionnelle
-Cette fonction :
-parcourt toutes les aiguilles logiques
-récupère leur état logique (estDroit())
-appelle aigRun(idx) → envoie la trame 0x06 à EXCC
-donc déclenche le mouvement physique du servo
-logge la synchronisation
-
-C’est exactement la fonction prévue pour :
-✔ resynchroniser EXCC après un reboot
-✔ renvoyer l’état logique complet
-✔ réaligner les servos physiques
-✔ garantir la cohérence logique ↔ physique
-
-📌 4. Importance théorique
-Si EXCC ne garde rien en mémoire, alors :
-au reboot, les servos sont dans un état aléatoire
-CC croit qu’ils sont dans l’état logique
-incohérence totale
-danger pour la sécurité directionnelle
-Conditions::voieOuverte() devient fausse
-FeuxDirection::compute() devient incohérent
-Donc cette fonction est structurellement importante.
-
-📌 5. Importance réelle dans le code actuel
-👉 Elle n’est jamais appelée.
-
-Donc :
-aucune resynchronisation après reboot
-EXCC démarre dans un état inconnu
-les servos ne sont jamais remis dans l’état logique
-la fonction est orpheline
-
-📌 6. Impact si on la supprime
-Techniquement :
-→ aucun impact immédiat, car elle n’est jamais utilisée.
-
-Architecturalement :
-→ gros risque, car elle est censée être utilisée.
-
-✔ potentiellement indispensable → si EXCC reboot, elle DOIT être appelée
-
-### 
+###

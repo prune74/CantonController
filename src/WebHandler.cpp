@@ -30,13 +30,6 @@ WebHandler::WebHandler()
     _ws     = nullptr;
     canton  = nullptr;
 
-    // Initialisation des paramètres servo (positions par défaut)
-    for (uint8_t i = 0; i < aigSize; i++)
-    {
-        servoCfg[i].posDroit = 1500;
-        servoCfg[i].posDevie = 1500;
-        servoCfg[i].speed    = 5;   // slider 0–10
-    }
 }
 
 // ---------------------------------------------------------------------------

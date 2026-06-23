@@ -31,7 +31,7 @@
  * Recherche l’aiguille correspondant au sens donné
  * en fonction de l’index du canton aval.
  */
-static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval)
+static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval) // 🟢
 {
     for (uint8_t k = 0; k < aigSize; ++k)
     {
@@ -50,7 +50,7 @@ static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval)
  * i = 0 → sens horaire
  * i = 1 → sens anti‑horaire
  */
-ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i)
+ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i) // 🟢
 {
     CantonPeriph *aval = nullptr;   // voisin principal (SP1 / SM1)
     CantonPeriph *s2   = nullptr;   // voisin secondaire (SP2 / SM2)

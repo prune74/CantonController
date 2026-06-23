@@ -137,22 +137,3 @@ uint16_t Canton::ID()
     return m_id;
 }
 
-/* ============================================================================
- *  Validation de la topologie (SP1_idx / SM1_idx)
- * ==========================================================================*/
-void Canton::validateTopology()
-{
-    if (m_SP1_idx >= cantonPsize)
-    {
-        CC_LOG_WARN("[Canton %u][Init][CC] SP1_idx invalide (%u) → remis à 0\n",
-                    m_id, m_SP1_idx);
-        m_SP1_idx = 0;
-    }
-
-    if (m_SM1_idx >= cantonPsize)
-    {
-        CC_LOG_WARN("[Canton %u][Init][CC] SM1_idx invalide (%u) → remis à 0\n",
-                    m_id, m_SM1_idx);
-        m_SM1_idx = 0;
-    }
-}

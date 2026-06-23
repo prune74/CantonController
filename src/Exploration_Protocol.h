@@ -116,14 +116,15 @@ enum ExccAspect : uint8_t
  * ============================================================================
  */
 
-/* --- Master → CC --- */
+/* --- ERM → CC --- */
 #define CMD_WIFI_ON_OFF 0xBD
 #define CMD_EXPLORATION_ON_OFF 0xBE
 #define CMD_SAVE_ALL 0xBF
 #define CMD_RESTART_ALL 0xBC
 #define CMD_SET_PROFILE 0x20
+#define CMD_CC_OFFLINE 0xC0
 
-/* --- CC → Master --- */
+/* --- CC → ERM --- */
 #define CMD_SAT_TEST_BUS 0xB2
 #define CMD_SAT_TEST_BUS_REPLY 0xB3
 #define CMD_SAT_REQUEST_ID 0xB4

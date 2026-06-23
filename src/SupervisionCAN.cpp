@@ -20,13 +20,41 @@
 #include "SupervisionCAN.h"
 #include "CanMsg.h"
 #include "debug_cc.h"
+#include "Config.h"
 #include "Canton.h"
 
-// ---------------------------------------------------------------------------
-// envoyerEtatCAN()
-// Envoie les trames 0xE0 et 0xE3 selon l’état du canton
-// ---------------------------------------------------------------------------
-void envoyerEtatCAN(Canton *canton) // 🟢
+/* ============================================================================
+ * updateTopoLed() — LED topologie valide / invalide
+ * ---------------------------------------------------------------------------
+ * Utilise le MCP23017 local pour afficher l’état topologique :
+ *
+ *   - topoValide = true  → LED éteinte
+ *   - topoValide = false → LED allumée
+ *
+ * IMPORTANT :
+ *   - aucune logique métier
+ *   - aucune logique ferroviaire
+ *   - simple indicateur visuel
+ * ==========================================================================*/
+void updateTopoLed()
+{
+    Canton *c = Canton::s_instance;
+    if (!c)
+        return;
+
+    c->mcp.pinMode(MCP_PIN_LED_TOPOLOGIE, OUTPUT);
+    c->mcp.digitalWrite(MCP_PIN_LED_TOPOLOGIE, Canton::topoValide ? LOW : HIGH);
+
+    CC_LOG_INFO("[CAN][Supervision][CC] LED topo = %s\n",
+                Canton::topoValide ? "OK" : "ERREUR");
+}
+
+/* ============================================================================
+ * envoyerEtatCAN()
+ * ---------------------------------------------------------------------------
+ * Envoie les trames 0xE0 et 0xE3 selon l’état du canton.
+ * ==========================================================================*/
+void envoyerEtatCAN(Canton *canton)
 {
     // Récupération des voisins via l’API moderne
     CantonPeriph *sp1 = canton->getCantonP(canton->SP1_idx());
@@ -80,7 +108,7 @@ void envoyerEtatCAN(Canton *canton) // 🟢
     }
 
     uint8_t addrHigh = (addr >> 8) & 0xFF;
-    uint8_t addrLow  = addr & 0xFF;
+    uint8_t addrLow = addr & 0xFF;
 
     SensDeMarche sens = loco->sens();
 

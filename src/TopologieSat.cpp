@@ -23,7 +23,7 @@
  * Mise à jour de la topologie des satellites voisins
  *************************************************************************************/
 
-void mettreAJourTopologie(Canton *canton)
+void mettreAJourTopologie(Canton *canton) // 🟢
 {
     /*
      * rechercheSat(satPos)

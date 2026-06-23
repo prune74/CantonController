@@ -17,7 +17,11 @@
 
 #include "Canton.h"
 #include "Config.h"
+#include "SupervisionCAN.h"
 #include "debug_cc.h"
+
+
+bool Canton::topoValide = true;
 
 /* ============================================================================
  *  SP1 / SM1 — Voisins principaux
@@ -121,4 +125,46 @@ bool Canton::SM2_estAccessible()
 {
     CantonPeriph *v = voisinSM2();
     return v && v->acces() && !v->busy();
+}
+
+/* ============================================================================
+ *  checkTopoValidity() — Vérification locale de la topologie
+ * ---------------------------------------------------------------------------
+ * Lorsqu’un CC est signalé offline, on vérifie si cet ID correspond à l’un
+ * des 8 voisins physiques du canton (cantonP[0..7]).
+ *
+ * Si un voisin correspond → topoValide = false
+ * Sinon → topoValide = true
+ *
+ * Puis updateTopoLed() est appelée.
+ *
+ * IMPORTANT :
+ *   - les voisins physiques sont dans cantonP[0..7]
+ *   - aucun accès à settings.json ici
+ *   - aucune logique métier
+ * ==========================================================================*/
+
+void Canton::checkTopoValidity(uint16_t offlineId)
+{
+    topoValide = true; // par défaut
+
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        CantonPeriph *v = cantonP[i];
+        if (!v)
+            continue;
+
+        if (v->ID() == offlineId)
+        {
+            topoValide = false;
+            break;
+        }
+    }
+
+    CC_LOG_WARN("[Canton %u][Topo] topoValide = %s (offlineId=%u)\n",
+                m_id,
+                topoValide ? "true" : "false",
+                offlineId);
+
+    updateTopoLed();
 }

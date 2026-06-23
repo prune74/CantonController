@@ -26,10 +26,8 @@ Aig::Aig()
       m_minPos(800),
       m_maxPos(2400),
       m_estDroit(true),
-      m_curPos(1500),
       m_cantonPdroitIdx(0),
-      m_cantonPdevieIdx(0),
-      m_speed(0)
+      m_cantonPdevieIdx(0)
 {
 }
 
@@ -69,17 +67,6 @@ uint16_t Aig::posDroit() const { return m_posDroit; } // 🟢
 uint16_t Aig::posDevie() const { return m_posDevie; } // 🟢
 
 // ---------------------------------------------------------------------------
-// Position logique courante (EXCC effectuera le mouvement réel)
-// ---------------------------------------------------------------------------
-void Aig::curPos(uint16_t pos) // 🔴
-{
-    if (pos > m_minPos && pos < m_maxPos)
-        m_curPos = pos;
-}
-
-uint16_t Aig::curPos() const { return m_curPos; } // 🔴
-
-// ---------------------------------------------------------------------------
 // Index EXCC côté H (SP1)
 // ---------------------------------------------------------------------------
 void Aig::cantonPdroitIdx(uint8_t idx) { m_cantonPdroitIdx = idx; } // 🟢
@@ -90,21 +77,3 @@ uint8_t Aig::cantonPdroitIdx() const { return m_cantonPdroitIdx; } // 🟢
 // ---------------------------------------------------------------------------
 void Aig::cantonPdevieIdx(uint8_t idx) { m_cantonPdevieIdx = idx; } // 🟢
 uint8_t Aig::cantonPdevieIdx() const { return m_cantonPdevieIdx; } // 🟢
-
-// ---------------------------------------------------------------------------
-// Vitesse logique (CC → EXCC)
-// ---------------------------------------------------------------------------
-void Aig::speed(uint16_t v) // 🟡
-{
-    m_speed = v;
-}
-
-uint16_t Aig::speed() const // 🟡
-{
-    return m_speed;
-}
-
-/* ---------------------------------------------------------------------------
- * Fin de Aig.cpp
- * ---------------------------------------------------------------------------
- */

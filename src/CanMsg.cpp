@@ -1,7 +1,7 @@
 /*
  * CanMsg.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Réception et dispatch des trames CAN Exploration 2026.
+ * Réception et dispatch des trames CAN.
  *
  * Rôle :
  *   - créer la tâche FreeRTOS de réception CAN
@@ -14,18 +14,26 @@
  *        • System
  *        • Exploration
  *        • Exploitation
+ *        • Supervision (ex : CC offline)
  *
- * Ce module ne contient aucune logique métier :
- *   → il distribue simplement les messages CAN.
+ * IMPORTANT :
+ *   - aucune logique métier
+ *   - aucune logique topologique
+ *   - aucune logique d’exploitation
+ *
+ * Ce module ne fait que distribuer les messages CAN.
  */
 
 #include "CanMsg.h"
 #include "debug_cc.h"
 
+// ---------------------------------------------------------------------------
 // Handlers externes
+// ---------------------------------------------------------------------------
 void handleSystemCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
 void handleExplorationCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
 void handleExploitCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
+void handleSupervisionCommand(uint8_t commande, const CANMessage &frame, Canton *canton);
 
 // ---------------------------------------------------------------------------
 // setup() — création de la tâche de réception CAN
@@ -75,7 +83,7 @@ void CanMsg::testMemory(void *pvParameters)
 // ---------------------------------------------------------------------------
 // canReceiveMsg() — tâche FreeRTOS de réception / dispatch CAN
 // ---------------------------------------------------------------------------
-void CanMsg::canReceiveMsg(void *pvParameters) // 🟢
+void CanMsg::canReceiveMsg(void *pvParameters)
 {
     Canton *canton = (Canton *)pvParameters;
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -87,7 +95,7 @@ void CanMsg::canReceiveMsg(void *pvParameters) // 🟢
         if (ACAN_ESP32::can.receive(frameIn))
         {
             // -------------------------------------------------------------------
-            // 🔥 STOP global Exploration 2026 (ID = 0x201, 11 bits, DLC = 0)
+            // 🔥 STOP global (ID = 0x201, 11 bits, DLC = 0)
             // -------------------------------------------------------------------
             if (frameIn.id == EXPLORATION_CAN_ID_EMERGENCY_STOP)
             {
@@ -97,11 +105,11 @@ void CanMsg::canReceiveMsg(void *pvParameters) // 🟢
             }
 
             // -------------------------------------------------------------------
-            // ⚠️ Décodage standard Exploration (29 bits)
+            // ⚠️ Décodage standard 29 bits
             // -------------------------------------------------------------------
-            const uint8_t commande       = (uint8_t)((frameIn.id & 0x1FE0000) >> 17);
+            const uint8_t  commande      = (uint8_t)((frameIn.id & 0x1FE0000) >> 17);
             const uint16_t idExpediteur = (uint16_t)(frameIn.id & 0xFFFF);
-            const bool response         = (frameIn.id & 0x10000) >> 16;
+            const bool     response     = (frameIn.id & 0x10000) >> 16;
             (void)response;
 
             // -------------------------------------------------------------------
@@ -129,6 +137,10 @@ void CanMsg::canReceiveMsg(void *pvParameters) // 🟢
             else if (commande >= 0xE0 && commande <= 0xE9)
             {
                 handleExploitCommand(commande, frameIn, canton, idExpediteur);
+            }
+            else if (commande == CMD_CC_OFFLINE)
+            {
+                handleSupervisionCommand(commande, frameIn, canton);
             }
             else
             {

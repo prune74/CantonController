@@ -21,7 +21,7 @@
 // ---------------------------------------------------------------------------
 // Déduction du sens de roulage
 // ---------------------------------------------------------------------------
-void deduireSensRoulage(Canton *canton)
+void deduireSensRoulage(Canton *canton) // 🟢
 {
     if (!canton)
         return;

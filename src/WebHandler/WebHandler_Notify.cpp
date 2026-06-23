@@ -46,37 +46,37 @@ void WebHandler::notifyClients() // 🟢
     }
 
     // -----------------------------------------------------------------------
-    // Aiguilles (positions + vitesse slider)
-    // -----------------------------------------------------------------------
-    for (uint8_t i = 0; i < 6; i++)
+// Aiguilles (positions + vitesse slider)
+// -----------------------------------------------------------------------
+for (uint8_t i = 0; i < 6; i++)
+{
+    Aig *a = canton->getAig(i);
+
+    char keyEtat[4];
+    char keyD[4];
+    char keyV[4];
+    char keyS[4];
+
+    snprintf(keyEtat, sizeof(keyEtat), "s%u", i);
+    snprintf(keyD,    sizeof(keyD),    "s%u0", i);
+    snprintf(keyV,    sizeof(keyV),    "s%u1", i);
+    snprintf(keyS,    sizeof(keyS),    "s%u2", i);
+
+    if (!a)
     {
-        Aig *a = canton->getAig(i);
-
-        char keyEtat[4];
-        char keyD[4];
-        char keyV[4];
-        char keyS[4];
-
-        snprintf(keyEtat, sizeof(keyEtat), "s%u", i);
-        snprintf(keyD,    sizeof(keyD),    "s%u0", i);
-        snprintf(keyV,    sizeof(keyV),    "s%u1", i);
-        snprintf(keyS,    sizeof(keyS),    "s%u2", i);
-
-        if (!a)
-        {
-            doc[keyEtat] = "null";
-            doc[keyD]    = "";
-            doc[keyV]    = "";
-            doc[keyS]    = "";
-        }
-        else
-        {
-            doc[keyEtat] = "Actif";
-            doc[keyD]    = a->posDroit();
-            doc[keyV]    = a->posDevie();
-            doc[keyS]    = servoCfg[i].speed;
-        }
+        doc[keyEtat] = "null";
+        doc[keyD]    = "";
+        doc[keyV]    = "";
+        doc[keyS]    = "";
     }
+    else
+    {
+        doc[keyEtat] = "Actif";
+        doc[keyD]    = a->posDroit();
+        doc[keyV]    = a->posDevie();
+        doc[keyS]    = canton->getServoCfg(i).speed;
+    }
+}
 
     // -----------------------------------------------------------------------
     // Paramètres système

@@ -36,26 +36,29 @@ void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
         return;
     }
 
+    // Récupération de la config servo dans le Canton
+    auto &cfg = canton->getServoCfg(servoName);
+
     // -----------------------------------------------------------------------
     // 1) Mise à jour logique interne + servoCfg
     // -----------------------------------------------------------------------
     if (servoId[2] == '0') // posDroit
     {
         aig->posDroit(value);
-        servoCfg[servoName].posDroit = value;
+        cfg.posDroit = value;
 
         CC_LOG_INFO("[Aiguilles][CC] posDroit aiguille %u = %u\n", servoName, value);
     }
     else if (servoId[2] == '1') // posDevie
     {
         aig->posDevie(value);
-        servoCfg[servoName].posDevie = value;
+        cfg.posDevie = value;
 
         CC_LOG_INFO("[Aiguilles][CC] posDevie aiguille %u = %u\n", servoName, value);
     }
     else if (servoId[2] == '2') // speed (slider 0–10)
     {
-        servoCfg[servoName].speed = value;
+        cfg.speed = value;
 
         CC_LOG_INFO("[Aiguilles][CC] speed slider aiguille %u = %u\n",
                     servoName, value);
@@ -66,7 +69,7 @@ void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
     // -----------------------------------------------------------------------
     uint16_t posDroit    = aig->posDroit();
     uint16_t posDevie    = aig->posDevie();
-    uint16_t speedSlider = servoCfg[servoName].speed;
+    uint16_t speedSlider = cfg.speed;
 
     // Conversion slider → vitesse EXCC
     uint16_t speed = 11000 - (speedSlider * 1000);
