@@ -38,13 +38,13 @@ Canton *Exploration::canton = nullptr;
 // Accesseurs
 // ---------------------------------------------------------------------------
 void Exploration::comptAig(byte v) { m_comptAig = v; } // 🟢
-byte Exploration::comptAig() { return m_comptAig; } // 🟢
+byte Exploration::comptAig() { return m_comptAig; }    // 🟢
 
 void Exploration::ID_satPeriph(byte v) { m_ID_satPeriph = v; } // 🟢
-byte Exploration::ID_satPeriph() { return m_ID_satPeriph; } // 🟢
+byte Exploration::ID_satPeriph() { return m_ID_satPeriph; }    // 🟢
 
 void Exploration::btnState(byte v) { m_btnState = v; } // 🟢
-byte Exploration::btnState() { return m_btnState; } // 🟢
+byte Exploration::btnState() { return m_btnState; }    // 🟢
 
 void Exploration::stopProcess(bool v) { m_stopProcess = v; } // 🟢
 
@@ -77,9 +77,7 @@ static void runExplorationPass(Canton *canton) // 🟢
 
     // Conditions de création des aiguilles
     const byte aigConditions[aigSize][2] = {
-        {p00, p01}, {p00, p10}, {p01, p11},
-        {m00, m01}, {m00, m10}, {m01, m11}
-    };
+        {p00, p01}, {p00, p10}, {p01, p11}, {m00, m01}, {m00, m10}, {m01, m11}};
 
     for (uint8_t i = 0; i < aigSize; i++)
     {
@@ -103,9 +101,9 @@ void Exploration::begin(Canton *nd) // 🟢
 
     // Boutons via MCP23017
     canton->mcp.pinMode(MCP_PIN_BTN_SAT_MOINS, INPUT_PULLUP);
-    canton->mcp.pinMode(MCP_PIN_BTN_SAT_PLUS,  INPUT_PULLUP);
-    canton->mcp.pinMode(MCP_PIN_INTER_DEV_2,   INPUT_PULLUP);
-    canton->mcp.pinMode(MCP_PIN_INTER_DEV_1,   INPUT_PULLUP);
+    canton->mcp.pinMode(MCP_PIN_BTN_SAT_PLUS, INPUT_PULLUP);
+    canton->mcp.pinMode(MCP_PIN_INTER_DEV_2, INPUT_PULLUP);
+    canton->mcp.pinMode(MCP_PIN_INTER_DEV_1, INPUT_PULLUP);
 
     // Bouton MANOEUVRE
     canton->mcp.pinMode(MCP_PIN_BTN_MANOEUVRE, INPUT_PULLUP);
@@ -176,7 +174,7 @@ void Exploration::process(void *p) // 🟢
     auto btnPush = [&](uint8_t btnNum)
     {
         // Notification CAN vers la carte Main
-        CanMsg::sendMsg(0, 0xC0, 0, canton->ID(), UNUSED_ID, 0);
+        CC_CAN::sendMsg(0, 0xC0, 0, canton->ID(), UNUSED_ID, 0);
 
         if (m_ID_satPeriph < 253)
         {
@@ -201,9 +199,9 @@ void Exploration::process(void *p) // 🟢
     {
         // Lecture boutons
         bool satMoins = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_MOINS);
-        bool satPlus  = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_PLUS);
-        bool dev2     = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_2);
-        bool dev1     = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_1);
+        bool satPlus = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_PLUS);
+        bool dev2 = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_2);
+        bool dev1 = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_1);
 
         bool btnManoeuvre = !canton->mcp.digitalRead(MCP_PIN_BTN_MANOEUVRE);
 
@@ -229,9 +227,9 @@ void Exploration::process(void *p) // 🟢
         // Gestion découverte
         m_btnState =
             (satMoins ? 0x01 : 0) |
-            (satPlus  ? 0x02 : 0) |
-            (dev2     ? 0x04 : 0) |
-            (dev1     ? 0x08 : 0);
+            (satPlus ? 0x02 : 0) |
+            (dev2 ? 0x04 : 0) |
+            (dev1 ? 0x08 : 0);
 
         switch (m_btnState & 0x03)
         {

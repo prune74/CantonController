@@ -34,7 +34,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "CanMsg.h"
+#include "CC_CAN.h"
 #include "Config.h"
 #include "Canton.h"
 #include "Settings.h"

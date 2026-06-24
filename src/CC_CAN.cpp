@@ -1,30 +1,14 @@
 /*
- * CanMsg.cpp — Gestion Canton 2026
+ * CC_CAN.cpp — Gestion Canton 2026 (version CanUniversal)
  * ---------------------------------------------------------------------------
  * Réception et dispatch des trames CAN.
- *
- * Rôle :
- *   - créer la tâche FreeRTOS de réception CAN
- *   - lire les trames CAN entrantes
- *   - décoder l’en-tête 29 bits :
- *        • commande (bits 17..24)
- *        • ID expéditeur (bits 0..15)
- *        • flag response (bit 16)
- *   - router la trame vers le bon handler :
- *        • System
- *        • Exploration
- *        • Exploitation
- *        • Supervision (ex : CC offline)
- *
- * IMPORTANT :
- *   - aucune logique métier
- *   - aucune logique topologique
- *   - aucune logique d’exploitation
- *
- * Ce module ne fait que distribuer les messages CAN.
  */
 
-#include "CanMsg.h"
+#include "CanMsg.h" // CanUniversal
+#include "CanBus.h" // CanUniversal
+
+#include "CC_CAN_Config.h"
+#include "CC_CAN.h"
 #include "debug_cc.h"
 
 // ---------------------------------------------------------------------------
@@ -38,9 +22,9 @@ void handleSupervisionCommand(uint8_t commande, const CANMessage &frame, Canton 
 // ---------------------------------------------------------------------------
 // setup() — création de la tâche de réception CAN
 // ---------------------------------------------------------------------------
-void CanMsg::setup(Canton *canton)
+void CC_CAN::setup(Canton *canton)
 {
-    CC_LOG_INFO("[CanMsg][CC] setup\n");
+    CC_LOG_INFO("[CC_CAN][CC] setup\n");
 
     TaskHandle_t canReceiveHandle = nullptr;
 
@@ -65,16 +49,13 @@ void CanMsg::setup(Canton *canton)
 }
 
 #ifdef TEST_MEMORY_TASK
-// ---------------------------------------------------------------------------
-// testMemory() — surveille la mémoire de la tâche canReceiveMsg
-// ---------------------------------------------------------------------------
-void CanMsg::testMemory(void *pvParameters)
+void CC_CAN::testMemory(void *pvParameters)
 {
     TaskHandle_t canReceiveHandle = (TaskHandle_t)pvParameters;
     for (;;)
     {
         UBaseType_t freeStack = uxTaskGetStackHighWaterMark(canReceiveHandle);
-        Serial.printf("[CanMsg][CC] free stack = %d bytes\n", freeStack);
+        Serial.printf("[CC_CAN][CC] free stack = %d bytes\n", freeStack);
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }
@@ -83,49 +64,53 @@ void CanMsg::testMemory(void *pvParameters)
 // ---------------------------------------------------------------------------
 // canReceiveMsg() — tâche FreeRTOS de réception / dispatch CAN
 // ---------------------------------------------------------------------------
-void CanMsg::canReceiveMsg(void *pvParameters)
+void CC_CAN::canReceiveMsg(void *pvParameters)
 {
     Canton *canton = (Canton *)pvParameters;
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     for (;;)
     {
-        CANMessage frameIn;
+        // Lecture via CanUniversal
+        CanMsg msg;
 
-        if (ACAN_ESP32::can.receive(frameIn))
+        if (CanBus::bus(0).receive(msg))
         {
-            // -------------------------------------------------------------------
-            // 🔥 STOP global (ID = 0x201, 11 bits, DLC = 0)
-            // -------------------------------------------------------------------
-            if (frameIn.id == EXPLORATION_CAN_ID_EMERGENCY_STOP)
+            // STOP global
+            if (msg.is11() && msg.id == EXPLORATION_CAN_ID_EMERGENCY_STOP)
             {
                 canton->setStopActive(true);
-                CC_LOG_ERROR("[CanMsg][CC] STOP global reçu (canton %u)\n", canton->ID());
+                CC_LOG_ERROR("[CC_CAN][CC] STOP global reçu (canton %u)\n", canton->ID());
+                vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
                 continue;
             }
 
-            // -------------------------------------------------------------------
-            // ⚠️ Décodage standard 29 bits
-            // -------------------------------------------------------------------
-            const uint8_t  commande      = (uint8_t)((frameIn.id & 0x1FE0000) >> 17);
-            const uint16_t idExpediteur = (uint16_t)(frameIn.id & 0xFFFF);
-            const bool     response     = (frameIn.id & 0x10000) >> 16;
+            // ID 29 bits
+            if (!msg.is29())
+            {
+                vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
+                continue;
+            }
+
+            const uint8_t commande = msg.cmde();
+            const uint16_t idExpediteur = msg.nodeId();
+            const bool response = msg.resp();
             (void)response;
 
-            // -------------------------------------------------------------------
+            // Conversion vers CANMessage
+            CANMessage frameIn = msg.toFrame();
+
             // Gestion RTR
-            // -------------------------------------------------------------------
             if (frameIn.rtr)
             {
                 if (commande == 0x0F)
-                    ACAN_ESP32::can.tryToSend(frameIn);
+                    CanBus::bus(0).send(msg);
 
+                vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
                 continue;
             }
 
-            // -------------------------------------------------------------------
-            // Dispatch selon la plage de commandes
-            // -------------------------------------------------------------------
+            // Dispatch
             if (commande >= CMD_SAT_TEST_BUS_REPLY && commande <= CMD_SAVE_ALL)
             {
                 handleSystemCommand(commande, frameIn, canton, idExpediteur);
@@ -144,7 +129,7 @@ void CanMsg::canReceiveMsg(void *pvParameters)
             }
             else
             {
-                CC_LOG_WARN("[CanMsg][CC] Commande 0x%X non gérée\n", commande);
+                CC_LOG_WARN("[CC_CAN][CC] Commande 0x%X non gérée\n", commande);
             }
         }
 

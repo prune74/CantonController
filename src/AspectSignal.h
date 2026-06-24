@@ -2,8 +2,8 @@
 
 #include <Arduino.h>
 #include "Canton.h"
-#include "DeductionAspect.h"      // enum ExccAspect
-#include "CanMsg.h"
+#include "DeductionAspect.h" // enum ExccAspect
+#include "CC_CAN.h"
 #include "SensEnum.h"
 #include "Exploration_Protocol.h" // ExccAspect
 

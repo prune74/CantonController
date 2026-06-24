@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Canton.h"
-#include "CanMsg.h"
+#include "CC_CAN.h"
 
 /*
  * CommandeDCC.h — Gestion Canton 2026
@@ -10,7 +10,7 @@
  *
  * Rôle :
  *   - récupérer la loco associée au canton
- *   - envoyer l’adresse + la vitesse via CanMsg::sendMsg()
+ *   - envoyer l’adresse + la vitesse via CC_CAN::sendMsg()
  *   - répéter l’envoi plusieurs fois pour fiabiliser la transmission
  *
  * Ce module ne contient aucune logique ferroviaire :

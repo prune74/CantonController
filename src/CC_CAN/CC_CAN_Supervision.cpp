@@ -1,5 +1,5 @@
 /*
- * CanMsg_Supervision.cpp — Gestion Canton 2026
+ * CC_CAN_Supervision.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Gestion des messages CAN de supervision réseau.
  *
@@ -17,7 +17,7 @@
  * Ce module est dédié EXCLUSIVEMENT à la supervision réseau.
  */
 
-#include "CanMsg.h"
+#include "CC_CAN.h"
 #include "Canton.h"
 #include "debug_cc.h"
 
@@ -35,31 +35,31 @@ void handleSupervisionCommand(uint8_t commande, const CANMessage &frameIn, Canto
 {
     switch (commande)
     {
-        /* --------------------------------------------------------------------
-         * CMD_CC_OFFLINE — Notification d’un CC hors ligne
-         * --------------------------------------------------------------------
-         * frameIn.data :
-         *   [0] offlineId_low
-         *   [1] offlineId_high
-         *
-         * Logique :
-         *   - ERM détecte un CC offline
-         *   - ERM envoie son ID à tous les CC
-         *   - chaque CC vérifie localement si cet ID est un voisin
-         * ------------------------------------------------------------------ */
-        case CMD_CC_OFFLINE:
-        {
-            uint16_t offlineId = frameIn.data[0] | (frameIn.data[1] << 8);
+    /* --------------------------------------------------------------------
+     * CMD_CC_OFFLINE — Notification d’un CC hors ligne
+     * --------------------------------------------------------------------
+     * frameIn.data :
+     *   [0] offlineId_low
+     *   [1] offlineId_high
+     *
+     * Logique :
+     *   - ERM détecte un CC offline
+     *   - ERM envoie son ID à tous les CC
+     *   - chaque CC vérifie localement si cet ID est un voisin
+     * ------------------------------------------------------------------ */
+    case CMD_CC_OFFLINE:
+    {
+        uint16_t offlineId = frameIn.data[0] | (frameIn.data[1] << 8);
 
-            CC_LOG_WARN("[CAN][Supervision][CC] CC offline détecté : %u\n", offlineId);
+        CC_LOG_WARN("[CAN][Supervision][CC] CC offline détecté : %u\n", offlineId);
 
-            // Vérification locale de la topologie
-            canton->checkTopoValidity(offlineId);
-            break;
-        }
+        // Vérification locale de la topologie
+        canton->checkTopoValidity(offlineId);
+        break;
+    }
 
-        default:
-            CC_LOG_WARN("[CAN][Supervision][CC] Commande supervision inconnue : 0x%X\n", commande);
-            break;
+    default:
+        CC_LOG_WARN("[CAN][Supervision][CC] Commande supervision inconnue : 0x%X\n", commande);
+        break;
     }
 }

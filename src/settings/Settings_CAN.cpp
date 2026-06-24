@@ -17,7 +17,7 @@
 
 #include "Settings.h"
 #include "Canton.h"
-#include "CanMsg.h"
+#include "CC_CAN.h"
 #include "debug_cc.h"
 
 /* ============================================================================
@@ -57,7 +57,7 @@ bool Settings::beginCAN() // 🟢
     // -----------------------------------------------------------------------
     while (!isMainReady)
     {
-        CanMsg::sendMsg(0, CMD_SAT_TEST_BUS, 0, canton->ID());
+        CC_CAN::sendMsg(0, CMD_SAT_TEST_BUS, 0, canton->ID());
         vTaskDelay(pdMS_TO_TICKS(1000));
         Serial.print(".");
 
@@ -80,7 +80,7 @@ bool Settings::beginCAN() // 🟢
 
         while (canton->ID() == UNUSED_ID)
         {
-            CanMsg::sendMsg(0, CMD_SAT_REQUEST_ID, 0, 0);
+            CC_CAN::sendMsg(0, CMD_SAT_REQUEST_ID, 0, 0);
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.print(".");
         }

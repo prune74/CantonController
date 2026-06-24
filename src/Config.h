@@ -88,8 +88,8 @@ static constexpr uint8_t NODE_UNUSED_ID = UNUSED_ID;
  *  CAN — Bus Exploration 2026
  * ============================================================================
  */
-#define CAN_RX GPIO_NUM_4
-#define CAN_TX GPIO_NUM_5
+#define PIN_CAN_TX GPIO_NUM_4
+#define PIN_CAN_RX GPIO_NUM_5
 #define CAN_BITRATE 250000UL
 
 /* ============================================================================

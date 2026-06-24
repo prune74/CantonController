@@ -14,14 +14,14 @@
 
 #include "CommandeDCC.h"
 #include "debug_cc.h"
-#include "CanMsg.h"
+#include "CC_CAN.h"
 
 // ---------------------------------------------------------------------------
 // Variables internes
 // ---------------------------------------------------------------------------
 static uint16_t oldLocAddress = 0;
-static uint16_t oldLocSpeed   = 0;
-static uint8_t  comptCmdLoco  = 0;
+static uint16_t oldLocSpeed = 0;
+static uint8_t comptCmdLoco = 0;
 
 // ---------------------------------------------------------------------------
 // envoyerCommandeDCC()
@@ -45,11 +45,11 @@ void envoyerCommandeDCC(Canton *canton) // 🟢
     // On envoie la commande 5 fois pour fiabiliser le DCC
     if (comptCmdLoco < 5)
     {
-        CanMsg::sendMsg(
-            0,              // priorité
-            0x04,           // opcode DCC
-            0,              // unused
-            canton->ID(),   // ID du canton
+        CC_CAN::sendMsg(
+            0,            // priorité
+            0x04,         // opcode DCC
+            0,            // unused
+            canton->ID(), // ID du canton
             0x00,
             0x00,
             (loco->address() >> 8) & 0xFF,
@@ -63,7 +63,7 @@ void envoyerCommandeDCC(Canton *canton) // 🟢
                     comptCmdLoco + 1);
 
         oldLocAddress = loco->address();
-        oldLocSpeed   = loco->speed();
+        oldLocSpeed = loco->speed();
         comptCmdLoco++;
     }
 }

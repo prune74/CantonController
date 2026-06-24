@@ -22,7 +22,7 @@
 #include "AspectSignal.h"
 #include "FeuxDirection.h"
 #include "SatTopologieUART.h"
-#include "CanMsg.h"
+#include "CC_CAN.h"
 #include "Exploration_Protocol.h"
 #include "DeductionAspect.h"
 #include "debug_cc.h"
@@ -49,7 +49,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     // -----------------------------------------------------------------------
     // 1) Valeurs par défaut : CARRÉ
     // -----------------------------------------------------------------------
-    ExccAspect aspectAval   = ASPECT_CARRE; // côté H
+    ExccAspect aspectAval = ASPECT_CARRE;   // côté H
     ExccAspect aspectAvalAH = ASPECT_CARRE; // côté AH
 
     // -----------------------------------------------------------------------
@@ -122,14 +122,16 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     // -----------------------------------------------------------------------
     // 6) Déduction du type de mât + mise à jour des objets Signal
     // -----------------------------------------------------------------------
-    uint8_t typeMatH  = canton->deduireTypeSignal(SensHoraire);
+    uint8_t typeMatH = canton->deduireTypeSignal(SensHoraire);
     uint8_t typeMatAH = canton->deduireTypeSignal(SensAntiHoraire);
 
     Signal *sH = canton->getSignal(0);
-    if (sH) sH->type(typeMatH);
+    if (sH)
+        sH->type(typeMatH);
 
     Signal *sAH = canton->getSignal(1);
-    if (sAH) sAH->type(typeMatAH);
+    if (sAH)
+        sAH->type(typeMatAH);
 
     // -----------------------------------------------------------------------
     // 7) Calcul des feux directionnels (Exploration 2026)
@@ -157,7 +159,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
             envoyerAspectSignalHoraire(signalValue[0]);
             oldSignalValue0 = signalValue[0];
 
-            CanMsg::sendMsg(
+            CC_CAN::sendMsg(
                 1, PROTO_E6_ASPECT_HORAIRE, 0, canton->ID(),
                 0, 0,
                 signalValue[0], 0);
@@ -171,7 +173,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
             envoyerAspectSignalAntiHoraire(signalValue[1]);
             oldSignalValue1 = signalValue[1];
 
-            CanMsg::sendMsg(
+            CC_CAN::sendMsg(
                 1, PROTO_E7_ASPECT_ANTIHORAIRE, 0, canton->ID(),
                 1, 1,
                 signalValue[1], 0);

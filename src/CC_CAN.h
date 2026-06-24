@@ -2,7 +2,7 @@
 
 /*
  * ============================================================================
- *  CanMsg.h — API CAN du CC (Canton Controller)
+ *  CC_CAN.h — API CAN du CC (Canton Controller)
  *  --------------------------------------------------------------------------
  *  Ce module gère :
  *
@@ -16,27 +16,15 @@
  *    - l’envoi CAN via une API simplifiée :
  *          sendMsg(prio, cmde, resp, id, data…)
  *
- *  Format ID étendu (29 bits) Exploration 2026 :
- *
- *      [ 2 bits priorité ]   bits 26..25
- *      [ 8 bits commande ]   bits 24..17
- *      [ 1 bit response ]    bit  16
- *      [ 16 bits ID CC ]     bits 15..0
- *
- *  Exemple :
- *      prio = 1
- *      cmde = 0xE7
- *      resp = 0
- *      id   = 42
- *
- *      ID = (1 << 25) | (0xE7 << 17) | (0 << 16) | 42
- *
- *  Toutes les surcharges sendMsg() encapsulent ce format.
+ *  IMPORTANT :
+ *    Cette classe est l’API HAUT NIVEAU du CantonController.
+ *    Le bas niveau (drivers, abstraction, ID 29 bits, conversions)
+ *    est désormais géré par CanUniversal.
  * ============================================================================
  */
 
 #include <Arduino.h>
-#include <ACAN_ESP32.h>
+#include <ACAN_ESP32.h>   // uniquement pour le type CANMessage (handlers existants)
 
 #include "Config.h"
 #include "Canton.h"
@@ -44,22 +32,7 @@
 #include "Exploration.h"
 #include "Aig.h"
 
-/*
- * ============================================================================
- *  Classe CanMsg — Gestion Canton 2026
- *  --------------------------------------------------------------------------
- *  Classe purement statique :
- *    - aucune instance
- *    - toutes les méthodes sont statiques
- *
- *  Fournit :
- *    1) setup()          → création de la tâche FreeRTOS de réception CAN
- *    2) canReceiveMsg()  → boucle de réception / dispatch
- *    3) sendMsg()        → API d’envoi CAN (0 à 8 octets)
- *    4) testMemory()     → optionnel : surveillance stack FreeRTOS
- * ============================================================================
- */
-class CanMsg
+class CC_CAN
 {
 public:
     // -----------------------------------------------------------------------
@@ -75,6 +48,7 @@ public:
 
     // -----------------------------------------------------------------------
     // Envoi brut d’une trame CAN déjà construite
+    // (compatibilité avec code existant)
     // -----------------------------------------------------------------------
     static void sendMsg(CANMessage &frame);
 
@@ -103,8 +77,8 @@ private:
     // canReceiveMsg()
     // -----------------------------------------------------------------------
     // Tâche FreeRTOS :
-    //   - lit les trames CAN
-    //   - décode l’ID étendu Exploration 2026
+    //   - lit les trames CAN via CanUniversal
+    //   - décode l’ID étendu Exploration 2026 via CanID
     //   - extrait :
     //        * commande
     //        * ID expéditeur

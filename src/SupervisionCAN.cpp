@@ -18,7 +18,7 @@
  */
 
 #include "SupervisionCAN.h"
-#include "CanMsg.h"
+#include "CC_CAN.h"
 #include "debug_cc.h"
 #include "Config.h"
 #include "Canton.h"
@@ -81,7 +81,7 @@ void envoyerEtatCAN(Canton *canton)
     // -----------------------------------------------------------------------
     // TRAME 0xE0 — État ferroviaire du canton
     // -----------------------------------------------------------------------
-    CanMsg::sendMsg(
+    CC_CAN::sendMsg(
         0, 0xE0, 0, canton->ID(),
         canton->busy(),
         static_cast<uint8_t>(sp1->ID()),
@@ -120,7 +120,7 @@ void envoyerEtatCAN(Canton *canton)
         CC_LOG_INFO("[CAN][CC] Envoi 0xE3 (horaire) : aval=%d loco=%u\n",
                     aval, addr);
 
-        CanMsg::sendMsg(
+        CC_CAN::sendMsg(
             0, 0xE3, 0, canton->ID(),
             aval,
             addrHigh, addrLow);
@@ -133,7 +133,7 @@ void envoyerEtatCAN(Canton *canton)
         CC_LOG_INFO("[CAN][CC] Envoi 0xE3 (anti-horaire) : aval=%d loco=%u\n",
                     aval, addr);
 
-        CanMsg::sendMsg(
+        CC_CAN::sendMsg(
             0, 0xE3, 0, canton->ID(),
             aval,
             addrHigh, addrLow);

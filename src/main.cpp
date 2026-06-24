@@ -21,8 +21,8 @@
 #include "freertos/queue.h"
 
 // --- CAN --------------------------------------------------------------------
-#include "CanMsg.h"
-#include "CanConfig.h"
+#include "CC_CAN.h"
+#include "CC_CAN_Config.h"
 
 // --- Configuration générale -------------------------------------------------
 #include "Config.h"
@@ -67,7 +67,9 @@ void setup()
     // UART debug
     // ------------------------------------------------------------------------
     Serial.begin(115200);
-    while (!Serial) {}
+    while (!Serial)
+    {
+    }
     delay(100);
 
 #ifdef CHIP_INFO
@@ -88,11 +90,11 @@ void setup()
     vTaskDelay(pdMS_TO_TICKS(100));
 
     // ------------------------------------------------------------------------
-    // Initialisation CAN (ACAN / MCP2515 selon Config.h)
+    // Initialisation CAN (CanUniversal)
     // ------------------------------------------------------------------------
-    CanConfig::setup();
+    CcCanConfig::setup(); // ✔ nouveau nom
     vTaskDelay(pdMS_TO_TICKS(100));
-    CanMsg::setup(canton);
+    CC_CAN::setup(canton); // ✔ nouvelle API CAN du CC
     vTaskDelay(pdMS_TO_TICKS(100));
 
     // ------------------------------------------------------------------------
