@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "Exploration_Protocol.h" // Protocole commun CC ↔ EXCC
+#include "Protocol.h" // Protocole commun CC ↔ EXCC
 
 /*
  * ============================================================================
@@ -90,7 +90,20 @@ static constexpr uint8_t NODE_UNUSED_ID = UNUSED_ID;
  */
 #define PIN_CAN_TX GPIO_NUM_4
 #define PIN_CAN_RX GPIO_NUM_5
-#define CAN_BITRATE 250000UL
+#define CAN_BITRATE 500000UL
+
+/* ============================================================================
+ *  CAN — Bus EXCC
+ * ============================================================================
+ */
+#define PIN_EXCC_CS GPIO_NUM_13
+#define PIN_EXCC_INT GPIO_NUM_14
+#define PIN_EXCC_SCK GPIO_NUM_18  // Obligatoire
+#define PIN_EXCC_MOSI GPIO_NUM_23 // Obligatoire
+#define PIN_EXCC_MISO GPIO_NUM_19 // Obligatoire
+
+#define QUARTZ_MCP2515 8000000 // MCP2515 quartz 8 MHz
+#define CAN_BITRATE_MCP2515 250000UL
 
 /* ============================================================================
  *  DIMENSIONS DES TABLEAUX INTERNES
@@ -102,32 +115,11 @@ static constexpr uint8_t sensorSize = 2;  // Capteurs ponctuels
 static constexpr uint8_t signalSize = 2;  // Signaux H / AH
 
 /* ============================================================================
- *  RAILCOM — Détection adresse loco
- * ============================================================================
- */
-#define NB_ADDRESS_TO_COMPARE 100
-#define RAILCOM_RX GPIO_NUM_32
-#define RAILCOM_TX GPIO_NUM_33
-
-/* ============================================================================
- *  UART → EXCC (signaux + servos)
- * ============================================================================
- */
-#define UART_TX_CANTON GPIO_NUM_25
-#define UART_RX_CANTON GPIO_NUM_26
-#define UART_BAUDRATE 9600UL
-#define UART_PORT_NUM 1
-
-/* ============================================================================
- *  RS485 — Direction du transceiver
- * ============================================================================
- */
-#define RS485_DE_RE GPIO_NUM_27
-
-/* ============================================================================
  *  MCP23017
  * ============================================================================
  */
+
+#define MCP23017_ADDR 0x20
 
 // Boutons Exploration
 #define MCP_PIN_BTN_SAT_MOINS 0 // GPA0

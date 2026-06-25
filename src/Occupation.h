@@ -8,7 +8,7 @@ class Canton;
  * Occupation.h — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Nouveau rôle :
- *   - Recevoir l’occupation finale envoyée par l’EXCC (PROTO_04_OCCUPATION)
+ *   - Recevoir l’occupation finale envoyée par l’EXCC (CMD_EXCC_04_OCCUPATION)
  *   - Mettre à jour l’état logique du canton via canton->busy()
  *
  * Ce module NE FAIT PLUS :
@@ -32,7 +32,7 @@ public:
     // Associe ce module au canton local
     void setup(Canton *canton);
 
-    // Callback appelé par CC_UartRx (PROTO_04)
+    // Callback appelé par CC_UartRx (CMD_EXCC_04)
     static void onOccupation(uint8_t code);
 
     // Applique l’occupation envoyée par l’EXCC

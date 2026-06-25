@@ -2,7 +2,7 @@
  * Occupation.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Nouveau rôle :
- *   - Recevoir l’occupation finale depuis l’EXCC (PROTO_04_OCCUPATION)
+ *   - Recevoir l’occupation finale depuis l’EXCC (CMD_EXCC_04_OCCUPATION)
  *   - Mettre à jour l’état logique du canton (busy)
  *
  * L’EXCC est désormais l’unique source de vérité :
@@ -14,7 +14,7 @@
  */
 
 #include "Occupation.h"
-#include "Exploration_Protocol.h"
+#include "Protocol.h"
 #include "Canton.h"
 #include "debug_cc.h"
 
@@ -34,7 +34,7 @@ Occupation::~Occupation() {}
 // ---------------------------------------------------------------------------
 void Occupation::setup(Canton *canton)
 {
-    m_canton   = canton;
+    m_canton = canton;
     s_instance = this;
 
     CC_LOG_INFO("[Occupation][CC] Module initialisé pour Canton %d\n", canton->ID());
@@ -67,11 +67,11 @@ void Occupation::onOccupation(uint8_t code)
 
     switch (code)
     {
-    case PROTO_OCC_ACTIVE:
+    case EXCC_CODE_OCC_ACTIVE:
         occupe = true;
         break;
 
-    case PROTO_OCC_LIBRE:
+    case EXCC_CODE_OCC_LIBRE:
         occupe = false;
         break;
 

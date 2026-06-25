@@ -17,18 +17,6 @@
  *   - EXCC pilote physiquement les servos via PCA9685
  *   - Exploration ne manipule plus aucune GPIO ESP32
  *   - boutons + LED Exploration + LED Manoeuvre → MCP23017
- *
- * LEDS 2026 :
- *   - LED Exploration :
- *       → utilisée uniquement pendant la phase de découverte
- *       → éteinte en exploitation
- *
- *   - LED MANOEUVRE :
- *       → reflète l’état du mode manœuvre UNIQUEMENT en exploration
- *       → toujours éteinte en exploitation (même si le mode est ON)
- *
- * Ce module ne contient aucune logique ferroviaire :
- *   → il orchestre simplement la phase d’exploration.
  */
 
 #pragma once
@@ -38,74 +26,42 @@
 #include "Config.h"
 #include "Canton.h"
 #include "Settings.h"
-#include "SatTopologieUART.h"
 #include "DeductionAspect.h"
 
 class Exploration
 {
 private:
-    // -----------------------------------------------------------------------
-    // LED Exploration (via MCP23017)
-    //   - clignote / s’allume pendant la découverte
-    //   - éteinte en exploitation
-    // -----------------------------------------------------------------------
+    // LED Exploration
     static const uint8_t m_pinLed = MCP_PIN_LED_EXPLORATION;
 
-    // -----------------------------------------------------------------------
     // Référence vers le Canton principal
-    // -----------------------------------------------------------------------
     static Canton *canton;
 
-    // -----------------------------------------------------------------------
-    // Nombre d’aiguilles logiques détectées (0..6)
-    // -----------------------------------------------------------------------
+    // Compteur d’aiguilles logiques
     static byte m_comptAig;
 
-    // -----------------------------------------------------------------------
-    // ID du satellite voisin détecté via CAN (opcode 0xC0)
-    // -----------------------------------------------------------------------
+    // ID du satellite voisin détecté via CAN
     static byte m_ID_satPeriph;
 
-    // -----------------------------------------------------------------------
-    // État des boutons/switches (4 bits)
-    //   bit0 = SAT_MOINS
-    //   bit1 = SAT_PLUS
-    //   bit2 = DEV2
-    //   bit3 = DEV1
-    // -----------------------------------------------------------------------
+    // État des boutons (4 bits)
     static byte m_btnState;
 
-    // -----------------------------------------------------------------------
-    // Indique que l’exploration doit s’arrêter (topologie finalisée)
-    //   → passage en mode exploitation
-    //   → LED Exploration OFF
-    //   → LED MANOEUVRE OFF
-    // -----------------------------------------------------------------------
+    // Fin de l’exploration
     static bool m_stopProcess;
 
 public:
     Exploration() = delete; // Classe statique
 
-    // -----------------------------------------------------------------------
-    // begin() — initialisation générale (MCP, LED, tâches FreeRTOS)
-    // -----------------------------------------------------------------------
+    // Initialisation
     static void begin(Canton *);
 
-    // -----------------------------------------------------------------------
-    // process() — gestion des boutons + reset logique + notifications CAN
-    //   - LED Exploration = activité découverte
-    //   - LED MANOEUVRE = état du mode manœuvre (exploration uniquement)
-    // -----------------------------------------------------------------------
+    // Boucle exploration
     static void process(void *);
 
-    // -----------------------------------------------------------------------
-    // createAigEtCibles() — première passe au boot
-    // -----------------------------------------------------------------------
+    // 1ère passe au boot
     static void createAigEtCibles(void *);
 
-    // -----------------------------------------------------------------------
     // Accesseurs internes
-    // -----------------------------------------------------------------------
     static void comptAig(byte);
     static byte comptAig();
 
@@ -121,9 +77,7 @@ public:
     //   - LED MANOEUVRE OFF
     // -----------------------------------------------------------------------
     static void stopProcess(bool);
-};
 
-/* ---------------------------------------------------------------------------
- * Fin de Exploration.h
- * ---------------------------------------------------------------------------
- */
+    // 🔥 Getter pour EXCC_Link
+    static Canton *getCanton() { return canton; }
+};

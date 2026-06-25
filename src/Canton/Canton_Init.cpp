@@ -115,7 +115,7 @@ Canton::~Canton()
  * ==========================================================================*/
 void Canton::initMCP()
 {
-    if (!mcp.begin_I2C(0x20)) // adresse par défaut
+    if (!mcp.begin_I2C(MCP23017_ADDR)) // adresse par défaut
     {
         CC_LOG_ERROR("[Canton %u][Init][CC] MCP23017 introuvable !\n", m_id);
         return;
@@ -136,4 +136,3 @@ uint16_t Canton::ID()
 {
     return m_id;
 }
-

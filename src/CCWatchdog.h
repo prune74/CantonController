@@ -1,13 +1,13 @@
 #pragma once
 
 /*
- * CCWatchdog.h — Gestion Canton 2026
+ * CCWatchdog.h — Gestion Canton 2026 (CAN Universal)
  * ---------------------------------------------------------------------------
  * Interface du module Watchdog CC.
  *
  * Rôle :
  *   - démarrer la tâche FreeRTOS qui envoie le heartbeat CC → Master
- *   - fournir des fonctions système pour suspendre / reprendre le heartbeat
+ *   - suspendre / reprendre le heartbeat (STOP local)
  *
  * Important :
  *   - aucune logique métier ici
@@ -26,24 +26,14 @@
 extern TaskHandle_t gHeartbeatTask;
 
 /* ============================================================================
- *  CCWatchdog_begin()
- * ---------------------------------------------------------------------------
- *  Démarre la tâche FreeRTOS qui envoie un heartbeat toutes les 100 ms.
+ *  API Watchdog CC
  * ==========================================================================*/
+
+/// Démarre la tâche FreeRTOS qui envoie un heartbeat toutes les 100 ms.
 void CCWatchdog_begin();
 
-/* ============================================================================
- *  CCWatchdog_suspend()
- * ---------------------------------------------------------------------------
- *  Suspend l’envoi du heartbeat.
- *  Utilisé lorsque le CC entre en STOP local.
- * ==========================================================================*/
+/// Suspend l’envoi du heartbeat (STOP local).
 void CCWatchdog_suspend();
 
-/* ============================================================================
- *  CCWatchdog_resume()
- * ---------------------------------------------------------------------------
- *  Reprend l’envoi du heartbeat.
- *  Utilisé lorsque le STOP est levé.
- * ==========================================================================*/
+/// Reprend l’envoi du heartbeat (STOP levé).
 void CCWatchdog_resume();

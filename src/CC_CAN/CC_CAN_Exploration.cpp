@@ -1,49 +1,45 @@
 /*
- * CC_CC_CAN_Exploration.cpp — Gestion Canton 2026
+ * CC_CAN_Exploration.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Commandes CAN du mode Exploration (0xC0–0xC1)
  *
  * Rôle :
- *   - 0xC0 : réception de l’ID d’un CC voisin détecté via CAN
- *   - 0xC1 : mise à jour du masque d’aiguilles d’un voisin
- *
- * IMPORTANT 2026 :
- *   - le masque est stocké uniquement dans CantonPeriph
- *   - aucun masque n’est maintenu dans la classe Canton
- *   - aucune logique métier ici : simple relais d’informations
+ *   - CMD_EXPLORATION_ID_VOISIN : réception de l’ID d’un CC voisin
+ *   - CMD_EXPLORATION_MASQUE_AIG : mise à jour du masque d’aiguilles d’un voisin
  */
 
 #include "CC_CAN.h"
 #include "debug_cc.h"
+#include "Exploration.h"
+#include "CanMsg.h"
+#include "Canton.h"
+#include "Protocol.h"
 
 /* ============================================================================
- * Handler global Exploration
+ * Handler global Exploration (appelé depuis CC_CAN.cpp)
  * ==========================================================================*/
-void handleExplorationCommand(uint8_t commande, const CANMessage &frameIn,
-                              Canton *canton, uint16_t idSatExpediteur)
+void handleExplorationCommand(uint8_t commande,
+                              const CanMsg &msg,
+                              Canton *canton,
+                              uint16_t idSatExpediteur)
 {
     switch (commande)
     {
     /* --------------------------------------------------------------------
-     * 0xC0 — Réception de l’ID du CC voisin
+     * CMD_EXPLORATION_ID_VOISIN — Réception de l’ID du CC voisin
      * ------------------------------------------------------------------ */
-    case 0xC0:
+    case CMD_EXPLORATION_ID_VOISIN:
         Exploration::ID_satPeriph(idSatExpediteur);
         break;
 
     /* --------------------------------------------------------------------
-     * 0xC1 — Réception du masque d’aiguilles d’un voisin
+     * CMD_EXPLORATION_MASQUE_AIG — Réception du masque d’aiguilles
      * --------------------------------------------------------------------
-     * frameIn.data[0] = masque d’aiguilles du CC voisin
-     *
-     * NOTE 2026 :
-     *   - ce masque est stocké dans CantonPeriph
-     *   - il sert à détecter un voisin dangereux
-     *   - il n’est JAMAIS stocké dans Canton
+     * msg.data[0] = masque d’aiguilles du CC voisin
      * ------------------------------------------------------------------ */
-    case 0xC1:
+    case CMD_EXPLORATION_MASQUE_AIG:
     {
-        uint8_t masque = frameIn.data[0];
+        uint8_t masque = msg.data[0];
 
         for (uint8_t i = 0; i < cantonPsize; i++)
         {

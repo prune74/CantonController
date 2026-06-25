@@ -1,10 +1,9 @@
 /*
  * CanConfig.cpp — Gestion Canton 2026 (version CanUniversal)
  * ---------------------------------------------------------------------------
- * Initialise le bus CAN interne via CanUniversal :
- *   - configuration fournie par un CanConfigProvider
- *   - initialisation via CanInit
- *   - aucun accès direct à ACAN_ESP32
+ * CC = 2 bus CAN :
+ *   - Bus 0 : TWAI interne ESP32 → réseau CantonController
+ *   - Bus 1 : MCP2515 externe   → lien EXCC
  */
 
 #include "CC_CAN_Config.h"
@@ -21,34 +20,51 @@ class CantonCanConfigProvider : public CanConfigProvider
 public:
     uint8_t busCount() const override
     {
-        return 1; // un seul bus pour le CC
+        return 2; // 🟢 Deux bus CAN maintenant
     }
 
     const CanBusConfig &bus(uint8_t index) const override
     {
         static CanBusConfig cfg;
 
-        if (index == 0)
+        switch (index)
         {
-            static CanBusConfig cfg;
+        case 0: // 🟢 Bus Gestion Canton (TWAI interne)
+            cfg.enabled   = true;
+            cfg.speed     = CAN_BITRATE;
 
-            cfg.enabled = true;
-            cfg.speed = CAN_BITRATE;
+            cfg.tx_pin    = PIN_CAN_TX;
+            cfg.rx_pin    = PIN_CAN_RX;
 
-            // TWAI interne ESP32
-            cfg.tx_pin = PIN_CAN_TX;
-            cfg.rx_pin = PIN_CAN_RX;
+            cfg.cs_pin    = GPIO_NUM_NC;
+            cfg.int_pin   = GPIO_NUM_NC;
+            cfg.sck_pin   = GPIO_NUM_NC;
+            cfg.mosi_pin  = GPIO_NUM_NC;
+            cfg.miso_pin  = GPIO_NUM_NC;
 
-            // MCP2515 désactivé
-            cfg.cs_pin = GPIO_NUM_NC;
-            cfg.int_pin = GPIO_NUM_NC;
-            cfg.sck_pin = GPIO_NUM_NC;
-            cfg.mosi_pin = GPIO_NUM_NC;
-            cfg.miso_pin = GPIO_NUM_NC;
-
-            cfg.quartz = 0;
+            cfg.quartz    = 0;
             cfg.tolerance = 0;
-            cfg.loopback = false;
+            cfg.loopback  = false;
+            return cfg;
+
+        case 1: // 🟢 Bus EXCC (MCP2515)
+            cfg.enabled   = true;
+            cfg.speed     = CAN_BITRATE_MCP2515;
+
+            cfg.tx_pin    = GPIO_NUM_NC;
+            cfg.rx_pin    = GPIO_NUM_NC;
+
+            cfg.cs_pin    = PIN_EXCC_CS;
+            cfg.int_pin   = PIN_EXCC_INT;
+
+            cfg.sck_pin   = PIN_EXCC_SCK;
+            cfg.mosi_pin  = PIN_EXCC_MOSI;
+            cfg.miso_pin  = PIN_EXCC_MISO;
+
+            cfg.quartz    = QUARTZ_MCP2515;
+            cfg.tolerance = 0;
+            cfg.loopback  = false;
+            return cfg;
         }
 
         // Bus invalide par défaut
@@ -62,11 +78,11 @@ public:
 // ---------------------------------------------------------------------------
 void CcCanConfig::setup()
 {
-    CC_LOG_INFO("[CanConfig][CC] Initialisation du CAN via CanUniversal\n");
+    CC_LOG_INFO("[CanConfig][CC] Initialisation du CAN via CanUniversal (2 bus)\n");
 
     CantonCanConfigProvider provider;
 
-    // Initialisation multi‑bus (ici : 1 bus)
+    // Initialisation multi‑bus (ici : 2 bus)
     CanInit::begin(provider);
 
     CC_LOG_INFO("[CanConfig][CC] Initialisation terminée\n");

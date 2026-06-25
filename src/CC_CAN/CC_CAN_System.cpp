@@ -2,36 +2,29 @@
  * CC_CAN_System.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Commandes système (CMD_SAT_TEST_BUS_REPLY → CMD_SAVE_ALL)
- *
- * Rôle :
- *   - tester le bus CAN
- *   - attribuer un ID au CC
- *   - activer/désactiver WiFi
- *   - activer/désactiver Exploration
- *   - sauvegarder settings.json
- *
- * IMPORTANT :
- *   - aucune logique ferroviaire
- *   - aucune logique topologique
- *   - aucune logique d’exploitation
- *
- * Ce module agit UNIQUEMENT sur les paramètres système.
  */
 
 #include "CC_CAN.h"
 #include "debug_cc.h"
+#include "Settings.h"
+#include "Exploration.h"
+#include "CanMsg.h"
+#include "Canton.h"
 
 /* ============================================================================
  * handleSystemCommand()
  * ---------------------------------------------------------------------------
  * @param commande         → code CAN système
- * @param frameIn          → trame CAN reçue
+ * @param CanMsg &msg          → trame CAN reçue
  * @param canton           → canton local
  * @param idSatExpediteur  → ID du CC expéditeur (non utilisé ici)
  *
  * Ce handler ne modifie JAMAIS la topologie ni l’exploitation.
  * ==========================================================================*/
-void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Canton *canton, uint16_t idSatExpediteur)
+void handleSystemCommand(uint8_t commande,
+                         const CanMsg &msg,
+                         Canton *canton,
+                         uint16_t idSatExpediteur)
 {
     (void)idSatExpediteur; // non utilisé
 
@@ -40,22 +33,22 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Canton *ca
     /* --------------------------------------------------------------------
      * CMD_SAT_TEST_BUS_REPLY — Réponse au test du bus CAN
      * --------------------------------------------------------------------
-     * frameIn.data[0] = 1 → CC opérationnel
+     * msg.data[0] = 1 → CC opérationnel
      * Le Main peut alors marquer ce CC comme READY.
      * ------------------------------------------------------------------ */
     case CMD_SAT_TEST_BUS_REPLY:
-        if (frameIn.data[0])
+        if (msg.data[0])
             Settings::sMainReady(true);
         break;
 
     /* --------------------------------------------------------------------
      * CMD_SAT_REQUEST_ID_REPLY — Attribution d’ID
      * --------------------------------------------------------------------
-     * Si le CC n’a pas d’ID (UNUSED_ID), le Main lui en attribue un.
+     * Si le CC n’a pas d’ID (UNUSED_ID), le ERM lui en attribue un.
      * ------------------------------------------------------------------ */
     case CMD_SAT_REQUEST_ID_REPLY:
         if (canton->ID() == UNUSED_ID)
-            canton->ID(frameIn.data[0]);
+            canton->ID(msg.data[0]);
         break;
 
     /* --------------------------------------------------------------------
@@ -70,13 +63,13 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Canton *ca
     /* --------------------------------------------------------------------
      * CMD_WIFI_ON_OFF — Activation / désactivation du WiFi
      * --------------------------------------------------------------------
-     * frameIn.data[0] = 0 → OFF
-     * frameIn.data[0] = 1 → ON
+     * msg.data[0] = 0 → OFF
+     * msg.data[0] = 1 → ON
      *
      * Après modification → sauvegarde → reboot.
      * ------------------------------------------------------------------ */
     case CMD_WIFI_ON_OFF:
-        Settings::wifiOn(frameIn.data[0]);
+        Settings::wifiOn(msg.data[0]);
         Settings::writeFile(Settings::canton);
         delay(1000);
         ESP.restart();
@@ -91,7 +84,7 @@ void handleSystemCommand(uint8_t commande, const CANMessage &frameIn, Canton *ca
      * OFF → arrêt immédiat du processus Exploration
      * ------------------------------------------------------------------ */
     case CMD_EXPLORATION_ON_OFF:
-        if (frameIn.data[0])
+        if (msg.data[0])
         {
             Settings::explorationOn(true);
             Settings::writeFile(Settings::canton);

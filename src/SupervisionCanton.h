@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "Canton.h"
 #include "SensEnum.h"
-#include "Exploration_Protocol.h" // pour ExccAspect
+#include "Protocol.h" // pour ExccAspect
 
 /*
  * SupervisionCanton.h — Gestion Canton 2026

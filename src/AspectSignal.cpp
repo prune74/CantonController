@@ -21,9 +21,9 @@
 
 #include "AspectSignal.h"
 #include "FeuxDirection.h"
-#include "SatTopologieUART.h"
+#include "CC_CAN_EXCC.h"
 #include "CC_CAN.h"
-#include "Exploration_Protocol.h"
+#include "Protocol.h"
 #include "DeductionAspect.h"
 #include "debug_cc.h"
 
@@ -156,11 +156,11 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         // ---------------------------------------------------------------
         if (signalValue[0] != oldSignalValue0)
         {
-            envoyerAspectSignalHoraire(signalValue[0]);
+            CC_CAN_EXCC::sendAspectHoraire(canton, signalValue[0]);
             oldSignalValue0 = signalValue[0];
 
             CC_CAN::sendMsg(
-                1, PROTO_E6_ASPECT_HORAIRE, 0, canton->ID(),
+                1, CMD_CC_EXCC_ASPECT_HORAIRE, 0, canton->ID(),
                 0, 0,
                 signalValue[0], 0);
         }
@@ -170,11 +170,11 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         // ---------------------------------------------------------------
         if (signalValue[1] != oldSignalValue1)
         {
-            envoyerAspectSignalAntiHoraire(signalValue[1]);
+            CC_CAN_EXCC::sendAspectAntiHoraire(canton, signalValue[1]);
             oldSignalValue1 = signalValue[1];
 
             CC_CAN::sendMsg(
-                1, PROTO_E7_ASPECT_ANTIHORAIRE, 0, canton->ID(),
+                1, CMD_CC_EXCC_ASPECT_ANTIHORAIRE, 0, canton->ID(),
                 1, 1,
                 signalValue[1], 0);
         }
@@ -184,13 +184,13 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         // ---------------------------------------------------------------
         if (dirValue0 != oldDirValue0)
         {
-            envoyerFeuDirectionHoraire(dirValue0);
+            CC_CAN_EXCC::sendFeuDirectionHoraire(canton, dirValue0);
             oldDirValue0 = dirValue0;
         }
 
         if (dirValue1 != oldDirValue1)
         {
-            envoyerFeuDirectionAntiHoraire(dirValue1);
+            CC_CAN_EXCC::sendFeuDirectionAntiHoraire(canton, dirValue1);
             oldDirValue1 = dirValue1;
         }
 
@@ -204,7 +204,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         if (sm1 && sm1->busy())
             occVoisins |= 0x02;
 
-        envoyerOccupationVoisins(occVoisins);
+        CC_CAN_EXCC::sendOccupationVoisins(canton, occVoisins);
 
         lastEnvoi = now;
     }

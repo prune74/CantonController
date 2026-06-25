@@ -16,6 +16,9 @@
 #include "debug_cc.h"
 #include "CC_CAN.h"
 
+#include "CanBus.h"
+#include "CanMsg.h"
+
 // ---------------------------------------------------------------------------
 // Variables internes
 // ---------------------------------------------------------------------------
@@ -26,7 +29,7 @@ static uint8_t comptCmdLoco = 0;
 // ---------------------------------------------------------------------------
 // envoyerCommandeDCC()
 // ---------------------------------------------------------------------------
-void envoyerCommandeDCC(Canton *canton) // 🟢
+void envoyerCommandeDCC(Canton *canton)
 {
     Loco *loco = canton->getLoco();
     if (!loco)
@@ -36,26 +39,31 @@ void envoyerCommandeDCC(Canton *canton) // 🟢
     }
 
     if (loco->address() == 0)
-        return; // aucune loco → aucune commande
+        return;
 
-    // Si la vitesse change → reset du compteur d’envoi
     if (loco->speed() != oldLocSpeed)
         comptCmdLoco = 0;
 
-    // On envoie la commande 5 fois pour fiabiliser le DCC
     if (comptCmdLoco < 5)
     {
-        CC_CAN::sendMsg(
-            0,            // priorité
-            0x04,         // opcode DCC
-            0,            // unused
-            canton->ID(), // ID du canton
-            0x00,
-            0x00,
-            (loco->address() >> 8) & 0xFF,
-            loco->address() & 0xFF,
-            (loco->speed() >> 8) & 0xFF,
-            loco->speed());
+        CanMsg msg;
+
+        uint32_t id =
+            (0 << 26) |            // priorité
+            (0x04 << 18) |         // opcode DCC
+            (canton->ID());        // nodeId
+
+        msg.id  = id;
+        msg.dlc = 6;
+
+        msg.data[0] = 0x00;
+        msg.data[1] = 0x00;
+        msg.data[2] = (loco->address() >> 8) & 0xFF;
+        msg.data[3] = loco->address() & 0xFF;
+        msg.data[4] = (loco->speed() >> 8) & 0xFF;
+        msg.data[5] = loco->speed();
+
+        CanBus::bus(0).send(msg);
 
         CC_LOG_INFO("[CommandeDCC][CC] Loco %u vitesse %u (envoi %u/5)\n",
                     loco->address(),
@@ -63,7 +71,7 @@ void envoyerCommandeDCC(Canton *canton) // 🟢
                     comptCmdLoco + 1);
 
         oldLocAddress = loco->address();
-        oldLocSpeed = loco->speed();
+        oldLocSpeed   = loco->speed();
         comptCmdLoco++;
     }
 }

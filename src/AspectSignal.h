@@ -5,7 +5,7 @@
 #include "DeductionAspect.h" // enum ExccAspect
 #include "CC_CAN.h"
 #include "SensEnum.h"
-#include "Exploration_Protocol.h" // ExccAspect
+#include "Protocol.h" // ExccAspect
 
 /*
  * AspectSignal.h — Gestion Canton 2026
@@ -26,7 +26,7 @@
  *   signalValue[1] = aspect anti‑horaire (ExccAspect)
  *
  * Chaque aspect est codé sur 1 octet (Option A),
- * conformément au protocole Exploration_Protocol.h.
+ * conformément au protocole Protocol.h.
  *
  * NOTE 2026 :
  *   - Le mode MANOEUVRE ne modifie pas la logique BAL interne.

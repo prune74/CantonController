@@ -24,10 +24,10 @@
  */
 
 #include "GestionReseau.h"
-#include "GestionLoco.h"          // Mise à jour de l’état de la loco
-#include "FeuxDirection.h"        // Feux directionnels (0..4)
-#include "Exploration_Protocol.h" // ExccAspect + opcodes UART/CAN
-#include "AspectSignal.h"         // mettreAJourAspectSignal()
+#include "GestionLoco.h"   // Mise à jour de l’état de la loco
+#include "FeuxDirection.h" // Feux directionnels (0..4)
+#include "Protocol.h"      // ExccAspect + opcodes UART/CAN
+#include "AspectSignal.h"  // mettreAJourAspectSignal()
 #include "debug_cc.h"
 
 // ---------------------------------------------------------------------------

@@ -1,25 +1,13 @@
 /*
  * CC_CAN_Supervision.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Gestion des messages CAN de supervision réseau.
- *
- * Rôle :
- *   - recevoir l’ID d’un CC offline envoyé par ERM
- *   - vérifier localement si cet ID est un voisin du canton
- *   - mettre à jour l’état topologique local
- *   - déclencher la LED “topologie invalide”
- *
- * IMPORTANT :
- *   • aucune logique ferroviaire
- *   • aucune logique d’exploitation
- *   • aucune logique d’exploration
- *
- * Ce module est dédié EXCLUSIVEMENT à la supervision réseau.
+ * Supervision réseau (CMD_CC_OFFLINE)
  */
 
 #include "CC_CAN.h"
 #include "Canton.h"
 #include "debug_cc.h"
+#include "CanMsg.h"
 
 /* ============================================================================
  * handleSupervisionCommand()
@@ -31,7 +19,9 @@
  * Ce handler traite uniquement les messages envoyés par ERM
  * concernant l’état du réseau (ex : CC offline).
  * ==========================================================================*/
-void handleSupervisionCommand(uint8_t commande, const CANMessage &frameIn, Canton *canton)
+void handleSupervisionCommand(uint8_t commande,
+                              const CanMsg &msg,
+                              Canton *canton)
 {
     switch (commande)
     {
@@ -49,7 +39,7 @@ void handleSupervisionCommand(uint8_t commande, const CANMessage &frameIn, Canto
      * ------------------------------------------------------------------ */
     case CMD_CC_OFFLINE:
     {
-        uint16_t offlineId = frameIn.data[0] | (frameIn.data[1] << 8);
+        uint16_t offlineId = msg.data[0] | (msg.data[1] << 8);
 
         CC_LOG_WARN("[CAN][Supervision][CC] CC offline détecté : %u\n", offlineId);
 

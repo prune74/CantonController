@@ -17,8 +17,8 @@
  */
 
 #include "DeductionAspect.h"
-#include "Config.h"               // USE_CLIGNOTANTS
-#include "Exploration_Protocol.h" // ExccAspect
+#include "Config.h"   // USE_CLIGNOTANTS
+#include "Protocol.h" // ExccAspect
 
 // ---------------------------------------------------------------------------
 // Déduction d’aspect local depuis l’aspect aval

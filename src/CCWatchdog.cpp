@@ -1,36 +1,12 @@
-/*
- * CCWatchdog.cpp — Gestion Canton 2026
- * ---------------------------------------------------------------------------
- * Module responsable de l’envoi périodique du heartbeat CC → Master.
- *
- * Rôle :
- *   - transmettre l’ID du canton au Master toutes les 100 ms (CAN ID 0x200)
- *   - permettre au Master de superviser la présence du CC
- *   - fournir des fonctions système pour suspendre / reprendre le heartbeat
- *
- * Important :
- *   - aucune logique ferroviaire ici
- *   - aucune logique STOP ici
- *   - ce module ne fait qu’envoyer un heartbeat CAN
- *   - la décision d’arrêter / reprendre le heartbeat est prise ailleurs
- */
-
 #include <Arduino.h>
 #include "CCWatchdog.h"
-#include "Exploration_Protocol.h"
+#include "Protocol.h"
 #include "Settings.h"
 #include "Canton.h"
-#include "ACAN_ESP32.h"
+#include "CanMsg.h"
+#include "CanBus.h"
 #include "debug_cc.h"
 
-extern Canton *canton;
-
-/* ============================================================================
- *  Handle de la tâche FreeRTOS du heartbeat
- * ---------------------------------------------------------------------------
- *  - utilisé pour suspendre / reprendre l’envoi du heartbeat
- *  - exposé dans CCWatchdog.h
- * ==========================================================================*/
 TaskHandle_t gHeartbeatTask = nullptr;
 
 /* ============================================================================
@@ -46,19 +22,23 @@ TaskHandle_t gHeartbeatTask = nullptr;
  * ==========================================================================*/
 static void sendHeartbeat()
 {
+    Canton *canton = Settings::canton;
+    if (!canton)
+        return;
+
     uint16_t id = canton->ID();
     if (id == UNUSED_ID || id == 0xFFFF)
         return;
 
-    CANMessage msg;
-    msg.id  = EXPLORATION_CAN_ID_HEARTBEAT; // 0x200
-    msg.ext = false;                        // trame standard 11 bits
-    msg.len = 2;
+    CanMsg msg;
+    msg.id = EXPLORATION_CAN_ID_HEARTBEAT; // 0x200 → 11 bits automatiquement
+    msg.dlc = 2;
 
     msg.data[0] = id >> 8;
     msg.data[1] = id & 0xFF;
 
-    ACAN_ESP32::can.tryToSend(msg);
+    // Envoi sur le bus CantonController (bus 0)
+    CanBus::bus(0).send(msg);
 
     CC_LOG_TRACE("[CCWatchdog][CC] Heartbeat envoyé (ID=%u)\n", id);
 }
@@ -76,7 +56,7 @@ static void taskHeartbeat(void *pv)
     for (;;)
     {
         sendHeartbeat();
-        vTaskDelay(pdMS_TO_TICKS(100)); // période fixe : 100 ms
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 

@@ -31,15 +31,15 @@
 
 // Modules spécialisés appelés dans loopTask()
 #include "Canton.h"
-#include "SensRoulage.h"          // Déduction du sens de circulation
-#include "TopologieSat.h"         // Mise à jour SP1 / SM1
-#include "SupervisionCAN.h"       // Diffusion état canton sur CAN
-#include "SupervisionCanton.h"    // Déduction des aspects cantonaux
-#include "PilotageDistribue.h"    // Pilotage loco selon aspect
-#include "CommandeDCC.h"          // Envoi commandes DCC++
-#include "AspectSignal.h"         // Envoi aspects dynamiques aux signaux (UART → EXCC)
-#include "SensEnum.h"             // Enumération des sens (horaire / anti-horaire)
-#include "Exploration_Protocol.h" // ExccAspect (enum 1 octet)
+#include "SensRoulage.h"       // Déduction du sens de circulation
+#include "TopologieSat.h"      // Mise à jour SP1 / SM1
+#include "SupervisionCAN.h"    // Diffusion état canton sur CAN
+#include "SupervisionCanton.h" // Déduction des aspects cantonaux
+#include "PilotageDistribue.h" // Pilotage loco selon aspect
+#include "CommandeDCC.h"       // Envoi commandes DCC++
+#include "AspectSignal.h"      // Envoi aspects dynamiques aux signaux (UART → EXCC)
+#include "SensEnum.h"          // Enumération des sens (horaire / anti-horaire)
+#include "Protocol.h"          // ExccAspect (enum 1 octet)
 
 class GestionReseau
 {
@@ -64,7 +64,7 @@ public:
   // Typé en ExccAspect (1 octet) pour cohérence avec :
   //   - SupervisionCanton (calcul des aspects)
   //   - AspectSignal (envoi UART vers EXCC)
-  //   - Exploration_Protocol.h (protocole commun)
+  //   - Protocol.h (protocole commun)
   // -----------------------------------------------------------------------
   static ExccAspect signalValue[2];
 };

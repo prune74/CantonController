@@ -29,7 +29,6 @@
 #include "Settings.h"
 #include "Settings_JSON.h"
 #include "debug_cc.h"
-#include "CC_UartRx.h"
 #include "Config.h"
 #include "Canton.h"
 #include <SPIFFS.h>
@@ -73,12 +72,6 @@ void Settings::setup(Canton *nd) // 🟢
     canton = nd;
 
     CC_LOG_INFO("[Settings][CC] Initialisation complète du CC...\n");
-
-    // ------------------------------------------------------------------------
-    // 1) UART RS485 (module séparé)
-    // ------------------------------------------------------------------------
-    setupUART();
-    CC_UartRx::begin();
 
     // ------------------------------------------------------------------------
     // 2) Montage SPIFFS

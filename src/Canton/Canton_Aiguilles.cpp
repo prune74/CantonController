@@ -21,9 +21,9 @@
  */
 
 #include "Canton.h"
+#include "CC_CAN_EXCC.h"
 #include "Config.h"
 #include "debug_cc.h"
-#include "SatTopologieUART.h"
 
 /* ============================================================================
  *  aigRun() — Envoi d’une commande F0 à l’EXCC 🟢
@@ -70,7 +70,7 @@ void Canton::aigRun(byte idx) // 🟢
     // ------------------------------------------------------------------------
     // Envoi de la commande F0 (servoMove)
     // ------------------------------------------------------------------------
-    envoyerServoMove(idx, direction);
+    CC_CAN_EXCC::sendServoMove(this, idx, direction);
 }
 
 /* ============================================================================

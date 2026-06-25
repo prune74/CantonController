@@ -22,6 +22,7 @@
  */
 
 #include "Exploration.h"
+#include "CC_CAN_EXCC.h"
 #include "Settings.h"
 #include "debug_cc.h"
 
@@ -85,11 +86,6 @@ static void runExplorationPass(Canton *canton) // 🟢
         if (canton->getCantonP(c[0]) && canton->getCantonP(c[1]))
             createAig(i, c[0], c[1]);
     }
-
-    // --------------------------------------------------------
-    // Envoi de la topologie vers EXCC
-    // --------------------------------------------------------
-    envoyerTopologieSiPret();
 }
 
 // ---------------------------------------------------------------------------
@@ -173,8 +169,8 @@ void Exploration::process(void *p) // 🟢
 
     auto btnPush = [&](uint8_t btnNum)
     {
-        // Notification CAN vers la carte Main
-        CC_CAN::sendMsg(0, 0xC0, 0, canton->ID(), UNUSED_ID, 0);
+        // Notification CAN vers la carte ERM
+        CC_CAN::sendMsg(0, CMD_EXPLORATION_REQUEST_CC_ID, 0, canton->ID(), UNUSED_ID, 0);
 
         if (m_ID_satPeriph < 253)
         {

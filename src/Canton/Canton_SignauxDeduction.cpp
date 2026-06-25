@@ -16,7 +16,7 @@
 
 #include "Canton.h"
 #include "Exploration.h"
-#include "Exploration_Protocol.h"
+#include "Protocol.h"
 #include "debug_cc.h"
 
 /* ============================================================================
@@ -38,8 +38,8 @@ bool Canton::estZoneAiguilles() const
 bool Canton::prochainCantonEstDangereux(SensDeMarche sens) const
 {
     CantonPeriph *v = (sens == SensHoraire)
-                        ? getCantonP(m_SP1_idx)
-                        : getCantonP(m_SM1_idx);
+                          ? getCantonP(m_SP1_idx)
+                          : getCantonP(m_SM1_idx);
 
     return v && (v->masqueAig() != 0);
 }
@@ -55,13 +55,13 @@ bool Canton::aBifurcation(SensDeMarche sens) const
 bool Canton::cantonPrecedentEstEnRalentissement(SensDeMarche sens) const
 {
     CantonPeriph *v = (sens == SensHoraire)
-                        ? getCantonP(m_SM1_idx)
-                        : getCantonP(m_SP1_idx);
+                          ? getCantonP(m_SM1_idx)
+                          : getCantonP(m_SP1_idx);
 
     if (!v)
         return false;
 
-    ExccAspect aH  = static_cast<ExccAspect>(v->aspectRecu[0]);
+    ExccAspect aH = static_cast<ExccAspect>(v->aspectRecu[0]);
     ExccAspect aAH = static_cast<ExccAspect>(v->aspectRecu[1]);
 
     return (aH == ASPECT_RALENTISSEMENT_30 ||

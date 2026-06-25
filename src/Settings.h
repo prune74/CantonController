@@ -73,7 +73,6 @@ public:
     /* =======================================================================
      *  5) Fonctions internes (modules spécialisés)
      * =====================================================================*/
-    static void setupUART();     // Configuration UART RS485
     static bool mountSPIFFS();   // Montage SPIFFS
 
     /* =======================================================================

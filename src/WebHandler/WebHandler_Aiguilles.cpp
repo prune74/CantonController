@@ -4,28 +4,28 @@
  * Gestion des réglages d’aiguilles via l’interface Web :
  *   - mise à jour des positions logiques droite / déviée
  *   - mise à jour de la vitesse logique (slider 0–10)
- *   - envoi RS485 F1 (servoConfig) et F2 (servoTest)
- *
+ *   - envoi CAN vers l’EXCC :
+ *       - CMD_CC_EXCC_SERVO_CONFIG : servoConfig (positions + vitesse)
+ *       - CMD_CC_EXCC_SERVO_TEST : servoTest
  * Le CC ne pilote aucun servo :
- *   → il transmet uniquement les paramètres logiques à l’EXCC.
+ *   → il transmet uniquement les paramètres logiques à l’EXCC via CAN.
  */
 
 #include "WebHandler.h"
 #include "debug_cc.h"
-#include "SatTopologieUART.h"
 #include "Canton.h"
 #include "Aig.h"
 #include "Settings.h"
-#include "CC_RS485.h"
-#include "Exploration_Protocol.h"
+#include "CC_CAN_EXCC.h"
+#include "Protocol.h"
 
 // ---------------------------------------------------------------------------
 // handleServoSettings()
 // ---------------------------------------------------------------------------
 void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
 {
-    const char *servoId     = doc["servoSettings"][0];
-    const uint16_t value    = doc["servoSettings"][1];
+    const char *servoId = doc["servoSettings"][0];
+    const uint16_t value = doc["servoSettings"][1];
     const uint8_t servoName = doc["servoSettings"][2];
 
     Aig *aig = canton->getAig(servoName);
@@ -67,8 +67,8 @@ void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
     // -----------------------------------------------------------------------
     // 2) Lecture interne (source de vérité JSON 2026)
     // -----------------------------------------------------------------------
-    uint16_t posDroit    = aig->posDroit();
-    uint16_t posDevie    = aig->posDevie();
+    uint16_t posDroit = aig->posDroit();
+    uint16_t posDevie = aig->posDevie();
     uint16_t speedSlider = cfg.speed;
 
     // Conversion slider → vitesse EXCC
@@ -82,7 +82,8 @@ void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
     // -----------------------------------------------------------------------
     // 4) Envoi RS485 F1 : servoConfig
     // -----------------------------------------------------------------------
-    envoyerServoConfig(
+    CC_CAN_EXCC::sendServoConfig(
+        canton,
         servoName,
         posDroit,
         posDevie,
@@ -107,5 +108,5 @@ void WebHandler::handleServoTest(JsonDocument &doc) // 🟢
     CC_LOG_INFO("[Aiguilles][CC] Test aiguille %u via EXCC unique\n",
                 servoName);
 
-    envoyerServoTest(servoName);
+    CC_CAN_EXCC::sendServoTest(canton, servoName);
 }

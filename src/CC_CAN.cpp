@@ -2,22 +2,24 @@
  * CC_CAN.cpp — Gestion Canton 2026 (version CanUniversal)
  * ---------------------------------------------------------------------------
  * Réception et dispatch des trames CAN.
+ * Bus 0 = réseau Discovery
+ * Bus 1 = EXCC (MCP2515)
  */
 
-#include "CanMsg.h" // CanUniversal
-#include "CanBus.h" // CanUniversal
-
-#include "CC_CAN_Config.h"
 #include "CC_CAN.h"
+#include "CC_CAN_Config.h"
+#include "CC_CAN_EXCC.h"
+
 #include "debug_cc.h"
 
-// ---------------------------------------------------------------------------
-// Handlers externes
-// ---------------------------------------------------------------------------
-void handleSystemCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
-void handleExplorationCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
-void handleExploitCommand(uint8_t commande, const CANMessage &frame, Canton *canton, uint16_t idSatExpediteur);
-void handleSupervisionCommand(uint8_t commande, const CANMessage &frame, Canton *canton);
+#include "CanMsg.h"
+#include "CanBus.h"
+
+// Handlers CAN modernes
+void handleSystemCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idSatExpediteur);
+void handleExplorationCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idSatExpediteur);
+void handleExploitCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idSatExpediteur);
+void handleSupervisionCommand(uint8_t commande, const CanMsg &msg, Canton *canton);
 
 // ---------------------------------------------------------------------------
 // setup() — création de la tâche de réception CAN
@@ -49,13 +51,17 @@ void CC_CAN::setup(Canton *canton)
 }
 
 #ifdef TEST_MEMORY_TASK
+// ---------------------------------------------------------------------------
+// testMemory() — surveillance de la stack FreeRTOS
+// ---------------------------------------------------------------------------
 void CC_CAN::testMemory(void *pvParameters)
 {
     TaskHandle_t canReceiveHandle = (TaskHandle_t)pvParameters;
+
     for (;;)
     {
         UBaseType_t freeStack = uxTaskGetStackHighWaterMark(canReceiveHandle);
-        Serial.printf("[CC_CAN][CC] free stack = %d bytes\n", freeStack);
+        Serial.printf("[CC_CAN][CC] free stack = %u bytes\n", freeStack);
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }
@@ -71,68 +77,77 @@ void CC_CAN::canReceiveMsg(void *pvParameters)
 
     for (;;)
     {
-        // Lecture via CanUniversal
-        CanMsg msg;
+        // Bus 0 : Discovery
+        CanMsg msg0;
+        if (CanBus::bus(0).receive(msg0))
+            traiterMessageCAN(msg0, canton, 0);
 
-        if (CanBus::bus(0).receive(msg))
-        {
-            // STOP global
-            if (msg.is11() && msg.id == EXPLORATION_CAN_ID_EMERGENCY_STOP)
-            {
-                canton->setStopActive(true);
-                CC_LOG_ERROR("[CC_CAN][CC] STOP global reçu (canton %u)\n", canton->ID());
-                vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
-                continue;
-            }
-
-            // ID 29 bits
-            if (!msg.is29())
-            {
-                vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
-                continue;
-            }
-
-            const uint8_t commande = msg.cmde();
-            const uint16_t idExpediteur = msg.nodeId();
-            const bool response = msg.resp();
-            (void)response;
-
-            // Conversion vers CANMessage
-            CANMessage frameIn = msg.toFrame();
-
-            // Gestion RTR
-            if (frameIn.rtr)
-            {
-                if (commande == 0x0F)
-                    CanBus::bus(0).send(msg);
-
-                vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
-                continue;
-            }
-
-            // Dispatch
-            if (commande >= CMD_SAT_TEST_BUS_REPLY && commande <= CMD_SAVE_ALL)
-            {
-                handleSystemCommand(commande, frameIn, canton, idExpediteur);
-            }
-            else if (commande >= 0xC0 && commande <= 0xC1)
-            {
-                handleExplorationCommand(commande, frameIn, canton, idExpediteur);
-            }
-            else if (commande >= 0xE0 && commande <= 0xE9)
-            {
-                handleExploitCommand(commande, frameIn, canton, idExpediteur);
-            }
-            else if (commande == CMD_CC_OFFLINE)
-            {
-                handleSupervisionCommand(commande, frameIn, canton);
-            }
-            else
-            {
-                CC_LOG_WARN("[CC_CAN][CC] Commande 0x%X non gérée\n", commande);
-            }
-        }
+        // Bus 1 : EXCC
+        CanMsg msg1;
+        if (CanBus::bus(1).receive(msg1))
+            traiterMessageCAN(msg1, canton, 1);
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
     }
+}
+
+// ---------------------------------------------------------------------------
+// Traitement d’un message CAN (bus 0 ou bus 1)
+// ---------------------------------------------------------------------------
+void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
+{
+    // STOP global uniquement sur bus 0
+    if (bus == 0 && msg.is11() && msg.id == EXPLORATION_CAN_ID_EMERGENCY_STOP)
+    {
+        canton->setStopActive(true);
+        CC_LOG_ERROR("[CC_CAN][CC] STOP global reçu (canton %u)\n", canton->ID());
+        return;
+    }
+
+    if (!msg.is29())
+        return;
+
+    uint8_t commande = msg.cmde();
+    uint16_t idExpediteur = msg.nodeId();
+
+    // -----------------------------------------------------------------------
+    // Dispatch moderne (100 % CanMsg)
+    // -----------------------------------------------------------------------
+
+    // Commandes système
+    if (commande >= CMD_SAT_TEST_BUS_REPLY && commande <= CMD_SAVE_ALL)
+    {
+        handleSystemCommand(commande, msg, canton, idExpediteur);
+        return;
+    }
+
+    // Exploration (0xC0–0xC1)
+    if (commande >= 0xC0 && commande <= 0xC1)
+    {
+        handleExplorationCommand(commande, msg, canton, idExpediteur);
+        return;
+    }
+
+    // Exploitation (0xE0–0xE9)
+    if (commande >= 0xE0 && commande <= 0xE9)
+    {
+        handleExploitCommand(commande, msg, canton, idExpediteur);
+        return;
+    }
+
+    // Supervision (CMD_CC_OFFLINE)
+    if (commande == CMD_CC_OFFLINE)
+    {
+        handleSupervisionCommand(commande, msg, canton);
+        return;
+    }
+
+    // Commandes EXCC (CMD_CC_EXCC_PING–0xDF)
+    if (commande >= 0xD0 && commande <= 0xDF)
+    {
+        CC_CAN_EXCC::handleEXCCCommand(commande, msg, canton, idExpediteur);
+        return;
+    }
+
+    CC_LOG_WARN("[CC_CAN][CC] Cmd 0x%02X non gérée (bus %u)\n", commande, bus);
 }

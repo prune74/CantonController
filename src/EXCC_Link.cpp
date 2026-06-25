@@ -1,77 +1,67 @@
 /*
- * EXCC_Link.cpp — Communication RS485 CC ↔ EXCC - Gestion Canton 2026
+ * EXCC_Link.cpp — Communication CAN CC ↔ EXCC - Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Ce module gère la liaison série RS485 entre :
- *   - le Canton Controller (CC)
- *   - l’unique Extension Canton Controller (EXCC)
+ * Version CAN (remplace la liaison RS485 historique).
  *
- * Conception :
- *   → Un CC communique avec un seul EXCC
- *   → Le booster est intégré à l’EXCC
- *
- * Fonctionnalités :
- *   - supervision ONLINE / OFFLINE de l’EXCC
- *   - envoi périodique d’un PING
- *   - réception du PONG
- *   - réception des informations du booster :
- *        • tension
- *        • courant
- *        • état interne
- *   - envoi des configurations lors du passage ONLINE
- *   - envoi des seuils calibrés
- *   - commande ON/OFF du booster
+ * Un CC communique avec un seul EXCC, lui-même associé à un Canton unique.
+ * Le booster est intégré à l’EXCC.
  */
 
 #include "EXCC_Link.h"
-#include "Exploration_Protocol.h"
-#include "SatTopologieUART.h"
-#include "CC_RS485.h"
+#include "Exploration.h"
 #include "Booster.h"
 #include "Settings.h"
 #include "debug_cc.h"
+#include "CC_CAN_EXCC.h"
+#include "Canton.h"
 
 // ---------------------------------------------------------------------------
 // Paramètres internes
 // ---------------------------------------------------------------------------
-static constexpr uint32_t kPingPeriodMs     = 500;   // période d’envoi du PING
-static constexpr uint32_t kOfflineTimeoutMs = 2000;  // délai avant OFFLINE
+static constexpr uint32_t kPingPeriodMs = 500;      // période d’envoi du PING
+static constexpr uint32_t kOfflineTimeoutMs = 2000; // délai avant OFFLINE
 
 // ---------------------------------------------------------------------------
 // État interne de l’EXCC
 // ---------------------------------------------------------------------------
 struct ExccState
 {
-    bool     online;        // EXCC joignable ?
-    uint32_t lastPongTime;  // horodatage du dernier PONG
+    bool online;           // EXCC joignable ?
+    uint32_t lastPongTime; // horodatage du dernier PONG
 };
 
 static ExccState g_excc;
 
+// Canton associé à l’unique EXCC
+static Canton *g_exccCanton = nullptr;
+
 // ---------------------------------------------------------------------------
-// Initialisation du lien RS485
+// Initialisation du lien CAN
 // ---------------------------------------------------------------------------
 void EXCC_Link::begin() // 🟢
 {
-    CC_LOG_INFO("[EXCC][CC] Initialisation RS485...\n");
+    CC_LOG_INFO("[EXCC][CC] Initialisation lien CAN EXCC...\n");
 
-    CC_RS485::begin();
-
-    g_excc.online       = false;
+    g_excc.online = false;
     g_excc.lastPongTime = 0;
+
+    // Le CC communique avec l’EXCC via SON propre canton
+    g_exccCanton = Exploration::getCanton();
+
+    if (!g_exccCanton)
+        CC_LOG_WARN("[EXCC][CC] Aucun canton associé à l’EXCC\n");
 }
 
 // ---------------------------------------------------------------------------
-// Envoi périodique du PING
+// Envoi périodique du PING (commande CAN CMD_CC_EXCC_PING)
 // ---------------------------------------------------------------------------
 static void envoyerPing() // 🟢
 {
-    uint8_t frame[2] = {
-        PROTO_SYNC_BYTE,
-        PROTO_PING
-    };
+    if (!g_exccCanton)
+        return;
 
-    CC_RS485::sendFrame(frame, sizeof(frame));
-    CC_LOG_TRACE("[EXCC][CC] → PING\n");
+    CC_CAN_EXCC::sendPing(g_exccCanton);
+    CC_LOG_TRACE("[EXCC][CC] → PING (CAN)\n");
 }
 
 void EXCC_Link::envoyerPingPeriodique() // 🟢
@@ -87,7 +77,7 @@ void EXCC_Link::envoyerPingPeriodique() // 🟢
 }
 
 // ---------------------------------------------------------------------------
-// Réception du PONG
+// Réception du PONG (appelé depuis CC_CAN_EXCC::handleEXCCCommand)
 // ---------------------------------------------------------------------------
 void EXCC_Link::onPong() // 🟢
 {
@@ -100,11 +90,11 @@ void EXCC_Link::onPong() // 🟢
         EXCC_Link::onExccOnline();
     }
 
-    CC_LOG_TRACE("[EXCC][CC] PONG\n");
+    CC_LOG_TRACE("[EXCC][CC] PONG (CAN)\n");
 }
 
 // ---------------------------------------------------------------------------
-// Réception des informations Booster (PROTO_07)
+// Réception des informations Booster (commande CAN CMD_EXCC_CC_BOOSTER_INFO)
 // ---------------------------------------------------------------------------
 void EXCC_Link::onBooster(uint8_t etat, uint8_t courant, uint8_t tension) // 🟢
 {
@@ -146,77 +136,63 @@ void EXCC_Link::loop() // 🟢
 
 void EXCC_Link::onExccOnline() // 🟢
 {
-    CC_LOG_INFO("[EXCC][CC] EXCC ONLINE\n");
+    CC_LOG_INFO("[EXCC][CC] EXCC ONLINE (CAN)\n");
 
     // Envoi des configurations courantes
-    envoyerTopologieDepuisSettings();
-    envoyerConfigurationSignauxDepuisSettings();
-    envoyerConfigurationServosDepuisSettings();
-    envoyerOccupationDepuisEtatCourant();
-    envoyerAspectsDepuisEtatCourant();
-    envoyerFeuxDepuisEtatCourant();
-    envoyerAiguillesDepuisEtatCourant();
+    CC_CAN_EXCC::sendConfigurationSignauxDepuisSettings();
+    CC_CAN_EXCC::sendConfigurationServosDepuisSettings();
+    CC_CAN_EXCC::sendAspectsDepuisEtatCourant();
+    CC_CAN_EXCC::sendFeuxDepuisEtatCourant();
+    CC_CAN_EXCC::sendAiguillesDepuisEtatCourant();
 
     // Envoi des seuils calibrés
-    uint16_t libre  = Settings::boosterSeuilLibre();
+    uint16_t libre = Settings::boosterSeuilLibre();
     uint16_t occupe = Settings::boosterSeuilOccupe();
 
     EXCC_Link::envoyerSeuilsBooster(libre, occupe);
 }
 
-
 void EXCC_Link::onExccOffline() // 🟢
 {
-    CC_LOG_WARN("[EXCC][CC] EXCC OFFLINE\n");
+    CC_LOG_WARN("[EXCC][CC] EXCC OFFLINE (CAN)\n");
 }
 
 // ---------------------------------------------------------------------------
-// Commande ON/OFF du booster
+// Commande ON/OFF du booster (commande CAN CMD_CC_EXCC_BOOSTER_POWER)
 // ---------------------------------------------------------------------------
 void EXCC_Link::envoyerBoosterPower(bool on) // 🟢
 {
-    uint8_t frame[3] = {
-        PROTO_SYNC_BYTE,
-        PROTO_F5_BOOSTER_POWER,
-        uint8_t(on ? 1 : 0)
-    };
+    if (!g_exccCanton)
+        return;
 
-    CC_RS485::sendFrame(frame, sizeof(frame));
+    CC_CAN_EXCC::sendBoosterPower(g_exccCanton, on);
 
-    CC_LOG_WARN("[EXCC][CC] → Booster = %s\n", on ? "ON" : "OFF");
+    CC_LOG_WARN("[EXCC][CC] → Booster = %s (CAN)\n", on ? "ON" : "OFF");
 }
 
 // ---------------------------------------------------------------------------
-// Demande de recalibration
+// Demande de recalibration (commande CAN CMD_EXCC_CC_CALIB_BOOSTER_INFO)
 // ---------------------------------------------------------------------------
 void EXCC_Link::demanderRecalibration() // 🟢
 {
-    uint8_t frame[2] = {
-        PROTO_SYNC_BYTE,
-        PROTO_F3_RECALIBRER_BOOSTER
-    };
+    if (!g_exccCanton)
+        return;
 
-    CC_RS485::sendFrame(frame, sizeof(frame));
+    CC_CAN_EXCC::sendRecalibration(g_exccCanton);
 
-    CC_LOG_INFO("[EXCC][CC] → Demande recalibration\n");
+    CC_LOG_INFO("[EXCC][CC] → Demande recalibration (CAN)\n");
 }
 
 // ---------------------------------------------------------------------------
-// Envoi des seuils calibrés
+// Envoi des seuils calibrés (commande CAN CMD_CC_EXCC_SET_SEUILS)
 // ---------------------------------------------------------------------------
 void EXCC_Link::envoyerSeuilsBooster(uint16_t libre, uint16_t occupe) // 🟢
 {
-    uint8_t frame[6] = {
-        PROTO_SYNC_BYTE,
-        PROTO_F4_SET_SEUILS,
-        uint8_t(libre & 0xFF),
-        uint8_t(libre >> 8),
-        uint8_t(occupe & 0xFF),
-        uint8_t(occupe >> 8)
-    };
+    if (!g_exccCanton)
+        return;
 
-    CC_RS485::sendFrame(frame, sizeof(frame));
+    CC_CAN_EXCC::sendSeuilsBooster(g_exccCanton, libre, occupe);
 
-    CC_LOG_INFO("[EXCC][CC] → Seuils envoyés : libre=%u  occupé=%u\n",
+    CC_LOG_INFO("[EXCC][CC] → Seuils envoyés (CAN) : libre=%u  occupé=%u\n",
                 libre, occupe);
 }

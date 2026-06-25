@@ -1,7 +1,7 @@
 /*
  * Settings_JSON_Booster.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Gestion des seuils du Booster (PROTO_09) dans settings.json.
+ * Gestion des seuils du Booster (CMD_EXCC_09) dans settings.json.
  *
  * Clés JSON :
  *   - "booster_seuil_libre"
@@ -20,7 +20,7 @@
  * ==========================================================================*/
 void Settings_JSON_loadBooster(JsonDocument &doc) // 🟢
 {
-    Settings::setBoosterSeuilLibre(doc["booster_seuil_libre"]  | 0);
+    Settings::setBoosterSeuilLibre(doc["booster_seuil_libre"] | 0);
     Settings::setBoosterSeuilOccupe(doc["booster_seuil_occupe"] | 0);
 
     CC_LOG_INFO("[Settings][Booster][CC] Seuils chargés → libre=%u occupe=%u\n",
@@ -33,6 +33,6 @@ void Settings_JSON_loadBooster(JsonDocument &doc) // 🟢
  * ==========================================================================*/
 void Settings_JSON_saveBooster(JsonDocument &doc) // 🟢
 {
-    doc["booster_seuil_libre"]  = Settings::boosterSeuilLibre();
+    doc["booster_seuil_libre"] = Settings::boosterSeuilLibre();
     doc["booster_seuil_occupe"] = Settings::boosterSeuilOccupe();
 }

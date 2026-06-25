@@ -35,7 +35,7 @@ void SupervisionAiguilles::begin(Canton *canton) // 🟢
 // onPosition()
 // Mise à jour d’une aiguille suite à une notification EXCC
 // ---------------------------------------------------------------------------
-void SupervisionAiguilles::onPosition(uint8_t idAig, uint8_t pos, uint8_t etat) // 🟢 
+void SupervisionAiguilles::onPosition(uint8_t idAig, uint8_t pos, uint8_t etat) // 🟢
 {
     if (!s_canton)
         return;
@@ -48,14 +48,14 @@ void SupervisionAiguilles::onPosition(uint8_t idAig, uint8_t pos, uint8_t etat) 
     }
 
     // --- Sécurité : état envoyé par l’EXCC ---
-    if (etat == PROTO_ETAT_BLOQUE)
+    if (etat == EXCC_CODE_ETAT_BLOQUE)
     {
         CC_LOG_ERROR("[Aiguilles][CC] Aig %u BLOQUÉ → STOP GLOBAL !\n", idAig);
         s_canton->setStopActive(true);
         return;
     }
 
-    if (etat == PROTO_ETAT_ERREUR)
+    if (etat == EXCC_CODE_ETAT_ERREUR)
     {
         CC_LOG_ERROR("[Aiguilles][CC] Aig %u ERREUR SWITCH → STOP GLOBAL !\n", idAig);
         s_canton->setStopActive(true);
@@ -65,22 +65,22 @@ void SupervisionAiguilles::onPosition(uint8_t idAig, uint8_t pos, uint8_t etat) 
     // --- Position physique ---
     switch (pos)
     {
-    case PROTO_POS_DROIT:
+    case EXCC_CODE_POS_DROIT:
         aig->estDroit(true);
         CC_LOG_INFO("[Aiguilles][CC] Aig %u = DROIT\n", idAig);
         break;
 
-    case PROTO_POS_DEVIE:
+    case EXCC_CODE_POS_DEVIE:
         aig->estDroit(false);
         CC_LOG_INFO("[Aiguilles][CC] Aig %u = DEVIE\n", idAig);
         break;
 
-    case PROTO_POS_INDET:
+    case EXCC_CODE_POS_INDET:
         CC_LOG_ERROR("[Aiguilles][CC] Aig %u = INDET → STOP GLOBAL !\n", idAig);
         s_canton->setStopActive(true);
         break;
 
-    case PROTO_POS_INCOHERENT:
+    case EXCC_CODE_POS_INCOHERENT:
         CC_LOG_ERROR("[Aiguilles][CC] Aig %u = INCOHERENT → STOP GLOBAL !\n", idAig);
         s_canton->setStopActive(true);
         break;
