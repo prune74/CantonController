@@ -13,7 +13,7 @@ TaskHandle_t gHeartbeatTask = nullptr;
  *  sendHeartbeat() — Envoi d’une trame 0x200 au Master
  * ---------------------------------------------------------------------------
  *  Format :
- *      ID   = 0x200 (EXPLORATION_CAN_ID_HEARTBEAT)
+ *      ID   = 0x200 (CAN11_ID_HEARTBEAT)
  *      DLC  = 2
  *      DATA = [ID_High, ID_Low]
  *
@@ -31,7 +31,7 @@ static void sendHeartbeat()
         return;
 
     CanMsg msg;
-    msg.id = EXPLORATION_CAN_ID_HEARTBEAT; // 0x200 → 11 bits automatiquement
+    msg.id = CAN11_ID_HEARTBEAT; // 0x200 → 11 bits automatiquement
     msg.dlc = 2;
 
     msg.data[0] = id >> 8;

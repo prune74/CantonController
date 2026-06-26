@@ -11,33 +11,20 @@
 
 /* ============================================================================
  * handleSupervisionCommand()
- * ---------------------------------------------------------------------------
- * @param commande  → code CAN supervision (CMD_ERM_CC_OFFLINE)
- * @param frameIn   → trame CAN reçue
- * @param canton    → canton local
- *
- * Ce handler traite uniquement les messages envoyés par ERM
- * concernant l’état du réseau (ex : CC offline).
  * ==========================================================================*/
 void handleSupervisionCommand(uint8_t commande,
                               const CanMsg &msg,
                               Canton *canton)
 {
-    switch (commande)
+    // Conversion vers enum class
+    CanCmd cmd = static_cast<CanCmd>(commande);
+
+    switch (cmd)
     {
     /* --------------------------------------------------------------------
      * CMD_ERM_CC_OFFLINE — Notification d’un CC hors ligne
-     * --------------------------------------------------------------------
-     * frameIn.data :
-     *   [0] offlineId_low
-     *   [1] offlineId_high
-     *
-     * Logique :
-     *   - ERM détecte un CC offline
-     *   - ERM envoie son ID à tous les CC
-     *   - chaque CC vérifie localement si cet ID est un voisin
      * ------------------------------------------------------------------ */
-    case CMD_ERM_CC_OFFLINE:
+    case CanCmd::CMD_ERM_CC_OFFLINE:
     {
         uint16_t offlineId = msg.data[0] | (msg.data[1] << 8);
 
@@ -49,7 +36,8 @@ void handleSupervisionCommand(uint8_t commande,
     }
 
     default:
-        CC_LOG_WARN("[CAN][Supervision][CC] Commande supervision inconnue : 0x%X\n", commande);
+        CC_LOG_WARN("[CAN][Supervision][CC] Commande supervision inconnue : 0x%X\n",
+                    static_cast<uint8_t>(commande));
         break;
     }
 }

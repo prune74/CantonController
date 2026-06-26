@@ -40,28 +40,31 @@ void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
     auto &cfg = canton->getServoCfg(servoName);
 
     // -----------------------------------------------------------------------
-    // 1) Mise à jour logique interne + servoCfg
+    // 1) Mise à jour logique interne + servoCfg (version propre)
     // -----------------------------------------------------------------------
-    if (servoId[2] == '0') // posDroit
+    switch (servoId[2])
     {
+    case '0': // posDroit
         aig->posDroit(value);
         cfg.posDroit = value;
-
         CC_LOG_INFO("[Aiguilles][CC] posDroit aiguille %u = %u\n", servoName, value);
-    }
-    else if (servoId[2] == '1') // posDevie
-    {
+        break;
+
+    case '1': // posDevie
         aig->posDevie(value);
         cfg.posDevie = value;
-
         CC_LOG_INFO("[Aiguilles][CC] posDevie aiguille %u = %u\n", servoName, value);
-    }
-    else if (servoId[2] == '2') // speed (slider 0–10)
-    {
-        cfg.speed = value;
+        break;
 
+    case '2': // speed
+        cfg.speed = value;
         CC_LOG_INFO("[Aiguilles][CC] speed slider aiguille %u = %u\n",
                     servoName, value);
+        break;
+
+    default:
+        CC_LOG_WARN("[Aiguilles][CC] servoId inconnu : %c\n", servoId[2]);
+        break;
     }
 
     // -----------------------------------------------------------------------

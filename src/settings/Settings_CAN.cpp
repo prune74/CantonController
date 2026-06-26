@@ -6,13 +6,6 @@
  *   Étape 1 : attendre CMD_ERM_CC_TEST_BUS_REPLY (MainBoard prête)
  *   Étape 2 : demander un ID si le CC n’en possède pas (CMD_CC_ERM_REQUEST_ID)
  *   Étape 3 : gérer les timeouts (reboot si MainBoard absente)
- *
- * Ce module est totalement indépendant :
- *   - pas d’UART
- *   - pas de SPIFFS
- *   - pas de JSON
- *
- * Appelé depuis Settings::begin() (wrapper public).
  */
 
 #include "Settings.h"
@@ -23,7 +16,7 @@
 /* ============================================================================
  *  Callback : la carte ERM a envoyé CMD_ERM_CC_TEST_BUS_REPLY
  * ==========================================================================*/
-void Settings::sMainReady(bool val) // 🟢
+void Settings::sMainReady(bool val)
 {
     Settings::isMainReady = val;
     CC_LOG_INFO("[Settings][CAN][CC] MainBoard ready = %d\n", val);
@@ -32,7 +25,7 @@ void Settings::sMainReady(bool val) // 🟢
 /* ============================================================================
  *  beginCAN() — Dialogue CAN initial
  * ==========================================================================*/
-bool Settings::beginCAN() // 🟢
+bool Settings::beginCAN()
 {
     Serial.printf("[Settings][CAN][CC] Attente de la carte ERM (CMD_ERM_CC_TEST_BUS_REPLY)...\n");
 
@@ -45,7 +38,7 @@ bool Settings::beginCAN() // 🟢
     {
         CC_LOG_WARN("[Settings][CAN][CC] Mode standalone actif — handshake CAN ignoré");
 
-        // Autoriser la WebUI même sans MainBoard
+        // Autoriser la WebUI même sans ERM
         Settings::isMainReady = true;
 
         return true;
@@ -58,13 +51,19 @@ bool Settings::beginCAN() // 🟢
     // -----------------------------------------------------------------------
     while (!isMainReady)
     {
-        CC_CAN::sendMsg(0, CMD_CC_ERM_TEST_BUS, 0, canton->ID());
+        CC_CAN::sendMsg(
+            0,
+            static_cast<uint16_t>(CanCmd::CMD_CC_ERM_TEST_BUS),
+            0,
+            canton->ID()
+        );
+
         vTaskDelay(pdMS_TO_TICKS(1000));
         Serial.print(".");
 
         if (++countReset >= 10)
         {
-            Serial.printf("\n[Settings][CAN][CC] ❌ MainBoard ne répond pas → reboot dans 5s\n");
+            Serial.printf("\n[Settings][CAN][CC] ❌ ERM ne répond pas → reboot dans 5s\n");
             delay(5000);
             esp_restart();
         }
@@ -81,7 +80,13 @@ bool Settings::beginCAN() // 🟢
 
         while (canton->ID() == UNUSED_ID)
         {
-            CC_CAN::sendMsg(0, CMD_CC_ERM_REQUEST_ID, 0, 0);
+            CC_CAN::sendMsg(
+                0,
+                static_cast<uint16_t>(CanCmd::CMD_CC_ERM_REQUEST_ID),
+                0,
+                0
+            );
+
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.print(".");
         }

@@ -21,10 +21,8 @@
  */
 
 /* ============================================================================
- *  🟦 ENUM DES ASPECTS SNCF — 1 octet
- * ============================================================================
- */
-
+ *  ENUM ASPECTS SNCF
+ * ==========================================================================*/
 enum ExccAspect : uint8_t
 {
     ASPECT_CARRE = 0,
@@ -41,130 +39,96 @@ enum ExccAspect : uint8_t
 };
 
 /* ============================================================================
- *  🟦 CC ↔ ERM — Mode Exploration (0xC0–0xCF)
- * ============================================================================
- */
+ *  COMMANDES CAN 29 bits — ENUM CLASS
+ * ==========================================================================*/
+enum class CanCmd : uint16_t
+{
+    /* Exploration CC ↔ ERM */
+    CMD_EXPLORATION_CC_DEMANDE_ID = 0xC0,
 
-// Réception de l'ID d'un CC
-#define CMD_EXPLORATION_CC_DEMANDE_ID 0xC0
+    /* Exploration CC ↔ CC */
+    CMD_EXPLORATION_ID_VOISIN = 0xC0,
+    CMD_EXPLORATION_UPDATE_MASQUE_AIG = 0xC1,
 
-// Réception du masque d’aiguilles des voisins
-#define CMD_EXPLORATION_UPDATE_MASQUE_AIG 0xC1
+    /* Exploitation CC ↔ CC */
+    CMD_EXPLOITATION_UPDATE_VOISINS = 0xE0,
+    CMD_EXPLOITATION_RESERVATION_LOCO = 0xE3,
+    CMD_EXPLOITATION_RAILCOM_VOISIN = 0xE5,
+    CMD_EXPLOITATION_ASPECT_VOISIN = 0xE7,
+    CMD_EXPLOITATION_AIGUILLAGE = 0xE9,
 
-/* ============================================================================
- *  🟦 CC ↔ CC — Exploitation (0xE0–0xEF)
- * ============================================================================
- */
-// reception periodique des data envoyees par les CC en exploitation
-#define CMD_EXPLOITATION_UPDATE_VOISINS 0xE0
+    /* EXCC → CC */
+    EXCC_CC_PONG = 0xD1,
+    EXCC_CC_BOOSTER_INFO = 0xD2,
+    EXCC_CC_POSITION_AIGUILLE = 0xD6,
+    EXCC_CC_OCCUPATION = 0xD7,
+    EXCC_CC_PONCTUEL_H = 0xD8,
+    EXCC_CC_PONCTUEL_AH = 0xD9,
+    EXCC_CC_RAILCOM_ADRESSE = 0xDA,
+    EXCC_CC_CALIB_BOOSTER_INFO = 0xDB,
 
-// reservation du canton pour loco en approche sur canton précédent
-#define CMD_EXPLOITATION_RESERVATION_LOCO 0xE3
+    /* CC → EXCC */
+    CC_EXCC_SERVO_MOVE = 0xF0,
+    CC_EXCC_SERVO_CONFIG = 0xF1,
+    CC_EXCC_SERVO_TEST = 0xF2,
+    CC_EXCC_RECALIBRER_BOOSTER = 0xF3,
+    CC_EXCC_SET_SEUILS = 0xF4,
+    CC_EXCC_BOOSTER_POWER = 0xF5,
+    CC_EXCC_CONFIG_SIGNAUX = 0xF6,
+    CC_EXCC_ASPECT_HORAIRE = 0xF7,
+    CC_EXCC_ASPECT_ANTIHORAIRE = 0xF8,
+    CC_EXCC_DIRECTION_HORAIRE = 0xF9,
+    CC_EXCC_DIRECTION_ANTIHORAIRE = 0xFA,
+    CC_EXCC_OCCUPATION_VOISINS = 0xFB,
+    CC_EXCC_PING = 0xFC,
 
-// reception de l'adresse de la locomotive
-#define CMD_EXPLOITATION_RAILCOM_VOISIN 0xE5
+    /* Gestion globale ERM ↔ CC */
+    CMD_ERM_CC_WIFI_ON_OFF = 0xBD,
+    CMD_ERM_CC_EXPLORATION_ON_OFF = 0xBE,
+    CMD_ERM_CC_SAVE_ALL = 0xBF,
+    CMD_ERM_CC_RESTART_ALL = 0xBC,
+    CMD_ERM_CC_SET_PROFILE = 0x20,
+    CMD_ERM_CC_OFFLINE = 0xC3,
 
-// reception Aspect affiché par un voisin
-#define CMD_EXPLOITATION_ASPECT_VOISIN 0xE7
+    /* Demande d’ID si nécessaire */
+    CMD_CC_ERM_TEST_BUS = 0xB2,
 
-// reception d'une commande d'aiguillage
-#define CMD_EXPLOITATION_AIGUILLAGE 0xE9
+    /* Reponse à la demande de la présence de la carte ERM */
+    CMD_ERM_CC_TEST_BUS_REPLY = 0xB3,
 
-/* Un CC annonce son ID aux voisins */
-#define CMD_EXPLORATION_ID_VOISIN 0xC0
+    /* Demande d’ID si nécessaire */
+    CMD_CC_ERM_REQUEST_ID = 0xB4,
 
-/* ============================================================================
- *  🟦 CC → EXCC — Actionneurs physiques (0xF0–0xFF)
- * ============================================================================
- */
-
-#define CMD_CC_EXCC_SERVO_MOVE 0xF0
-#define CMD_CC_EXCC_SERVO_CONFIG 0xF1
-#define CMD_CC_EXCC_SERVO_TEST 0xF2
-
-#define CMD_CC_EXCC_RECALIBRER_BOOSTER 0xF3
-#define CMD_CC_EXCC_SET_SEUILS 0xF4
-#define CMD_CC_EXCC_BOOSTER_POWER 0xF5
-
-#define CMD_CC_EXCC_CONFIG_SIGNAUX 0xF6
-#define CMD_CC_EXCC_ASPECT_HORAIRE 0xF7
-#define CMD_CC_EXCC_ASPECT_ANTIHORAIRE 0xF8
-#define CMD_CC_EXCC_DIRECTION_HORAIRE 0xF9
-#define CMD_CC_EXCC_DIRECTION_ANTIHORAIRE 0xFA
-
-#define CC_EXCC_OCCUPATION_VOISINS 0xFB
-
-#define CMD_CC_EXCC_PING 0xFC
-
-/* ============================================================================
- *  🟦 EXCC → CC — Retour d’état (0xD0–0xDF)
- * ============================================================================
- */
-
-#define CMD_EXCC_CC_PONG 0xD1
-#define CMD_EXCC_CC_BOOSTER_INFO 0xD2
-#define CMD_EXCC_CC_POSITION_AIGUILLE 0xD6
-#define CMD_EXCC_CC_OCCUPATION 0xD7
-#define CMD_EXCC_CC_PONCTUEL_H 0xD8
-#define CMD_EXCC_CC_PONCTUEL_AH 0xD9
-#define CMD_EXCC_CC_RAILCOM_ADRESSE 0xDA
-#define CMD_EXCC_CC_CALIB_BOOSTER_INFO 0xDB
+    /* Reponse à demande d'identifiant */
+    CMD_ERM_CC_REQUEST_ID = 0xB5,
+};
 
 /* ============================================================================
- *  🟦 Codes internes EXCC (payload)
- * ============================================================================
- */
+ *  CODES INTERNES EXCC — ENUM CLASS
+ * ==========================================================================*/
+enum class ExccCode : uint8_t
+{
+    POS_DROIT = 0x00,
+    POS_DEVIE = 0x01,
+    POS_INDET = 0x02,
+    POS_INCOHERENT = 0x03,
 
-#define EXCC_CODE_POS_DROIT 0x00
-#define EXCC_CODE_POS_DEVIE 0x01
-#define EXCC_CODE_POS_INDET 0x02
-#define EXCC_CODE_POS_INCOHERENT 0x03
+    PONCT_H_ACTIVE = 0x10,
+    PONCT_H_INACTIVE = 0x11,
+    PONCT_AH_ACTIVE = 0x12,
+    PONCT_AH_INACTIVE = 0x13,
 
-#define EXCC_CODE_PONCT_H_ACTIVE 0x10
-#define EXCC_CODE_PONCT_H_INACTIVE 0x11
-#define EXCC_CODE_PONCT_AH_ACTIVE 0x12
-#define EXCC_CODE_PONCT_AH_INACTIVE 0x13
+    OCC_ACTIVE = 0x30,
+    OCC_LIBRE = 0x31,
 
-#define EXCC_CODE_OCC_ACTIVE 0x30
-#define EXCC_CODE_OCC_LIBRE 0x31
-
-#define EXCC_CODE_ETAT_OK 0x00
-#define EXCC_CODE_ETAT_BLOQUE 0x01
-#define EXCC_CODE_ETAT_ERREUR 0x02
-
-/* ============================================================================
- *  🟦 ERM ↔ CC — Gestion globale (0x20–0xBF)
- * ============================================================================
- */
-
-#define CMD_ERM_CC_WIFI_ON_OFF 0xBD
-#define CMD_ERM_CC_EXPLORATION_ON_OFF 0xBE
-#define CMD_ERM_CC_SAVE_ALL 0xBF
-#define CMD_ERM_CC_RESTART_ALL 0xBC
-#define CMD_ERM_CC_SET_PROFILE 0x20
-#define CMD_ERM_CC_OFFLINE 0xC3
+    ETAT_OK = 0x00,
+    ETAT_BLOQUE = 0x01,
+    ETAT_ERREUR = 0x02,
+};
 
 /* ============================================================================
- *  🟦 CC ↔ ERM — Gestion globale (0x20–0xBF)
- * ============================================================================
- */
-// Test de la présence de la carte ERM
-#define CMD_CC_ERM_TEST_BUS 0xB2
-
-// Reponse à la demande de la présence de la carte ERM
-#define CMD_ERM_CC_TEST_BUS_REPLY 0xB3
-
-// Demande d’ID si nécessaire
-#define CMD_CC_ERM_REQUEST_ID 0xB4
-
-// Reponse à demande d'identifiant
-#define CMD_ERM_CC_REQUEST_ID 0xB5
-
-/* ============================================================================
- *  🟦 CAN 11 bits — Messages globaux
- * ============================================================================
- */
-
-#define EXPLORATION_CAN_ID_HEARTBEAT 0x200
-#define EXPLORATION_CAN_ID_EMERGENCY_STOP 0x201
-#define EXPLORATION_CAN_ID_CLEAR_STOP 0x202
+ *  CAN 11 bits — constexpr
+ * ==========================================================================*/
+constexpr uint16_t CAN11_ID_HEARTBEAT = 0x200;
+constexpr uint16_t CAN11_ID_EMERGENCY_STOP = 0x201;
+constexpr uint16_t CAN11_ID_CLEAR_STOP = 0x202;

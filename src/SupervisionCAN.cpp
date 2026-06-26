@@ -3,18 +3,6 @@
  * ------------------------------------------------------------
  * Supervision et émission des trames CAN pour le
  * Canton Controller (CC).
- *
- * Rôle :
- *   - transmettre l’état ferroviaire local au réseau CAN
- *   - informer l’EXCC et les cantons voisins :
- *       • occupation locale
- *       • accessibilité SP1 / SM1
- *       • occupation SP1 / SM1
- *   - transmettre la réservation locomotive (trame CMD_EXPLOITATION_RESERVATION_LOCO)
- *
- * Trames :
- *   - CMD_EXPLOITATION_UPDATE_VOISINS : état ferroviaire du canton
- *   - CMD_EXPLOITATION_RESERVATION_LOCO : réservation du canton suivant selon le sens
  */
 
 #include "SupervisionCAN.h"
@@ -25,16 +13,6 @@
 
 /* ============================================================================
  * updateTopoLed() — LED topologie valide / invalide
- * ---------------------------------------------------------------------------
- * Utilise le MCP23017 local pour afficher l’état topologique :
- *
- *   - topoValide = true  → LED éteinte
- *   - topoValide = false → LED allumée
- *
- * IMPORTANT :
- *   - aucune logique métier
- *   - aucune logique ferroviaire
- *   - simple indicateur visuel
  * ==========================================================================*/
 void updateTopoLed()
 {
@@ -51,8 +29,6 @@ void updateTopoLed()
 
 /* ============================================================================
  * envoyerEtatCAN()
- * ---------------------------------------------------------------------------
- * Envoie les trames CMD_EXPLOITATION_UPDATE_VOISINS et CMD_EXPLOITATION_RESERVATION_LOCO selon l’état du canton.
  * ==========================================================================*/
 void envoyerEtatCAN(Canton *canton)
 {
@@ -82,7 +58,10 @@ void envoyerEtatCAN(Canton *canton)
     // TRAME CMD_EXPLOITATION_UPDATE_VOISINS — État ferroviaire du canton
     // -----------------------------------------------------------------------
     CC_CAN::sendMsg(
-        0, CMD_EXPLOITATION_UPDATE_VOISINS, 0, canton->ID(),
+        0,
+        static_cast<uint16_t>(CanCmd::CMD_EXPLOITATION_UPDATE_VOISINS),
+        0,
+        canton->ID(),
         canton->busy(),
         static_cast<uint8_t>(sp1->ID()),
         static_cast<uint8_t>(sm1->ID()),
@@ -121,7 +100,10 @@ void envoyerEtatCAN(Canton *canton)
                     aval, addr);
 
         CC_CAN::sendMsg(
-            0, CMD_EXPLOITATION_RESERVATION_LOCO, 0, canton->ID(),
+            0,
+            static_cast<uint16_t>(CanCmd::CMD_EXPLOITATION_RESERVATION_LOCO),
+            0,
+            canton->ID(),
             aval,
             addrHigh, addrLow);
     }
@@ -134,7 +116,10 @@ void envoyerEtatCAN(Canton *canton)
                     aval, addr);
 
         CC_CAN::sendMsg(
-            0, CMD_EXPLOITATION_RESERVATION_LOCO, 0, canton->ID(),
+            0,
+            static_cast<uint16_t>(CanCmd::CMD_EXPLOITATION_RESERVATION_LOCO),
+            0,
+            canton->ID(),
             aval,
             addrHigh, addrLow);
     }

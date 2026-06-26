@@ -36,8 +36,8 @@ static inline uint8_t aspectVoisin(CantonPeriph *v, SensDeMarche sens)
         return ASPECT_CARRE;
 
     return (sens == SensHoraire)
-           ? v->aspectRecu[0]   // aspect côté H
-           : v->aspectRecu[1];  // aspect côté AH
+               ? v->aspectRecu[0]  // aspect côté H
+               : v->aspectRecu[1]; // aspect côté AH
 }
 
 /**
@@ -93,21 +93,28 @@ uint8_t Canton::transitionAspect(SensDeMarche sens)
         return ASPECT_CARRE;
     }
 
-    /* ------------------------------------------------------------------------
-     * 3) Propagation des aspects restrictifs
-     * ------------------------------------------------------------------------ */
+    // ------------------------------------------------------------------------
+    // 3) Propagation des aspects restrictifs
+    // ------------------------------------------------------------------------
     uint8_t asp1 = aspectVoisin(v1, sens);
     uint8_t asp2 = aspectVoisin(v2, sens);
 
-    // On sélectionne l’aspect le plus restrictif des deux
+    // Ordre de sévérité décroissant
+    static const uint8_t priorite[] = {
+        ASPECT_CARRE,
+        ASPECT_SEMAPHORE,
+        ASPECT_AVERTISSEMENT};
+
     uint8_t asp = ASPECT_VOIE_LIBRE;
 
-    if (asp1 == ASPECT_CARRE || asp2 == ASPECT_CARRE)
-        asp = ASPECT_CARRE;
-    else if (asp1 == ASPECT_SEMAPHORE || asp2 == ASPECT_SEMAPHORE)
-        asp = ASPECT_SEMAPHORE;
-    else if (asp1 == ASPECT_AVERTISSEMENT || asp2 == ASPECT_AVERTISSEMENT)
-        asp = ASPECT_AVERTISSEMENT;
+    for (uint8_t p : priorite)
+    {
+        if (asp1 == p || asp2 == p)
+        {
+            asp = p;
+            break;
+        }
+    }
 
     if (asp != ASPECT_VOIE_LIBRE)
     {

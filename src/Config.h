@@ -40,9 +40,9 @@
  *  OPTIONS GÉNÉRALES
  * ============================================================================
  */
-#define SAUV_BY_MAIN // Sauvegarde via carte ERM
-#define CHIP_INFO    // Affiche infos ESP32 au boot
-#define RAILCOM      // Active RailCom
+#define SAUV_DEPUIS_ERM // Sauvegarde via carte ERM
+#define CHIP_INFO       // Affiche infos ESP32 au boot
+#define RAILCOM         // Active RailCom
 // #define TEST_MEMORY_TASK
 
 /* ============================================================================

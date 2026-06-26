@@ -51,9 +51,6 @@ void CC_CAN::setup(Canton *canton)
 }
 
 #ifdef TEST_MEMORY_TASK
-// ---------------------------------------------------------------------------
-// testMemory() — surveillance de la stack FreeRTOS
-// ---------------------------------------------------------------------------
 void CC_CAN::testMemory(void *pvParameters)
 {
     TaskHandle_t canReceiveHandle = (TaskHandle_t)pvParameters;
@@ -77,7 +74,7 @@ void CC_CAN::canReceiveMsg(void *pvParameters)
 
     for (;;)
     {
-        // Bus 0 : Discovery
+        // Bus 0 : réseau GC2026
         CanMsg msg0;
         if (CanBus::bus(0).receive(msg0))
             traiterMessageCAN(msg0, canton, 0);
@@ -97,7 +94,7 @@ void CC_CAN::canReceiveMsg(void *pvParameters)
 void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
 {
     // STOP global uniquement sur bus 0
-    if (bus == 0 && msg.is11() && msg.id == EXPLORATION_CAN_ID_EMERGENCY_STOP)
+    if (bus == 0 && msg.is11() && msg.id == CAN11_ID_EMERGENCY_STOP)
     {
         canton->setStopActive(true);
         CC_LOG_ERROR("[CC_CAN][CC] STOP global reçu (canton %u)\n", canton->ID());
@@ -110,40 +107,71 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
     uint8_t commande = msg.cmde();
     uint16_t idExpediteur = msg.nodeId();
 
+    // Conversion vers enum class
+    CanCmd cmd = static_cast<CanCmd>(commande);
+
     // -----------------------------------------------------------------------
-    // Dispatch moderne (100 % CanMsg)
+    // DISPATCH MODERNE — 100 % conforme à l’enum CanCmd
     // -----------------------------------------------------------------------
 
-    // Commandes système
-    if (commande >= CMD_ERM_CC_TEST_BUS_REPLY && commande <= CMD_ERM_CC_SAVE_ALL)
+    // -------------------------
+    // Commandes SYSTÈME
+    // -------------------------
+    switch (cmd)
     {
+    case CanCmd::CMD_ERM_CC_TEST_BUS_REPLY:
+    case CanCmd::CMD_ERM_CC_REQUEST_ID:
+    case CanCmd::CMD_ERM_CC_RESTART_ALL:
+    case CanCmd::CMD_ERM_CC_WIFI_ON_OFF:
+    case CanCmd::CMD_ERM_CC_EXPLORATION_ON_OFF:
+    case CanCmd::CMD_ERM_CC_SAVE_ALL:
+    case CanCmd::CMD_ERM_CC_SET_PROFILE:
         handleSystemCommand(commande, msg, canton, idExpediteur);
         return;
+
+    case CanCmd::CMD_ERM_CC_OFFLINE:
+        handleSupervisionCommand(commande, msg, canton);
+        return;
+
+    default:
+        break;
     }
 
-    // Exploration (0xC0–0xC1)
-    if (commande >= 0xC0 && commande <= 0xC1)
+    // -------------------------
+    // Commandes EXPLORATION
+    // -------------------------
+    if (cmd == CanCmd::CMD_EXPLORATION_CC_DEMANDE_ID ||
+        cmd == CanCmd::CMD_EXPLORATION_ID_VOISIN ||
+        cmd == CanCmd::CMD_EXPLORATION_UPDATE_MASQUE_AIG)
     {
         handleExplorationCommand(commande, msg, canton, idExpediteur);
         return;
     }
 
-    // Exploitation (0xE0–0xE9)
-    if (commande >= 0xE0 && commande <= 0xE9)
+    // -------------------------
+    // Commandes EXPLOITATION
+    // -------------------------
+    if (cmd == CanCmd::CMD_EXPLOITATION_UPDATE_VOISINS ||
+        cmd == CanCmd::CMD_EXPLOITATION_RESERVATION_LOCO ||
+        cmd == CanCmd::CMD_EXPLOITATION_RAILCOM_VOISIN ||
+        cmd == CanCmd::CMD_EXPLOITATION_ASPECT_VOISIN ||
+        cmd == CanCmd::CMD_EXPLOITATION_AIGUILLAGE)
     {
         handleExploitCommand(commande, msg, canton, idExpediteur);
         return;
     }
 
-    // Supervision (CMD_ERM_CC_OFFLINE)
-    if (commande == CMD_ERM_CC_OFFLINE)
-    {
-        handleSupervisionCommand(commande, msg, canton);
-        return;
-    }
-
-    // Commandes EXCC (0xD0–0xDF)
-    if (commande >= 0xD0 && commande <= 0xDF)
+    // -------------------------
+    // Commandes EXCC → CC
+    // -------------------------
+    if (cmd == CanCmd::EXCC_CC_PONG ||
+        cmd == CanCmd::EXCC_CC_BOOSTER_INFO ||
+        cmd == CanCmd::EXCC_CC_POSITION_AIGUILLE ||
+        cmd == CanCmd::EXCC_CC_OCCUPATION ||
+        cmd == CanCmd::EXCC_CC_PONCTUEL_H ||
+        cmd == CanCmd::EXCC_CC_PONCTUEL_AH ||
+        cmd == CanCmd::EXCC_CC_RAILCOM_ADRESSE ||
+        cmd == CanCmd::EXCC_CC_CALIB_BOOSTER_INFO)
     {
         CC_CAN_EXCC::handleEXCCCommand(commande, msg, canton, idExpediteur);
         return;

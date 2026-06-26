@@ -169,8 +169,14 @@ void Exploration::process(void *p) // 🟢
 
     auto btnPush = [&](uint8_t btnNum)
     {
-        // Notification CAN vers la carte ERM
-        CC_CAN::sendMsg(0, CMD_EXPLORATION_CC_DEMANDE_ID, 0, canton->ID(), UNUSED_ID, 0);
+        // Notification CAN vers la carte ERM : demande d’attribution d’ID
+        CC_CAN::sendMsg(
+            0,
+            static_cast<uint16_t>(CanCmd::CMD_EXPLORATION_CC_DEMANDE_ID),
+            0,
+            canton->ID(),
+            UNUSED_ID,
+            0);
 
         if (m_ID_satPeriph < 253)
         {
@@ -181,7 +187,9 @@ void Exploration::process(void *p) // 🟢
                 canton->setCantonP(btnNum, np);
             }
 
+            // ID temporaire en attendant la réponse de l’ERM
             np->ID(15);
+
             clignoterLEDexploration();
             m_ID_satPeriph = UNUSED_ID;
         }

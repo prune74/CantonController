@@ -2,15 +2,8 @@
  * Occupation.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Nouveau rôle :
- *   - Recevoir l’occupation finale depuis l’EXCC (CMD_EXCC_04_OCCUPATION)
+ *   - Recevoir l’occupation finale depuis l’EXCC (CMD_EXCC_CC_OCCUPATION)
  *   - Mettre à jour l’état logique du canton (busy)
- *
- * L’EXCC est désormais l’unique source de vérité :
- *   - fusion courant + essieux + ponctuels
- *   - règles EA (voisins)
- *   - incohérences et fail-safe
- *
- * Le CC ne fait plus aucune logique ferroviaire.
  */
 
 #include "Occupation.h"
@@ -53,13 +46,12 @@ void Occupation::updateEtat(bool occupe)
 
     m_canton->busy(occupe);
 
-    CC_LOG_INFO(
-        "[Occupation][CC] Canton = %s\n",
-        occupe ? "OCCUPE" : "LIBRE");
+    CC_LOG_INFO("[Occupation][CC] Canton = %s\n",
+                occupe ? "OCCUPE" : "LIBRE");
 }
 
 // ---------------------------------------------------------------------------
-// onOccupation() — callback appelé par CC_UartRx
+// onOccupation() — callback appelé par CC_CAN_EXCC
 // ---------------------------------------------------------------------------
 void Occupation::onOccupation(uint8_t code)
 {
@@ -67,11 +59,11 @@ void Occupation::onOccupation(uint8_t code)
 
     switch (code)
     {
-    case EXCC_CODE_OCC_ACTIVE:
+    case static_cast<uint8_t>(ExccCode::OCC_ACTIVE):
         occupe = true;
         break;
 
-    case EXCC_CODE_OCC_LIBRE:
+    case static_cast<uint8_t>(ExccCode::OCC_LIBRE):
         occupe = false;
         break;
 

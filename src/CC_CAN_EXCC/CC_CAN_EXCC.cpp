@@ -33,18 +33,20 @@ void CC_CAN_EXCC::sendEXCC(uint8_t prio, uint8_t cmde, uint8_t resp,
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendPing(Canton *canton)
 {
-    sendEXCC(1, CMD_CC_EXCC_PING, 0, canton->ID());
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_PING), 0, canton->ID());
 }
 
 void CC_CAN_EXCC::sendBoosterPower(Canton *canton, bool on)
 {
     uint8_t payload[1] = {uint8_t(on ? 1 : 0)};
-    sendEXCC(1, CMD_CC_EXCC_BOOSTER_POWER, 0, canton->ID(), payload, 1);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_BOOSTER_POWER),
+             0, canton->ID(), payload, 1);
 }
 
 void CC_CAN_EXCC::sendRecalibration(Canton *canton)
 {
-    sendEXCC(1, CMD_CC_EXCC_RECALIBRER_BOOSTER, 0, canton->ID());
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_RECALIBRER_BOOSTER),
+             0, canton->ID());
 }
 
 void CC_CAN_EXCC::sendSeuilsBooster(Canton *canton,
@@ -57,7 +59,8 @@ void CC_CAN_EXCC::sendSeuilsBooster(Canton *canton,
         uint8_t(occupe & 0xFF),
         uint8_t(occupe >> 8)};
 
-    sendEXCC(1, CMD_CC_EXCC_SET_SEUILS, 0, canton->ID(), payload, 4);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_SET_SEUILS),
+             0, canton->ID(), payload, 4);
 }
 
 // ---------------------------------------------------------------------------
@@ -68,57 +71,64 @@ void CC_CAN_EXCC::sendPositionAiguille(Canton *canton,
                                        uint8_t direction)
 {
     uint8_t payload[2] = {servoIndex, direction};
-    sendEXCC(1, CMD_EXCC_CC_POSITION_AIGUILLE, 0, canton->ID(), payload, 2);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::EXCC_CC_POSITION_AIGUILLE),
+             0, canton->ID(), payload, 2);
 }
 
 // ---------------------------------------------------------------------------
-// Aspects SNCF (CMD_CC_EXCC_ASPECT_HORAIRE / CMD_CC_EXCC_ASPECT_ANTIHORAIRE)
+// Aspects SNCF
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendAspectHoraire(Canton *canton, uint8_t aspect)
 {
     uint8_t payload[1] = {aspect};
-    sendEXCC(1, CMD_CC_EXCC_ASPECT_HORAIRE, 0, canton->ID(), payload, 1);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_ASPECT_HORAIRE),
+             0, canton->ID(), payload, 1);
 }
 
 void CC_CAN_EXCC::sendAspectAntiHoraire(Canton *canton, uint8_t aspect)
 {
     uint8_t payload[1] = {aspect};
-    sendEXCC(1, CMD_CC_EXCC_ASPECT_ANTIHORAIRE, 0, canton->ID(), payload, 1);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_ASPECT_ANTIHORAIRE),
+             0, canton->ID(), payload, 1);
 }
 
 // ---------------------------------------------------------------------------
-// Feux directionnels (CMD_CC_EXCC_DIRECTION_HORAIRE / CMD_CC_EXCC_DIRECTION_ANTIHORAIRE)
+// Feux directionnels
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendFeuDirectionHoraire(Canton *canton, uint8_t code)
 {
     uint8_t payload[1] = {code};
-    sendEXCC(1, CMD_CC_EXCC_DIRECTION_HORAIRE, 0, canton->ID(), payload, 1);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_DIRECTION_HORAIRE),
+             0, canton->ID(), payload, 1);
 }
 
 void CC_CAN_EXCC::sendFeuDirectionAntiHoraire(Canton *canton, uint8_t code)
 {
     uint8_t payload[1] = {code};
-    sendEXCC(1, CMD_CC_EXCC_DIRECTION_ANTIHORAIRE, 0, canton->ID(), payload, 1);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_DIRECTION_ANTIHORAIRE),
+             0, canton->ID(), payload, 1);
 }
 
 // ---------------------------------------------------------------------------
-// Occupation voisins (CC_EXCC_OCCUPATION_VOISINS)
+// Occupation voisins
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendOccupationVoisins(Canton *canton, uint8_t valeur)
 {
     uint8_t payload[1] = {valeur};
-    sendEXCC(1, CC_EXCC_OCCUPATION_VOISINS, 0, canton->ID(), payload, 1);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_OCCUPATION_VOISINS),
+             0, canton->ID(), payload, 1);
 }
 
 // ---------------------------------------------------------------------------
-// Servos (mouvement réel / config / test)
+// Servos
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendServoMove(Canton *canton,
                                 uint8_t servoIndex,
                                 uint8_t direction)
 {
     uint8_t payload[2] = {servoIndex, direction};
-    sendEXCC(1, CMD_CC_EXCC_SERVO_MOVE, 0, canton->ID(), payload, 2);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_SERVO_MOVE),
+             0, canton->ID(), payload, 2);
 }
 
 void CC_CAN_EXCC::sendServoConfig(Canton *canton,
@@ -133,25 +143,28 @@ void CC_CAN_EXCC::sendServoConfig(Canton *canton,
         uint8_t(posDevie >> 8), uint8_t(posDevie & 0xFF),
         uint8_t(speed >> 8), uint8_t(speed & 0xFF)};
 
-    sendEXCC(1, CMD_CC_EXCC_SERVO_CONFIG, 0, canton->ID(), payload, 7);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_SERVO_CONFIG),
+             0, canton->ID(), payload, 7);
 }
 
 void CC_CAN_EXCC::sendServoTest(Canton *canton,
                                 uint8_t servoIndex)
 {
     uint8_t payload[1] = {servoIndex};
-    sendEXCC(1, CMD_CC_EXCC_SERVO_TEST, 0, canton->ID(), payload, 1);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_SERVO_TEST),
+             0, canton->ID(), payload, 1);
 }
 
 // ---------------------------------------------------------------------------
-// Configuration signaux (CMD_CC_EXCC_CONFIG_SIGNAUX)
+// Configuration signaux
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendConfigSignaux(Canton *canton,
                                     uint8_t type0, uint8_t type1,
                                     uint8_t pos0, uint8_t pos1)
 {
     uint8_t payload[4] = {type0, type1, pos0, pos1};
-    sendEXCC(1, CMD_CC_EXCC_CONFIG_SIGNAUX, 0, canton->ID(), payload, 4);
+    sendEXCC(1, static_cast<uint8_t>(CanCmd::CC_EXCC_CONFIG_SIGNAUX),
+             0, canton->ID(), payload, 4);
 }
 
 // ---------------------------------------------------------------------------
@@ -164,43 +177,46 @@ void CC_CAN_EXCC::handleEXCCCommand(uint8_t commande,
 {
     const uint8_t *d = frame.data;
 
-    switch (commande)
+    // Conversion vers enum class
+    CanCmd cmd = static_cast<CanCmd>(commande);
+
+    switch (cmd)
     {
-    case CMD_EXCC_CC_PONG:
+    case CanCmd::EXCC_CC_PONG:
         EXCC_Link::onPong();
         break;
 
-    case CMD_EXCC_CC_BOOSTER_INFO:
+    case CanCmd::EXCC_CC_BOOSTER_INFO:
         if (frame.dlc >= 3)
             Booster::onBooster(d[0], d[1], d[2]);
         break;
 
-    case CMD_EXCC_CC_POSITION_AIGUILLE:
+    case CanCmd::EXCC_CC_POSITION_AIGUILLE:
         if (frame.dlc >= 3)
             SupervisionAiguilles::onPosition(d[0], d[1], d[2]);
         break;
 
-    case CMD_EXCC_CC_OCCUPATION:
+    case CanCmd::EXCC_CC_OCCUPATION:
         if (frame.dlc >= 1)
             Occupation::onOccupation(d[0]);
         break;
 
-    case CMD_EXCC_CC_PONCTUEL_H:
+    case CanCmd::EXCC_CC_PONCTUEL_H:
         if (frame.dlc >= 1)
             CapteurPonctuel::onPonctuelH(d[0]);
         break;
 
-    case CMD_EXCC_CC_PONCTUEL_AH:
+    case CanCmd::EXCC_CC_PONCTUEL_AH:
         if (frame.dlc >= 1)
             CapteurPonctuel::onPonctuelAH(d[0]);
         break;
 
-    case CMD_EXCC_CC_RAILCOM_ADRESSE:
+    case CanCmd::EXCC_CC_RAILCOM_ADRESSE:
         if (frame.dlc >= 2)
             Railcom::onRailcom(d[0], d[1]);
         break;
 
-    case CMD_EXCC_CC_CALIB_BOOSTER_INFO:
+    case CanCmd::EXCC_CC_CALIB_BOOSTER_INFO:
         if (frame.dlc >= 4)
             Booster::onCalib(d[0], d[1], d[2], d[3]);
         break;
