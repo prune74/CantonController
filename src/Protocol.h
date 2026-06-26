@@ -126,21 +126,28 @@ enum ExccAspect : uint8_t
  * ============================================================================
  */
 
-#define CMD_WIFI_ON_OFF 0xBD
-#define CMD_EXPLORATION_ON_OFF 0xBE
-#define CMD_SAVE_ALL 0xBF
-#define CMD_RESTART_ALL 0xBC
-#define CMD_SET_PROFILE 0x20
-#define CMD_CC_OFFLINE 0xC3
+#define CMD_ERM_CC_WIFI_ON_OFF 0xBD
+#define CMD_ERM_CC_EXPLORATION_ON_OFF 0xBE
+#define CMD_ERM_CC_SAVE_ALL 0xBF
+#define CMD_ERM_CC_RESTART_ALL 0xBC
+#define CMD_ERM_CC_SET_PROFILE 0x20
+#define CMD_ERM_CC_OFFLINE 0xC3
 
 /* ============================================================================
  *  🟦 CC ↔ ERM — Gestion globale (0x20–0xBF)
  * ============================================================================
  */
-#define CMD_SAT_TEST_BUS 0xB2
-#define CMD_SAT_TEST_BUS_REPLY 0xB3
-#define CMD_SAT_REQUEST_ID 0xB4
-#define CMD_SAT_REQUEST_ID_REPLY 0xB5
+// Test de la présence de la carte ERM
+#define CMD_CC_ERM_TEST_BUS 0xB2
+
+// Reponse à la demande de la présence de la carte ERM
+#define CMD_ERM_CC_TEST_BUS_REPLY 0xB3
+
+// Demande d’ID si nécessaire
+#define CMD_CC_ERM_REQUEST_ID 0xB4
+
+// Reponse à demande d'identifiant
+#define CMD_ERM_CC_REQUEST_ID 0xB5
 
 /* ============================================================================
  *  🟦 CAN 11 bits — Messages globaux

@@ -17,7 +17,7 @@
  *         • signaux SNCF
  *         • direction / feux directionnels
  *         • booster
- *   - Lancement du dialogue CAN avec la carte Main (EXCC)
+ *   - Lancement du dialogue CAN avec la carte ERM (EXCC)
  *
  * IMPORTANT 2026 :
  *   - Ce module ne contient AUCUNE logique ferroviaire.
@@ -50,7 +50,7 @@ bool Settings::isMainReady = false;
 Canton *Settings::canton = nullptr;
 
 // Booster
-uint16_t Settings::s_boosterSeuilLibre  = 0;
+uint16_t Settings::s_boosterSeuilLibre = 0;
 uint16_t Settings::s_boosterSeuilOccupe = 0;
 
 /* ============================================================================
@@ -88,7 +88,7 @@ void Settings::setup(Canton *nd) // 🟢
 }
 
 /* ============================================================================
- *  begin() — Dialogue CAN avec la carte Main (EXCC)
+ *  begin() — Dialogue CAN avec la carte ERM (EXCC)
  * ==========================================================================*/
 
 bool Settings::begin() // 🟢

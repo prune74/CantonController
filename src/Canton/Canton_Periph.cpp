@@ -111,12 +111,12 @@ uint16_t CantonPeriph::locoAddr()
     return m_locoAddr;
 }
 
-void CantonPeriph::masqueAig(byte masqueAig)
+void CantonPeriph::masqueAig(uint8_t masqueAig)
 {
     m_masqueAig = masqueAig;
 }
 
-byte CantonPeriph::masqueAig()
+uint8_t CantonPeriph::masqueAig()
 {
     return m_masqueAig;
 }

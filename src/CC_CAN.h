@@ -18,16 +18,16 @@ public:
     static void sendMsg(CANMessage &frame);
 
     // API moderne CanUniversal
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3, byte d4);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3, byte d4, byte d5);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId, byte d0, byte d1, byte d2, byte d3, byte d4, byte d5, byte d6);
-    static void sendMsg(byte prio, byte cmde, byte resp, uint16_t thisCantonId,
-                        byte d0, byte d1, byte d2, byte d3, byte d4, byte d5, byte d6, byte d7);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId, uint8_t d0);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId, uint8_t d0, uint8_t d1);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId, uint8_t d0, uint8_t d1, uint8_t d2);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId, uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId, uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3, uint8_t d4);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId, uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3, uint8_t d4, uint8_t d5);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId, uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3, uint8_t d4, uint8_t d5, uint8_t d6);
+    static void sendMsg(uint8_t prio, uint8_t cmde, uint8_t resp, uint16_t thisCantonId,
+                        uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3, uint8_t d4, uint8_t d5, uint8_t d6, uint8_t d7);
 
 private:
     // Tâche FreeRTOS de réception

@@ -6,7 +6,7 @@
 // Rôle :
 //   - Initialisation générale (UART, SPIFFS, settings.json)
 //   - Initialisation CAN (ACAN / MCP2515 selon config)
-//   - Dialogue CAN avec la carte Main (attribution ID, test bus…)
+//   - Dialogue CAN avec la carte ERM (attribution ID, test bus…)
 //   - Initialisation EXCC (Extension Canton Controller)
 //   - Gestion RailCom (mode normal) ou Exploration (mode interne)
 //   - Interface Web + WiFi
@@ -98,16 +98,16 @@ void setup()
     vTaskDelay(pdMS_TO_TICKS(100));
 
     // ------------------------------------------------------------------------
-    // Dialogue CAN avec la carte Main (test bus, attribution ID…)
+    // Dialogue CAN avec la carte ERM (test bus, attribution ID…)
     // ------------------------------------------------------------------------
     if (!Settings::begin())
     {
-        CC_LOG_WARN("[Main][CC] Erreur : configuration CAN impossible\n");
+        CC_LOG_WARN("[ERM][CC] Erreur : configuration CAN impossible\n");
         return;
     }
 
     CC_LOG_INFO("-----------------------------------\n");
-    CC_LOG_INFO("[Main][CC] ID Canton : %d\n", canton->ID());
+    CC_LOG_INFO("[ERM][CC] ID Canton : %d\n", canton->ID());
     CC_LOG_INFO("-----------------------------------\n\n");
 
     // ------------------------------------------------------------------------
@@ -164,7 +164,7 @@ void setup()
     // WiFi + Interface Web
     // ------------------------------------------------------------------------
     wifiOn = Settings::wifiOn();
-    CC_LOG_INFO("[Main][CC] wifiOn = %d\n", wifiOn);
+    CC_LOG_INFO("[ERM][CC] wifiOn = %d\n", wifiOn);
 
     if (wifiOn)
     {
@@ -172,13 +172,13 @@ void setup()
         webHandler.init(canton, 80);
     }
 
-    CC_LOG_INFO("[Main][CC] Exploration : %s\n",
+    CC_LOG_INFO("[ERM][CC] Exploration : %s\n",
                 Settings::explorationOn() ? "on" : "off");
-    CC_LOG_INFO("[Main][CC] WiFi        : %s\n",
+    CC_LOG_INFO("[ERM][CC] WiFi        : %s\n",
                 Settings::wifiOn() ? "on" : "off");
 
     CC_LOG_INFO("-----------------------------------\n");
-    CC_LOG_INFO("[Main][CC] End setup\n\n");
+    CC_LOG_INFO("[ERM][CC] End setup\n\n");
     CC_LOG_INFO("-----------------------------------\n\n");
 }
 
@@ -215,7 +215,7 @@ void loop()
 
         if (currentAddress != oldAddress)
         {
-            CC_LOG_INFO("[Main][CC] Railcom : adresse loco = %u\n",
+            CC_LOG_INFO("[ERM][CC] Railcom : adresse loco = %u\n",
                         currentAddress);
             oldAddress = currentAddress;
         }

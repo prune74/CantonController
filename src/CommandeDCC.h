@@ -14,7 +14,7 @@
  *   - répéter l’envoi plusieurs fois pour fiabiliser la transmission
  *
  * Ce module ne contient aucune logique ferroviaire :
- *   → il transporte uniquement les commandes DCC++ vers la carte Main.
+ *   → il transporte uniquement les commandes DCC++ vers la carte ERM.
  */
 
 /*

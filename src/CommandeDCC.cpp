@@ -9,7 +9,7 @@
  *   - répéter l’envoi 5 fois pour fiabiliser la transmission
  *
  * Ce module ne contient aucune logique ferroviaire :
- *   → il transporte uniquement les commandes DCC++ vers la carte Main.
+ *   → il transporte uniquement les commandes DCC++ vers la carte ERM.
  */
 
 #include "CommandeDCC.h"
@@ -49,11 +49,11 @@ void envoyerCommandeDCC(Canton *canton)
         CanMsg msg;
 
         uint32_t id =
-            (0 << 26) |            // priorité
-            (0x04 << 18) |         // opcode DCC
-            (canton->ID());        // nodeId
+            (0 << 26) |     // priorité
+            (0x04 << 18) |  // opcode DCC
+            (canton->ID()); // nodeId
 
-        msg.id  = id;
+        msg.id = id;
         msg.dlc = 6;
 
         msg.data[0] = 0x00;
@@ -71,7 +71,7 @@ void envoyerCommandeDCC(Canton *canton)
                     comptCmdLoco + 1);
 
         oldLocAddress = loco->address();
-        oldLocSpeed   = loco->speed();
+        oldLocSpeed = loco->speed();
         comptCmdLoco++;
     }
 }

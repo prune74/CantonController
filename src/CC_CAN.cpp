@@ -115,7 +115,7 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
     // -----------------------------------------------------------------------
 
     // Commandes système
-    if (commande >= CMD_SAT_TEST_BUS_REPLY && commande <= CMD_SAVE_ALL)
+    if (commande >= CMD_ERM_CC_TEST_BUS_REPLY && commande <= CMD_ERM_CC_SAVE_ALL)
     {
         handleSystemCommand(commande, msg, canton, idExpediteur);
         return;
@@ -135,8 +135,8 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
         return;
     }
 
-    // Supervision (CMD_CC_OFFLINE)
-    if (commande == CMD_CC_OFFLINE)
+    // Supervision (CMD_ERM_CC_OFFLINE)
+    if (commande == CMD_ERM_CC_OFFLINE)
     {
         handleSupervisionCommand(commande, msg, canton);
         return;

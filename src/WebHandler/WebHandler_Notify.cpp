@@ -48,7 +48,7 @@ void WebHandler::notifyClients() // 🟢
     // -----------------------------------------------------------------------
 // Aiguilles (positions + vitesse slider)
 // -----------------------------------------------------------------------
-for (uint8_t i = 0; i < 6; i++)
+for (uint8_t i = 0; i < aigSize; i++)
 {
     Aig *a = canton->getAig(i);
 

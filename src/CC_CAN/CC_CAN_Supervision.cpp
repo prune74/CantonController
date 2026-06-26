@@ -1,7 +1,7 @@
 /*
  * CC_CAN_Supervision.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Supervision réseau (CMD_CC_OFFLINE)
+ * Supervision réseau (CMD_ERM_CC_OFFLINE)
  */
 
 #include "CC_CAN.h"
@@ -12,7 +12,7 @@
 /* ============================================================================
  * handleSupervisionCommand()
  * ---------------------------------------------------------------------------
- * @param commande  → code CAN supervision (CMD_CC_OFFLINE)
+ * @param commande  → code CAN supervision (CMD_ERM_CC_OFFLINE)
  * @param frameIn   → trame CAN reçue
  * @param canton    → canton local
  *
@@ -26,7 +26,7 @@ void handleSupervisionCommand(uint8_t commande,
     switch (commande)
     {
     /* --------------------------------------------------------------------
-     * CMD_CC_OFFLINE — Notification d’un CC hors ligne
+     * CMD_ERM_CC_OFFLINE — Notification d’un CC hors ligne
      * --------------------------------------------------------------------
      * frameIn.data :
      *   [0] offlineId_low
@@ -37,7 +37,7 @@ void handleSupervisionCommand(uint8_t commande,
      *   - ERM envoie son ID à tous les CC
      *   - chaque CC vérifie localement si cet ID est un voisin
      * ------------------------------------------------------------------ */
-    case CMD_CC_OFFLINE:
+    case CMD_ERM_CC_OFFLINE:
     {
         uint16_t offlineId = msg.data[0] | (msg.data[1] << 8);
 

@@ -33,9 +33,9 @@ public:
      *     - SPIFFS
      *     - Lecture settings.json
      * =====================================================================*/
-    static void setup(Canton *nd);  // Initialisation complète (hors CAN)
-    static bool begin();            // Dialogue CAN avec la carte Main
-    static bool beginCAN();         // Initialisation du bus CAN
+    static void setup(Canton *nd); // Initialisation complète (hors CAN)
+    static bool begin();           // Dialogue CAN avec la carte ERM
+    static bool beginCAN();        // Initialisation du bus CAN
 
     /* =======================================================================
      *  2) UART RS485 (CC → EXCC)
@@ -73,7 +73,7 @@ public:
     /* =======================================================================
      *  5) Fonctions internes (modules spécialisés)
      * =====================================================================*/
-    static bool mountSPIFFS();   // Montage SPIFFS
+    static bool mountSPIFFS(); // Montage SPIFFS
 
     /* =======================================================================
      *  6) JSON (Gestion Canton 2026)
@@ -86,10 +86,10 @@ public:
     /* =======================================================================
      *  7) Booster — Seuils calibrés (API publique)
      * =====================================================================*/
-    static void setBoosterSeuilLibre(uint16_t v)  { s_boosterSeuilLibre  = v; }
+    static void setBoosterSeuilLibre(uint16_t v) { s_boosterSeuilLibre = v; }
     static void setBoosterSeuilOccupe(uint16_t v) { s_boosterSeuilOccupe = v; }
 
-    static uint16_t boosterSeuilLibre()  { return s_boosterSeuilLibre; }
+    static uint16_t boosterSeuilLibre() { return s_boosterSeuilLibre; }
     static uint16_t boosterSeuilOccupe() { return s_boosterSeuilOccupe; }
 
 private:

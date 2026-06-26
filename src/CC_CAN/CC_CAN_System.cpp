@@ -1,7 +1,7 @@
 /*
  * CC_CAN_System.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Commandes système (CMD_SAT_TEST_BUS_REPLY → CMD_SAVE_ALL)
+ * Commandes système (CMD_ERM_CC_TEST_BUS_REPLY → CMD_ERM_CC_SAVE_ALL)
  */
 
 #include "CC_CAN.h"
@@ -31,44 +31,44 @@ void handleSystemCommand(uint8_t commande,
     switch (commande)
     {
     /* --------------------------------------------------------------------
-     * CMD_SAT_TEST_BUS_REPLY — Réponse au test du bus CAN
+     * CMD_ERM_CC_TEST_BUS_REPLY — Réponse au test du bus CAN
      * --------------------------------------------------------------------
      * msg.data[0] = 1 → CC opérationnel
-     * Le Main peut alors marquer ce CC comme READY.
+     * Le ERM peut alors marquer ce CC comme READY.
      * ------------------------------------------------------------------ */
-    case CMD_SAT_TEST_BUS_REPLY:
+    case CMD_ERM_CC_TEST_BUS_REPLY:
         if (msg.data[0])
             Settings::sMainReady(true);
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_SAT_REQUEST_ID_REPLY — Attribution d’ID
+     * CMD_ERM_CC_REQUEST_ID — Attribution d’ID
      * --------------------------------------------------------------------
      * Si le CC n’a pas d’ID (UNUSED_ID), le ERM lui en attribue un.
      * ------------------------------------------------------------------ */
-    case CMD_SAT_REQUEST_ID_REPLY:
+    case CMD_ERM_CC_REQUEST_ID:
         if (canton->ID() == UNUSED_ID)
             canton->ID(msg.data[0]);
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_RESTART_ALL — Reset ESP32
+     * CMD_ERM_CC_RESTART_ALL — Reset ESP32
      * --------------------------------------------------------------------
      * Commande critique : reboot immédiat du CC.
      * ------------------------------------------------------------------ */
-    case CMD_RESTART_ALL:
+    case CMD_ERM_CC_RESTART_ALL:
         ESP.restart();
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_WIFI_ON_OFF — Activation / désactivation du WiFi
+     * CMD_ERM_CC_WIFI_ON_OFF — Activation / désactivation du WiFi
      * --------------------------------------------------------------------
      * msg.data[0] = 0 → OFF
      * msg.data[0] = 1 → ON
      *
      * Après modification → sauvegarde → reboot.
      * ------------------------------------------------------------------ */
-    case CMD_WIFI_ON_OFF:
+    case CMD_ERM_CC_WIFI_ON_OFF:
         Settings::wifiOn(msg.data[0]);
         Settings::writeFile(Settings::canton);
         delay(1000);
@@ -76,14 +76,14 @@ void handleSystemCommand(uint8_t commande,
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_EXPLORATION_ON_OFF — Activation / désactivation Exploration
+     * CMD_ERM_CC_EXPLORATION_ON_OFF — Activation / désactivation Exploration
      * --------------------------------------------------------------------
      * Exploration = apprentissage automatique SP/SM.
      *
      * ON  → reboot pour entrer en mode Exploration
      * OFF → arrêt immédiat du processus Exploration
      * ------------------------------------------------------------------ */
-    case CMD_EXPLORATION_ON_OFF:
+    case CMD_ERM_CC_EXPLORATION_ON_OFF:
         if (msg.data[0])
         {
             Settings::explorationOn(true);
@@ -100,11 +100,11 @@ void handleSystemCommand(uint8_t commande,
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_SAVE_ALL — Sauvegarde settings.json
+     * CMD_ERM_CC_SAVE_ALL — Sauvegarde settings.json
      * --------------------------------------------------------------------
-     * Le Main impose une sauvegarde immédiate.
+     * Le ERM impose une sauvegarde immédiate.
      * ------------------------------------------------------------------ */
-    case CMD_SAVE_ALL:
+    case CMD_ERM_CC_SAVE_ALL:
 #ifdef SAUV_BY_MAIN
         Settings::writeFile(Settings::canton);
 #else

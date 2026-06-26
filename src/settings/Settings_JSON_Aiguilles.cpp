@@ -27,7 +27,7 @@
  * ==========================================================================*/
 void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc)
 {
-    for (byte i = 0; i < aigSize; i++)
+    for (uint8_t i = 0; i < aigSize; i++)
     {
         String base = "aig" + String(i);
 
@@ -78,7 +78,7 @@ void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc)
  * ==========================================================================*/
 void Settings_JSON_saveAiguilles(Canton *canton, JsonDocument &doc)
 {
-    for (byte i = 0; i < aigSize; i++)
+    for (uint8_t i = 0; i < aigSize; i++)
     {
         String base = "aig" + String(i);
         Aig *a = canton->getAig(i);
@@ -96,14 +96,14 @@ void Settings_JSON_saveAiguilles(Canton *canton, JsonDocument &doc)
         // Aiguille active
         // -------------------------------------------------------------------
         doc[base] = "Actif";
-        doc[base + "id"]              = a->ID();
-        doc[base + "posDroit"]        = a->posDroit();
-        doc[base + "posDevie"]        = a->posDevie();
+        doc[base + "id"] = a->ID();
+        doc[base + "posDroit"] = a->posDroit();
+        doc[base + "posDevie"] = a->posDevie();
 
         // -------------------------------------------------------------------
         // Vitesse logique (désormais dans servoCfg)
         // -------------------------------------------------------------------
-        doc[base + "speed"]           = canton->getServoCfg(i).speed;
+        doc[base + "speed"] = canton->getServoCfg(i).speed;
 
         // -------------------------------------------------------------------
         // Index EXCC côté H / AH

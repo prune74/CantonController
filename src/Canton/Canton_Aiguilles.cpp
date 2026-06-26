@@ -28,7 +28,7 @@
 /* ============================================================================
  *  aigRun() — Envoi d’une commande F0 à l’EXCC 🟢
  * ==========================================================================*/
-void Canton::aigRun(byte idx) // 🟢
+void Canton::aigRun(uint8_t idx) // 🟢
 {
     // ------------------------------------------------------------------------
     // STOP global Exploration 2026 : aucune commande d’aiguille autorisée

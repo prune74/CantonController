@@ -28,7 +28,7 @@
  * ==========================================================================*/
 void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc) // 🟢
 {
-    for (byte i = 0; i < signalSize; i++)
+    for (uint8_t i = 0; i < signalSize; i++)
     {
         String baseType = "sign" + String(i) + "type";
         String basePosition = "sign" + String(i) + "position";
@@ -70,7 +70,7 @@ void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc) // 🟢
  * ==========================================================================*/
 void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc) // 🟢
 {
-    for (byte i = 0; i < signalSize; i++)
+    for (uint8_t i = 0; i < signalSize; i++)
     {
         String baseType = "sign" + String(i) + "type";
         String basePosition = "sign" + String(i) + "position";

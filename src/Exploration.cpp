@@ -29,23 +29,23 @@
 // ---------------------------------------------------------------------------
 // Variables statiques
 // ---------------------------------------------------------------------------
-byte Exploration::m_btnState{0};
-byte Exploration::m_ID_satPeriph{UNUSED_ID};
-byte Exploration::m_comptAig{0};
+uint8_t Exploration::m_btnState{0};
+uint8_t Exploration::m_ID_satPeriph{UNUSED_ID};
+uint8_t Exploration::m_comptAig{0};
 bool Exploration::m_stopProcess{false};
 Canton *Exploration::canton = nullptr;
 
 // ---------------------------------------------------------------------------
 // Accesseurs
 // ---------------------------------------------------------------------------
-void Exploration::comptAig(byte v) { m_comptAig = v; } // 🟢
-byte Exploration::comptAig() { return m_comptAig; }    // 🟢
+void Exploration::comptAig(uint8_t v) { m_comptAig = v; } // 🟢
+uint8_t Exploration::comptAig() { return m_comptAig; }    // 🟢
 
-void Exploration::ID_satPeriph(byte v) { m_ID_satPeriph = v; } // 🟢
-byte Exploration::ID_satPeriph() { return m_ID_satPeriph; }    // 🟢
+void Exploration::ID_satPeriph(uint8_t v) { m_ID_satPeriph = v; } // 🟢
+uint8_t Exploration::ID_satPeriph() { return m_ID_satPeriph; }    // 🟢
 
-void Exploration::btnState(byte v) { m_btnState = v; } // 🟢
-byte Exploration::btnState() { return m_btnState; }    // 🟢
+void Exploration::btnState(uint8_t v) { m_btnState = v; } // 🟢
+uint8_t Exploration::btnState() { return m_btnState; }    // 🟢
 
 void Exploration::stopProcess(bool v) { m_stopProcess = v; } // 🟢
 
@@ -77,7 +77,7 @@ static void runExplorationPass(Canton *canton) // 🟢
     };
 
     // Conditions de création des aiguilles
-    const byte aigConditions[aigSize][2] = {
+    const uint8_t aigConditions[aigSize][2] = {
         {p00, p01}, {p00, p10}, {p01, p11}, {m00, m01}, {m00, m10}, {m01, m11}};
 
     for (uint8_t i = 0; i < aigSize; i++)
@@ -239,7 +239,7 @@ void Exploration::process(void *p) // 🟢
 
         case 0x03:
             // RESET LOGIQUE + nouvelle découverte
-            for (byte i = 0; i < cantonPsize; i++)
+            for (uint8_t i = 0; i < cantonPsize; i++)
             {
                 CantonPeriph *np = canton->getCantonP(i);
                 if (np)
@@ -252,7 +252,7 @@ void Exploration::process(void *p) // 🟢
             }
 
             // Réinitialisation des aiguilles
-            for (byte i = 0; i < aigSize; i++)
+            for (uint8_t i = 0; i < aigSize; i++)
             {
                 Aig *a = canton->getAig(i);
                 if (a)
@@ -264,7 +264,7 @@ void Exploration::process(void *p) // 🟢
             }
 
             // Réinitialisation des signaux (aucun type imposé)
-            for (byte i = 0; i < signalSize; i++)
+            for (uint8_t i = 0; i < signalSize; i++)
             {
                 Signal *s = canton->getSignal(i);
                 if (s)

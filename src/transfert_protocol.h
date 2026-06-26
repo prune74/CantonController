@@ -25,57 +25,63 @@ enum class ExccAspect : uint8_t
 enum class CanCmd : uint16_t
 {
     /* Exploration CC ↔ ERM */
-    EXPLORATION_REQUEST_CC_ID = 0xC0,   // CC → ERM
-    EXPLORATION_MASQUE_AIG    = 0xC1,   // CC ↔ CC
+    CMD_EXPLORATION_REQUEST_CC_ID = 0xC0, // CC → ERM
+    CMD_EXPLORATION_MASQUE_AIG = 0xC1,    // CC ↔ CC
 
     /* Exploration CC ↔ CC */
-    EXPLORATION_ID_VOISIN     = 0xC0,   // CC → CC (même valeur, autre flux)
+    CMD_EXPLORATION_ID_VOISIN = 0xC0, // CC → CC (même valeur, autre flux)
 
     /* Exploitation CC ↔ CC */
-    EXPLOIT_UPDATE_VOISINS    = 0xE0,
-    EXPLOIT_RESERVATION       = 0xE3,
-    EXPLOIT_RAILCOM_VOISIN    = 0xE5,
-    EXPLOIT_ASPECT_VOISIN     = 0xE7,
-    EXPLOIT_AIGUILLAGE        = 0xE9,
-    CC_CC_OCCUPATION_VOISINS  = 0xEA,
+    CMD_EXPLOIT_UPDATE_VOISINS = 0xE0,
+    CMD_EXPLOIT_RESERVATION = 0xE3,
+    CMD_EXPLOIT_RAILCOM_VOISIN = 0xE5,
+    CMD_EXPLOIT_ASPECT_VOISIN = 0xE7,
+    CMD_EXPLOIT_AIGUILLAGE = 0xE9,
+    CMD_CC_CC_OCCUPATION_VOISINS = 0xEA,
 
     /* EXCC → CC */
-    CC_EXCC_PING              = 0xD0,
-    EXCC_CC_PONG              = 0xD1,
-    EXCC_CC_BOOSTER_INFO      = 0xD2,
+    CC_EXCC_PING = 0xD0,
+    EXCC_CC_PONG = 0xD1,
+    EXCC_CC_BOOSTER_INFO = 0xD2,
     EXCC_CC_POSITION_AIGUILLE = 0xD6,
-    EXCC_CC_OCCUPATION        = 0xD7,
-    EXCC_CC_PONCTUEL_H        = 0xD8,
-    EXCC_CC_PONCTUEL_AH       = 0xD9,
-    EXCC_CC_RAILCOM_ADRESSE   = 0xDA,
-    EXCC_CC_CALIB_BOOSTER_INFO= 0xDB,
+    EXCC_CC_OCCUPATION = 0xD7,
+    EXCC_CC_PONCTUEL_H = 0xD8,
+    EXCC_CC_PONCTUEL_AH = 0xD9,
+    EXCC_CC_RAILCOM_ADRESSE = 0xDA,
+    EXCC_CC_CALIB_BOOSTER_INFO = 0xDB,
 
     /* CC → EXCC */
-    CC_EXCC_SERVO_MOVE        = 0xF0,
-    CC_EXCC_SERVO_CONFIG      = 0xF1,
-    CC_EXCC_SERVO_TEST        = 0xF2,
-    CC_EXCC_RECALIBRER_BOOSTER= 0xF3,
-    CC_EXCC_SET_SEUILS        = 0xF4,
-    CC_EXCC_BOOSTER_POWER     = 0xF5,
-    CC_EXCC_CONFIG_SIGNAUX    = 0xF6,
-    CC_EXCC_ASPECT_HORAIRE    = 0xF7,
-    CC_EXCC_ASPECT_ANTIHORAIRE= 0xF8,
+    CC_EXCC_SERVO_MOVE = 0xF0,
+    CC_EXCC_SERVO_CONFIG = 0xF1,
+    CC_EXCC_SERVO_TEST = 0xF2,
+    CC_EXCC_RECALIBRER_BOOSTER = 0xF3,
+    CC_EXCC_SET_SEUILS = 0xF4,
+    CC_EXCC_BOOSTER_POWER = 0xF5,
+    CC_EXCC_CONFIG_SIGNAUX = 0xF6,
+    CC_EXCC_ASPECT_HORAIRE = 0xF7,
+    CC_EXCC_ASPECT_ANTIHORAIRE = 0xF8,
     CC_EXCC_DIRECTION_HORAIRE = 0xF9,
     CC_EXCC_DIRECTION_ANTIHORAIRE = 0xFA,
 
     /* Gestion globale ERM ↔ CC */
-    WIFI_ON_OFF               = 0xBD,
-    EXPLORATION_ON_OFF        = 0xBE,
-    SAVE_ALL                  = 0xBF,
-    RESTART_ALL               = 0xBC,
-    SET_PROFILE               = 0x20,
-    CC_OFFLINE                = 0xC3,
+    CMD_ERM_CC_WIFI_ON_OFF = 0xBD,
+    CMD_ERM_CC_EXPLORATION_ON_OFF = 0xBE,
+    CMD_ERM_CC_SAVE_ALL = 0xBF,
+    CMD_ERM_CC_RESTART_ALL = 0xBC,
+    CMD_ERM_CC_SET_PROFILE = 0x20,
+    CMD_ERM_CC_OFFLINE = 0xC3,
 
-    /* SAT */
-    SAT_TEST_BUS              = 0xB2,
-    SAT_TEST_BUS_REPLY        = 0xB3,
-    SAT_REQUEST_ID            = 0xB4,
-    SAT_REQUEST_ID_REPLY      = 0xB5,
+    /* Demande d’ID si nécessaire */
+    CMD_CC_ERM_TEST_BUS = 0xB2,
+
+    /* Reponse à la demande de la présence de la carte ERM */
+    CMD_ERM_CC_TEST_BUS_REPLY = 0xB3,
+
+    /* Demande d’ID si nécessaire */
+    CMD_CC_ERM_REQUEST_ID = 0xB4,
+
+    /* Reponse à demande d'identifiant */
+    CMD_ERM_CC_REQUEST_ID = 0xB5,
 };
 
 /* ============================================================================
@@ -83,30 +89,30 @@ enum class CanCmd : uint16_t
  * ==========================================================================*/
 enum class ExccCode : uint8_t
 {
-    POS_DROIT        = 0x00,
-    POS_DEVIE        = 0x01,
-    POS_INDET        = 0x02,
-    POS_INCOHERENT   = 0x03,
+    POS_DROIT = 0x00,
+    POS_DEVIE = 0x01,
+    POS_INDET = 0x02,
+    POS_INCOHERENT = 0x03,
 
-    PONCT_H_ACTIVE   = 0x10,
+    PONCT_H_ACTIVE = 0x10,
     PONCT_H_INACTIVE = 0x11,
-    PONCT_AH_ACTIVE  = 0x12,
-    PONCT_AH_INACTIVE= 0x13,
+    PONCT_AH_ACTIVE = 0x12,
+    PONCT_AH_INACTIVE = 0x13,
 
-    OCC_ACTIVE       = 0x30,
-    OCC_LIBRE        = 0x31,
+    OCC_ACTIVE = 0x30,
+    OCC_LIBRE = 0x31,
 
-    ETAT_OK          = 0x00,
-    ETAT_BLOQUE      = 0x01,
-    ETAT_ERREUR      = 0x02,
+    ETAT_OK = 0x00,
+    ETAT_BLOQUE = 0x01,
+    ETAT_ERREUR = 0x02,
 };
 
 /* ============================================================================
  *  CAN 11 bits — constexpr
  * ==========================================================================*/
-constexpr uint16_t CAN_ID_HEARTBEAT      = 0x200;
+constexpr uint16_t CAN_ID_HEARTBEAT = 0x200;
 constexpr uint16_t CAN_ID_EMERGENCY_STOP = 0x201;
-constexpr uint16_t CAN_ID_CLEAR_STOP     = 0x202;
+constexpr uint16_t CAN_ID_CLEAR_STOP = 0x202;
 
 /*
 🟩 Méthode officielle pour migrer ton protocole vers enum class

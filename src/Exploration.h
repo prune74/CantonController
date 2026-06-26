@@ -38,13 +38,13 @@ private:
     static Canton *canton;
 
     // Compteur d’aiguilles logiques
-    static byte m_comptAig;
+    static uint8_t m_comptAig;
 
     // ID du satellite voisin détecté via CAN
-    static byte m_ID_satPeriph;
+    static uint8_t m_ID_satPeriph;
 
     // État des boutons (4 bits)
-    static byte m_btnState;
+    static uint8_t m_btnState;
 
     // Fin de l’exploration
     static bool m_stopProcess;
@@ -62,14 +62,14 @@ public:
     static void createAigEtCibles(void *);
 
     // Accesseurs internes
-    static void comptAig(byte);
-    static byte comptAig();
+    static void comptAig(uint8_t);
+    static uint8_t comptAig();
 
-    static void ID_satPeriph(byte);
-    static byte ID_satPeriph();
+    static void ID_satPeriph(uint8_t);
+    static uint8_t ID_satPeriph();
 
-    static void btnState(byte);
-    static byte btnState();
+    static void btnState(uint8_t);
+    static uint8_t btnState();
 
     // -----------------------------------------------------------------------
     // stopProcess() — fin de l’exploration (topologie envoyée)
