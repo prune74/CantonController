@@ -47,9 +47,9 @@ namespace CC_CAN_EXCC
     void sendFeuDirectionAntiHoraire(Canton *canton, uint8_t code);
 
     // -----------------------------------------------------------------------
-    // Occupation voisins (CMD_CC_CC_OCCUPATION_VOISINS)
+    // Occupation voisins (CC_EXCC_OCCUPATION_VOISINS)
     // -----------------------------------------------------------------------
-    void sendOccupationDepuisEtatCourant();
+    void sendOccVoisinsDepuisEtatCourant();
     void sendOccupationVoisins(Canton *canton, uint8_t valeur);
 
     // -----------------------------------------------------------------------

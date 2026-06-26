@@ -5,7 +5,7 @@
  *
  * Rôle :
  *   - CMD_EXPLORATION_ID_VOISIN : réception de l’ID d’un CC voisin
- *   - CMD_EXPLORATION_MASQUE_AIG : mise à jour du masque d’aiguilles d’un voisin
+ *   - CMD_EXPLORATION_UPDATE_MASQUE_AIG : mise à jour du masque d’aiguilles d’un voisin
  */
 
 #include "CC_CAN.h"
@@ -33,11 +33,12 @@ void handleExplorationCommand(uint8_t commande,
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_EXPLORATION_MASQUE_AIG — Réception du masque d’aiguilles
+     * CMD_EXPLORATION_UPDATE_MASQUE_AIG — Réception du masque d’aiguilles
      * --------------------------------------------------------------------
-     * msg.data[0] = masque d’aiguilles du CC voisin
+     * Réception du masque d’aiguilles envoyé par le CC voisin pendant
+     * la phase d’exploration, puis mise à jour du CantonPeriph correspondant.
      * ------------------------------------------------------------------ */
-    case CMD_EXPLORATION_MASQUE_AIG:
+    case CMD_EXPLORATION_UPDATE_MASQUE_AIG:
     {
         uint8_t masque = msg.data[0];
 

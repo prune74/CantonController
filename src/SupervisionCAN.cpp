@@ -10,11 +10,11 @@
  *       • occupation locale
  *       • accessibilité SP1 / SM1
  *       • occupation SP1 / SM1
- *   - transmettre la réservation locomotive (trame CMD_EXPLOIT_RESERVATION)
+ *   - transmettre la réservation locomotive (trame CMD_EXPLOITATION_RESERVATION_LOCO)
  *
  * Trames :
- *   - CMD_EXPLOIT_UPDATE_VOISINS : état ferroviaire du canton
- *   - CMD_EXPLOIT_RESERVATION : réservation du canton suivant selon le sens
+ *   - CMD_EXPLOITATION_UPDATE_VOISINS : état ferroviaire du canton
+ *   - CMD_EXPLOITATION_RESERVATION_LOCO : réservation du canton suivant selon le sens
  */
 
 #include "SupervisionCAN.h"
@@ -52,7 +52,7 @@ void updateTopoLed()
 /* ============================================================================
  * envoyerEtatCAN()
  * ---------------------------------------------------------------------------
- * Envoie les trames CMD_EXPLOIT_UPDATE_VOISINS et CMD_EXPLOIT_RESERVATION selon l’état du canton.
+ * Envoie les trames CMD_EXPLOITATION_UPDATE_VOISINS et CMD_EXPLOITATION_RESERVATION_LOCO selon l’état du canton.
  * ==========================================================================*/
 void envoyerEtatCAN(Canton *canton)
 {
@@ -63,13 +63,13 @@ void envoyerEtatCAN(Canton *canton)
     // Sécurité : topologie non prête
     if (!sp1 || !sm1)
     {
-        CC_LOG_WARN("[CAN][CC] Topologie incomplète → trame CMD_EXPLOIT_UPDATE_VOISINS ignorée\n");
+        CC_LOG_WARN("[CAN][CC] Topologie incomplète → trame CMD_EXPLOITATION_UPDATE_VOISINS ignorée\n");
         return;
     }
 
     // Log pédagogique
     CC_LOG_TRACE(
-        "[CAN][CC] Envoi CMD_EXPLOIT_UPDATE_VOISINS : busy=%d SP1=%d SM1=%d accesSP1=%d busySP1=%d accesSM1=%d busySM1=%d\n",
+        "[CAN][CC] Envoi CMD_EXPLOITATION_UPDATE_VOISINS : busy=%d SP1=%d SM1=%d accesSP1=%d busySP1=%d accesSM1=%d busySM1=%d\n",
         canton->busy(),
         sp1->ID(),
         sm1->ID(),
@@ -79,10 +79,10 @@ void envoyerEtatCAN(Canton *canton)
         sm1->busy());
 
     // -----------------------------------------------------------------------
-    // TRAME CMD_EXPLOIT_UPDATE_VOISINS — État ferroviaire du canton
+    // TRAME CMD_EXPLOITATION_UPDATE_VOISINS — État ferroviaire du canton
     // -----------------------------------------------------------------------
     CC_CAN::sendMsg(
-        0, CMD_EXPLOIT_UPDATE_VOISINS, 0, canton->ID(),
+        0, CMD_EXPLOITATION_UPDATE_VOISINS, 0, canton->ID(),
         canton->busy(),
         static_cast<uint8_t>(sp1->ID()),
         static_cast<uint8_t>(sm1->ID()),
@@ -91,10 +91,10 @@ void envoyerEtatCAN(Canton *canton)
         sm1->acces(),
         sm1->busy());
 
-    CC_LOG_INFO("[CAN][CC] Trame CMD_EXPLOIT_UPDATE_VOISINS envoyée pour Canton %d\n", canton->ID());
+    CC_LOG_INFO("[CAN][CC] Trame CMD_EXPLOITATION_UPDATE_VOISINS envoyée pour Canton %d\n", canton->ID());
 
     // -----------------------------------------------------------------------
-    // TRAME CMD_EXPLOIT_RESERVATION — Réservation du canton suivant
+    // TRAME CMD_EXPLOITATION_RESERVATION_LOCO — Réservation du canton suivant
     // -----------------------------------------------------------------------
     Loco *loco = canton->getLoco();
     if (!loco)
@@ -103,7 +103,7 @@ void envoyerEtatCAN(Canton *canton)
     uint16_t addr = loco->address();
     if (addr == 0)
     {
-        CC_LOG_TRACE("[CAN][CC] Pas de loco → trame CMD_EXPLOIT_RESERVATION non envoyée\n");
+        CC_LOG_TRACE("[CAN][CC] Pas de loco → trame CMD_EXPLOITATION_RESERVATION_LOCO non envoyée\n");
         return;
     }
 
@@ -117,11 +117,11 @@ void envoyerEtatCAN(Canton *canton)
     {
         uint8_t aval = sp1->ID();
 
-        CC_LOG_INFO("[CAN][CC] Envoi CMD_EXPLOIT_RESERVATION (horaire) : aval=%d loco=%u\n",
+        CC_LOG_INFO("[CAN][CC] Envoi CMD_EXPLOITATION_RESERVATION_LOCO (horaire) : aval=%d loco=%u\n",
                     aval, addr);
 
         CC_CAN::sendMsg(
-            0, CMD_EXPLOIT_RESERVATION, 0, canton->ID(),
+            0, CMD_EXPLOITATION_RESERVATION_LOCO, 0, canton->ID(),
             aval,
             addrHigh, addrLow);
     }
@@ -130,17 +130,17 @@ void envoyerEtatCAN(Canton *canton)
     {
         uint8_t aval = sm1->ID();
 
-        CC_LOG_INFO("[CAN][CC] Envoi CMD_EXPLOIT_RESERVATION (anti-horaire) : aval=%d loco=%u\n",
+        CC_LOG_INFO("[CAN][CC] Envoi CMD_EXPLOITATION_RESERVATION_LOCO (anti-horaire) : aval=%d loco=%u\n",
                     aval, addr);
 
         CC_CAN::sendMsg(
-            0, CMD_EXPLOIT_RESERVATION, 0, canton->ID(),
+            0, CMD_EXPLOITATION_RESERVATION_LOCO, 0, canton->ID(),
             aval,
             addrHigh, addrLow);
     }
     else
     {
-        CC_LOG_WARN("[CAN][CC] Loco présente mais sens invalide (%d) → trame CMD_EXPLOIT_RESERVATION ignorée\n",
+        CC_LOG_WARN("[CAN][CC] Loco présente mais sens invalide (%d) → trame CMD_EXPLOITATION_RESERVATION_LOCO ignorée\n",
                     static_cast<int>(sens));
     }
 }

@@ -45,22 +45,30 @@ enum ExccAspect : uint8_t
  * ============================================================================
  */
 
-#define CMD_EXPLORATION_REQUEST_CC_ID 0xC0
-#define CMD_EXPLORATION_MASQUE_AIG 0xC1
+// Réception de l'ID d'un CC
+#define CMD_EXPLORATION_CC_DEMANDE_ID 0xC0
+
+// Réception du masque d’aiguilles des voisins
+#define CMD_EXPLORATION_UPDATE_MASQUE_AIG 0xC1
 
 /* ============================================================================
  *  🟦 CC ↔ CC — Exploitation (0xE0–0xEF)
  * ============================================================================
  */
+// reception periodique des data envoyees par les CC en exploitation
+#define CMD_EXPLOITATION_UPDATE_VOISINS 0xE0
 
-#define CMD_EXPLOIT_UPDATE_VOISINS 0xE0
-#define CMD_EXPLOIT_RESERVATION 0xE3
-#define CMD_EXPLOIT_RAILCOM_VOISIN 0xE5
-#define CMD_EXPLOIT_ASPECT_VOISIN 0xE7
-#define CMD_EXPLOIT_AIGUILLAGE 0xE9
+// reservation du canton pour loco en approche sur canton précédent
+#define CMD_EXPLOITATION_RESERVATION_LOCO 0xE3
 
-/* Occupation SP/SM */
-#define CMD_CC_CC_OCCUPATION_VOISINS 0xEA
+// reception de l'adresse de la locomotive
+#define CMD_EXPLOITATION_RAILCOM_VOISIN 0xE5
+
+// reception Aspect affiché par un voisin
+#define CMD_EXPLOITATION_ASPECT_VOISIN 0xE7
+
+// reception d'une commande d'aiguillage
+#define CMD_EXPLOITATION_AIGUILLAGE 0xE9
 
 /* Un CC annonce son ID aux voisins */
 #define CMD_EXPLORATION_ID_VOISIN 0xC0
@@ -84,12 +92,15 @@ enum ExccAspect : uint8_t
 #define CMD_CC_EXCC_DIRECTION_HORAIRE 0xF9
 #define CMD_CC_EXCC_DIRECTION_ANTIHORAIRE 0xFA
 
+#define CC_EXCC_OCCUPATION_VOISINS 0xFB
+
+#define CMD_CC_EXCC_PING 0xFC
+
 /* ============================================================================
  *  🟦 EXCC → CC — Retour d’état (0xD0–0xDF)
  * ============================================================================
  */
 
-#define CMD_CC_EXCC_PING 0xD0
 #define CMD_EXCC_CC_PONG 0xD1
 #define CMD_EXCC_CC_BOOSTER_INFO 0xD2
 #define CMD_EXCC_CC_POSITION_AIGUILLE 0xD6

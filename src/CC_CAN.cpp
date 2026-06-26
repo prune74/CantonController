@@ -142,7 +142,7 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
         return;
     }
 
-    // Commandes EXCC (CMD_CC_EXCC_PING–0xDF)
+    // Commandes EXCC (0xD0–0xDF)
     if (commande >= 0xD0 && commande <= 0xDF)
     {
         CC_CAN_EXCC::handleEXCCCommand(commande, msg, canton, idExpediteur);

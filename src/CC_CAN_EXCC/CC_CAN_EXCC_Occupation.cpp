@@ -10,13 +10,13 @@
 #include "debug_cc.h"
 
 /* ============================================================================
- *  sendOccupationDepuisEtatCourant()
+ *  sendOccVoisinsDepuisEtatCourant()
  * ---------------------------------------------------------------------------
  *  Lit l’occupation SP1 / SM1 et envoie l’octet EA correspondant.
  * ==========================================================================*/
 namespace CC_CAN_EXCC
 {
-    void sendOccupationDepuisEtatCourant()
+    void sendOccVoisinsDepuisEtatCourant()
     {
         Canton *c = Settings::canton;
 

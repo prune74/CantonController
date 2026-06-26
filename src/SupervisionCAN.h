@@ -10,7 +10,7 @@
  *       • occupation locale
  *       • accessibilité SP1 / SM1
  *       • occupation SP1 / SM1
- *   - envoyer la réservation locomotive (trame CMD_EXPLOIT_RESERVATION)
+ *   - envoyer la réservation locomotive (trame CMD_EXPLOITATION_RESERVATION_LOCO)
  *
  * Voir SupervisionCAN.cpp pour l’implémentation.
  */
@@ -19,7 +19,7 @@
 
 #include "Canton.h"
 
-// Envoie les trames CMD_EXPLOIT_UPDATE_VOISINS (état ferroviaire) et CMD_EXPLOIT_RESERVATION (réservation)
+// Envoie les trames CMD_EXPLOITATION_UPDATE_VOISINS (état ferroviaire) et CMD_EXPLOITATION_RESERVATION_LOCO (réservation)
 void envoyerEtatCAN(Canton *canton);
 
 // Met à jour la LED topologie (OK / erreur)

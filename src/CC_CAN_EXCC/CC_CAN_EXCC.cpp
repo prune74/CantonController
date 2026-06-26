@@ -102,12 +102,12 @@ void CC_CAN_EXCC::sendFeuDirectionAntiHoraire(Canton *canton, uint8_t code)
 }
 
 // ---------------------------------------------------------------------------
-// Occupation voisins (CMD_CC_CC_OCCUPATION_VOISINS)
+// Occupation voisins (CC_EXCC_OCCUPATION_VOISINS)
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendOccupationVoisins(Canton *canton, uint8_t valeur)
 {
     uint8_t payload[1] = {valeur};
-    sendEXCC(1, CMD_CC_CC_OCCUPATION_VOISINS, 0, canton->ID(), payload, 1);
+    sendEXCC(1, CC_EXCC_OCCUPATION_VOISINS, 0, canton->ID(), payload, 1);
 }
 
 // ---------------------------------------------------------------------------

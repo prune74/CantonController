@@ -25,22 +25,20 @@ enum class ExccAspect : uint8_t
 enum class CanCmd : uint16_t
 {
     /* Exploration CC ↔ ERM */
-    CMD_EXPLORATION_REQUEST_CC_ID = 0xC0, // CC → ERM
-    CMD_EXPLORATION_MASQUE_AIG = 0xC1,    // CC ↔ CC
+    CMD_EXPLORATION_CC_DEMANDE_ID = 0xC0, // CC → ERM
 
     /* Exploration CC ↔ CC */
-    CMD_EXPLORATION_ID_VOISIN = 0xC0, // CC → CC (même valeur, autre flux)
+    CMD_EXPLORATION_ID_VOISIN = 0xC0,         // CC → CC (même valeur, autre flux)
+    CMD_EXPLORATION_UPDATE_MASQUE_AIG = 0xC1, // CC ↔ CC
 
     /* Exploitation CC ↔ CC */
-    CMD_EXPLOIT_UPDATE_VOISINS = 0xE0,
-    CMD_EXPLOIT_RESERVATION = 0xE3,
-    CMD_EXPLOIT_RAILCOM_VOISIN = 0xE5,
-    CMD_EXPLOIT_ASPECT_VOISIN = 0xE7,
-    CMD_EXPLOIT_AIGUILLAGE = 0xE9,
-    CMD_CC_CC_OCCUPATION_VOISINS = 0xEA,
+    CMD_EXPLOITATION_UPDATE_VOISINS = 0xE0,
+    CMD_EXPLOITATION_RESERVATION_LOCO = 0xE3,
+    CMD_EXPLOITATION_RAILCOM_VOISIN = 0xE5,
+    CMD_EXPLOITATION_ASPECT_VOISIN = 0xE7,
+    CMD_EXPLOITATION_AIGUILLAGE = 0xE9,
 
     /* EXCC → CC */
-    CC_EXCC_PING = 0xD0,
     EXCC_CC_PONG = 0xD1,
     EXCC_CC_BOOSTER_INFO = 0xD2,
     EXCC_CC_POSITION_AIGUILLE = 0xD6,
@@ -62,6 +60,8 @@ enum class CanCmd : uint16_t
     CC_EXCC_ASPECT_ANTIHORAIRE = 0xF8,
     CC_EXCC_DIRECTION_HORAIRE = 0xF9,
     CC_EXCC_DIRECTION_ANTIHORAIRE = 0xFA,
+    CC_EXCC_OCCUPATION_VOISINS = 0xFB,
+    CC_EXCC_PING = 0xD0,
 
     /* Gestion globale ERM ↔ CC */
     CMD_ERM_CC_WIFI_ON_OFF = 0xBD,
@@ -134,7 +134,7 @@ Remplacer les valeurs brutes dans le code
 Progressif
 On remplace progressivement les 0xE3, 0xC0, etc. par les versions typées.
 
-Dans chaque fichier, remplacer 0xE3 par CanCmd::EXPLOIT_RESERVATION
+Dans chaque fichier, remplacer 0xE3 par CanCmd::EXPLOITATION_RESERVATION
 
 Remplacer 0xC0 par CanCmd::EXPLORATION_ID_VOISIN ou CanCmd::EXPLORATION_REQUEST_CC_ID selon le flux
 
@@ -145,7 +145,7 @@ Adapter les comparaisons
 Important
 Les enum class sont typés, donc il faut caster pour comparer.
 
-Exemple : if (cmd == static_cast<uint8_t>(CanCmd::EXPLOIT_RESERVATION))
+Exemple : if (cmd == static_cast<uint8_t>(CanCmd::EXPLOITATION_RESERVATION))
 
 Ou mieux : stocker CanCmd cmd = static_cast<CanCmd>(msg.cmde());
 
@@ -157,7 +157,7 @@ CC_CAN.cpp → handleExploitCommand / handleExplorationCommand
 
 switch (cmd) devient switch (static_cast<CanCmd>(cmd))
 
-Les cases deviennent : case CanCmd::EXPLOIT_RESERVATION:
+Les cases deviennent : case CanCmd::EXPLOITATION_RESERVATION:
 
 05
 Supprimer les anciens #define

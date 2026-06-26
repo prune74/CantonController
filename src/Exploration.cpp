@@ -170,7 +170,7 @@ void Exploration::process(void *p) // 🟢
     auto btnPush = [&](uint8_t btnNum)
     {
         // Notification CAN vers la carte ERM
-        CC_CAN::sendMsg(0, CMD_EXPLORATION_REQUEST_CC_ID, 0, canton->ID(), UNUSED_ID, 0);
+        CC_CAN::sendMsg(0, CMD_EXPLORATION_CC_DEMANDE_ID, 0, canton->ID(), UNUSED_ID, 0);
 
         if (m_ID_satPeriph < 253)
         {
