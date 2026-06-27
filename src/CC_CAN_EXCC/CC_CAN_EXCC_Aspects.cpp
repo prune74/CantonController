@@ -13,8 +13,8 @@
  *  sendAspectsDepuisEtatCourant()
  * ---------------------------------------------------------------------------
  *  Envoie les aspects SNCF calculés :
- *    → CMD_CC_EXCC_ASPECT_HORAIRE (horaire)
- *    → CMD_CC_EXCC_ASPECT_ANTIHORAIRE (anti‑horaire)
+ *    → ASPECT_HORAIRE
+ *    → ASPECT_ANTIHORAIRE
  * ==========================================================================*/
 namespace CC_CAN_EXCC
 {
@@ -23,14 +23,15 @@ namespace CC_CAN_EXCC
         Canton *canton = Settings::canton;
 
         // Calcul des aspects (logique métier dans SupervisionCanton)
-        ExccAspect aspectHoraire = mettreAJourAspectCanton(canton, 0);
-        ExccAspect aspectAntiHoraire = mettreAJourAspectCanton(canton, 1);
+        ExccAspect aspectHoraire      = mettreAJourAspectCanton(canton, 0);
+        ExccAspect aspectAntiHoraire  = mettreAJourAspectCanton(canton, 1);
 
         // Transmission CAN vers EXCC
         CC_CAN_EXCC::sendAspectHoraire(canton, aspectHoraire);
         CC_CAN_EXCC::sendAspectAntiHoraire(canton, aspectAntiHoraire);
 
         CC_LOG_INFO("[EXCC][Aspects][CAN] Aspects envoyés : H=%u AH=%u\n",
-                    aspectHoraire, aspectAntiHoraire);
+                    static_cast<uint8_t>(aspectHoraire),
+                    static_cast<uint8_t>(aspectAntiHoraire));
     }
 }

@@ -1,17 +1,7 @@
 /*
  * Canton_SignauxDeduction.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Déduction du type de mât SNCF selon les besoins topologiques :
- *
- *   - Impasse → SIG_MANOEUVRE
- *   - Besoin de RAPPEL → SIG_RAPPEL (9 feux)
- *   - Besoin de RALENTISSEMENT → SIG_RAL (7 feux)
- *   - Besoin de CARRE → SIG_CARRE (5 feux)
- *   - Sinon → SIG_BAL (3 feux)
- *
- * IMPORTANT :
- *   En 2026, l’aspect détermine le mât, et le mât est toujours compatible
- *   avec l’aspect. Aucune adaptation d’aspect n’est nécessaire.
+ * Déduction du type de mât SNCF selon les besoins topologiques.
  */
 
 #include "Canton.h"
@@ -61,13 +51,14 @@ bool Canton::cantonPrecedentEstEnRalentissement(SensDeMarche sens) const
     if (!v)
         return false;
 
-    ExccAspect aH = static_cast<ExccAspect>(v->aspectRecu[0]);
+    // Conversion des octets reçus en enum class ExccAspect
+    ExccAspect aH  = static_cast<ExccAspect>(v->aspectRecu[0]);
     ExccAspect aAH = static_cast<ExccAspect>(v->aspectRecu[1]);
 
-    return (aH == ASPECT_RALENTISSEMENT_30 ||
-            aH == ASPECT_RALENTISSEMENT_60 ||
-            aAH == ASPECT_RALENTISSEMENT_30 ||
-            aAH == ASPECT_RALENTISSEMENT_60);
+    return (aH  == ExccAspect::ASPECT_RALENTISSEMENT_30 ||
+            aH  == ExccAspect::ASPECT_RALENTISSEMENT_60 ||
+            aAH == ExccAspect::ASPECT_RALENTISSEMENT_30 ||
+            aAH == ExccAspect::ASPECT_RALENTISSEMENT_60);
 }
 
 /* ============================================================================

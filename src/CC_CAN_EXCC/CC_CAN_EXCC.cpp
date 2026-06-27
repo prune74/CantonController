@@ -78,18 +78,30 @@ void CC_CAN_EXCC::sendPositionAiguille(Canton *canton,
 // ---------------------------------------------------------------------------
 // Aspects SNCF
 // ---------------------------------------------------------------------------
-void CC_CAN_EXCC::sendAspectHoraire(Canton *canton, uint8_t aspect)
+void CC_CAN_EXCC::sendAspectHoraire(Canton *canton, ExccAspect aspect)
 {
-    uint8_t payload[1] = {aspect};
-    sendEXCC(1, (uint16_t)Cmd_CC_to_EXCC::ASPECT_HORAIRE,
-             0, canton->ID(), payload, 1);
+    uint8_t raw = static_cast<uint8_t>(aspect);
+
+    sendEXCC(
+        1,
+        (uint8_t)Cmd_CC_to_EXCC::ASPECT_HORAIRE,
+        0,
+        canton->ID(),
+        &raw,
+        1);
 }
 
-void CC_CAN_EXCC::sendAspectAntiHoraire(Canton *canton, uint8_t aspect)
+void CC_CAN_EXCC::sendAspectAntiHoraire(Canton *canton, ExccAspect aspect)
 {
-    uint8_t payload[1] = {aspect};
-    sendEXCC(1, (uint16_t)Cmd_CC_to_EXCC::ASPECT_ANTIHORAIRE,
-             0, canton->ID(), payload, 1);
+    uint8_t raw = static_cast<uint8_t>(aspect);
+
+    sendEXCC(
+        1,
+        (uint8_t)Cmd_CC_to_EXCC::ASPECT_ANTIHORAIRE,
+        0,
+        canton->ID(),
+        &raw,
+        1);
 }
 
 // ---------------------------------------------------------------------------

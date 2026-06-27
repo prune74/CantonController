@@ -16,7 +16,7 @@
 /* ============================================================================
  *  ENUM ASPECTS SNCF (EXCC → CC)
  * ==========================================================================*/
-enum ExccAspect : uint8_t
+enum class ExccAspect : uint8_t
 {
     ASPECT_CARRE = 0,
     ASPECT_CARRE_VIOLET,

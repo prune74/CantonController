@@ -36,8 +36,8 @@ namespace CC_CAN_EXCC
     // Aspects SNCF (CMD_CC_EXCC_ASPECT_HORAIRE / CMD_CC_EXCC_ASPECT_ANTIHORAIRE)
     // -----------------------------------------------------------------------
     void sendAspectsDepuisEtatCourant();
-    void sendAspectHoraire(Canton *canton, uint8_t aspect);
-    void sendAspectAntiHoraire(Canton *canton, uint8_t aspect);
+    void sendAspectHoraire(Canton *canton, ExccAspect aspect);
+    void sendAspectAntiHoraire(Canton *canton, ExccAspect aspect);
 
     // -----------------------------------------------------------------------
     // Feux directionnels (CMD_CC_EXCC_DIRECTION_HORAIRE / CMD_CC_EXCC_DIRECTION_ANTIHORAIRE)

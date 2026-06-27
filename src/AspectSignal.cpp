@@ -2,21 +2,6 @@
  * AspectSignal.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Déduction et envoi des aspects SNCF + feux directionnels.
- *
- * Rôle :
- *   1) récupérer les aspects aval SP1 / SM1
- *   2) vérifier les aiguilles locales
- *   3) déduire l’aspect SNCF local (BAL)
- *   4) appliquer le mode MANOEUVRE (voie de service)
- *   5) déduire automatiquement le type de mât + MAJ objets Signal
- *   6) calculer les feux directionnels
- *   7) envoyer les aspects / feux / occupation (anti‑spam)
- *
- * IMPORTANT 2026 :
- *   - La logique BAL reste intacte (SupervisionCanton).
- *   - Le mode MANOEUVRE est appliqué UNIQUEMENT sur les aspects envoyés.
- *   - EXCC n’a pas à connaître le mode manœuvre : il affiche seulement
- *     les couleurs correspondant aux aspects reçus.
  */
 
 #include "AspectSignal.h"
@@ -49,8 +34,8 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     // -----------------------------------------------------------------------
     // 1) Valeurs par défaut : CARRÉ
     // -----------------------------------------------------------------------
-    ExccAspect aspectAval = ASPECT_CARRE;   // côté H
-    ExccAspect aspectAvalAH = ASPECT_CARRE; // côté AH
+    ExccAspect aspectAval = ExccAspect::ASPECT_CARRE;   // côté H
+    ExccAspect aspectAvalAH = ExccAspect::ASPECT_CARRE; // côté AH
 
     // -----------------------------------------------------------------------
     // 2) Récupération des aspects aval SP1 / SM1
@@ -58,11 +43,9 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     CantonPeriph *sp1 = canton->voisinSP1();
     CantonPeriph *sm1 = canton->voisinSM1();
 
-    // sens horaire → aspect côté H → index 1
     if (sp1)
         aspectAval = static_cast<ExccAspect>(sp1->aspectRecu[1]);
 
-    // sens antihoraire → aspect côté AH → index 0
     if (sm1)
         aspectAvalAH = static_cast<ExccAspect>(sm1->aspectRecu[0]);
 
@@ -87,35 +70,25 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     // -----------------------------------------------------------------------
     // 5) Application du MODE MANOEUVRE (voie de service)
     // -----------------------------------------------------------------------
-    /*
-     * NOTE 2026 :
-     * Le mode manœuvre NE MODIFIE PAS la logique BAL interne.
-     * Il est appliqué UNIQUEMENT sur les aspects envoyés à l’EXCC.
-     *
-     * Règles :
-     *   - Carré rouge → Carré violet
-     *   - Voie libre → Blanc manœuvre
-     *   - Autres aspects → inchangés
-     */
     if (canton->modeManoeuvre())
     {
         for (int i = 0; i < 2; i++)
         {
-            uint8_t asp = signalValue[i];
+            ExccAspect asp = static_cast<ExccAspect>(signalValue[i]);
 
-            if (asp == ASPECT_CARRE)
+            if (asp == ExccAspect::ASPECT_CARRE)
             {
-                signalValue[i] = ASPECT_CARRE_VIOLET;
+                signalValue[i] = static_cast<uint8_t>(ExccAspect::ASPECT_CARRE_VIOLET);
                 continue;
             }
 
-            if (asp == ASPECT_VOIE_LIBRE)
+            if (asp == ExccAspect::ASPECT_VOIE_LIBRE)
             {
-                signalValue[i] = ASPECT_MANOEUVRE;
+                signalValue[i] = static_cast<uint8_t>(ExccAspect::ASPECT_MANOEUVRE);
                 continue;
             }
 
-            signalValue[i] = asp;
+            signalValue[i] = static_cast<uint8_t>(asp);
         }
     }
 
@@ -134,7 +107,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         sAH->type(typeMatAH);
 
     // -----------------------------------------------------------------------
-    // 7) Calcul des feux directionnels (Exploration 2026)
+    // 7) Calcul des feux directionnels
     // -----------------------------------------------------------------------
     canton->updateFeuDirection(SensHoraire);
     canton->updateFeuDirection(SensAntiHoraire);
@@ -156,7 +129,10 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         // ---------------------------------------------------------------
         if (signalValue[0] != oldSignalValue0)
         {
-            CC_CAN_EXCC::sendAspectHoraire(canton, signalValue[0]);
+            CC_CAN_EXCC::sendAspectHoraire(
+                canton,
+                static_cast<ExccAspect>(signalValue[0]));
+
             oldSignalValue0 = signalValue[0];
 
             CC_CAN::sendMsg(
@@ -173,7 +149,10 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         // ---------------------------------------------------------------
         if (signalValue[1] != oldSignalValue1)
         {
-            CC_CAN_EXCC::sendAspectAntiHoraire(canton, signalValue[1]);
+            CC_CAN_EXCC::sendAspectAntiHoraire(
+                canton,
+                static_cast<ExccAspect>(signalValue[1]));
+
             oldSignalValue1 = signalValue[1];
 
             CC_CAN::sendMsg(
@@ -201,7 +180,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         }
 
         // ---------------------------------------------------------------
-        // 8D) OCCUPATION DES CANTONS VOISINS (SP1 / SM1)
+        // 8D) OCCUPATION DES CANTONS VOISINS
         // ---------------------------------------------------------------
         uint8_t occVoisins = 0;
 

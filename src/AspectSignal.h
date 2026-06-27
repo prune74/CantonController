@@ -2,10 +2,10 @@
 
 #include <Arduino.h>
 #include "Canton.h"
-#include "DeductionAspect.h" // enum ExccAspect
+#include "DeductionAspect.h" 
 #include "CC_CAN.h"
 #include "SensEnum.h"
-#include "Protocol.h" // ExccAspect
+#include "Protocol.h"
 
 /*
  * AspectSignal.h — Gestion Canton 2026

@@ -24,16 +24,19 @@
  */
 
 #include "GestionReseau.h"
-#include "GestionLoco.h"   // Mise à jour de l’état de la loco
-#include "FeuxDirection.h" // Feux directionnels (0..4)
-#include "Protocol.h"      // ExccAspect + opcodes UART/CAN
-#include "AspectSignal.h"  // mettreAJourAspectSignal()
+#include "GestionLoco.h"
+#include "FeuxDirection.h"
+#include "Protocol.h"
+#include "AspectSignal.h"
 #include "debug_cc.h"
 
 // ---------------------------------------------------------------------------
 // Valeurs d’aspect envoyées aux signaux (horaire / anti‑horaire)
 // ---------------------------------------------------------------------------
-ExccAspect GestionReseau::signalValue[2] = {ASPECT_CARRE, ASPECT_CARRE};
+ExccAspect GestionReseau::signalValue[2] = {
+    ExccAspect::ASPECT_CARRE,
+    ExccAspect::ASPECT_CARRE
+};
 
 // ---------------------------------------------------------------------------
 // Création de la tâche FreeRTOS
