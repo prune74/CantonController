@@ -172,7 +172,7 @@ void Exploration::process(void *p) // 🟢
         // Notification CAN vers la carte ERM : demande d’attribution d’ID
         CC_CAN::sendMsg(
             0,
-            static_cast<uint16_t>(CanCmd::CMD_EXPLORATION_CC_DEMANDE_ID),
+            (uint16_t)Cmd_Exploration_CC::DEMANDE_ID,
             0,
             canton->ID(),
             UNUSED_ID,

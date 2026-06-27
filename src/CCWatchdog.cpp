@@ -31,17 +31,17 @@ static void sendHeartbeat()
         return;
 
     CanMsg msg;
-    msg.id = CAN11_ID_HEARTBEAT; // 0x200 → 11 bits automatiquement
+    msg.id = (uint16_t)Cmd_Global11::HEARTBEAT;  // 0x200
     msg.dlc = 2;
 
     msg.data[0] = id >> 8;
     msg.data[1] = id & 0xFF;
 
-    // Envoi sur le bus CantonController (bus 0)
     CanBus::bus(0).send(msg);
 
     CC_LOG_TRACE("[CCWatchdog][CC] Heartbeat envoyé (ID=%u)\n", id);
 }
+
 
 /* ============================================================================
  *  taskHeartbeat() — Tâche FreeRTOS

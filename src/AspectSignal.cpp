@@ -161,7 +161,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
 
             CC_CAN::sendMsg(
                 1,
-                static_cast<uint16_t>(CanCmd::CC_EXCC_ASPECT_HORAIRE),
+                (uint16_t)Cmd_CC_to_EXCC::ASPECT_HORAIRE,
                 0,
                 canton->ID(),
                 0, 0,
@@ -178,7 +178,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
 
             CC_CAN::sendMsg(
                 1,
-                static_cast<uint16_t>(CanCmd::CC_EXCC_ASPECT_ANTIHORAIRE),
+                (uint16_t)Cmd_CC_to_EXCC::ASPECT_ANTIHORAIRE,
                 0,
                 canton->ID(),
                 1, 1,

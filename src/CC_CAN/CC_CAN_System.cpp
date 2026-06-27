@@ -1,7 +1,7 @@
 /*
  * CC_CAN_System.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Commandes système (CMD_ERM_CC_TEST_BUS_REPLY → CMD_ERM_CC_SAVE_ALL)
+ * Commandes système ERM → CC
  */
 
 #include "CC_CAN.h"
@@ -10,6 +10,7 @@
 #include "Exploration.h"
 #include "CanMsg.h"
 #include "Canton.h"
+#include "Protocol.h"
 
 /* ============================================================================
  * handleSystemCommand()
@@ -21,38 +22,35 @@ void handleSystemCommand(uint8_t commande,
 {
     (void)idSatExpediteur; // non utilisé
 
-    // Conversion vers enum class
-    CanCmd cmd = static_cast<CanCmd>(commande);
-
-    switch (cmd)
+    switch ((Cmd_ERM_to_CC)commande)
     {
     /* --------------------------------------------------------------------
-     * CMD_ERM_CC_TEST_BUS_REPLY — Réponse au test du bus CAN
+     * TEST_BUS_REPLY — Réponse au test du bus CAN
      * ------------------------------------------------------------------ */
-    case CanCmd::CMD_ERM_CC_TEST_BUS_REPLY:
+    case Cmd_ERM_to_CC::TEST_BUS_REPLY:
         if (msg.data[0])
             Settings::sMainReady(true);
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_ERM_CC_REQUEST_ID — Attribution d’ID
+     * REQUEST_ID_REPLY — Attribution d’ID
      * ------------------------------------------------------------------ */
-    case CanCmd::CMD_ERM_CC_REQUEST_ID:
+    case Cmd_ERM_to_CC::REQUEST_ID_REPLY:
         if (canton->ID() == UNUSED_ID)
             canton->ID(msg.data[0]);
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_ERM_CC_RESTART_ALL — Reset ESP32
+     * RESTART_ALL — Reset ESP32
      * ------------------------------------------------------------------ */
-    case CanCmd::CMD_ERM_CC_RESTART_ALL:
+    case Cmd_ERM_to_CC::RESTART_ALL:
         ESP.restart();
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_ERM_CC_WIFI_ON_OFF — Activation / désactivation du WiFi
+     * WIFI_ON_OFF — Activation / désactivation du WiFi
      * ------------------------------------------------------------------ */
-    case CanCmd::CMD_ERM_CC_WIFI_ON_OFF:
+    case Cmd_ERM_to_CC::WIFI_ON_OFF:
         Settings::wifiOn(msg.data[0]);
         Settings::writeFile(Settings::canton);
         delay(1000);
@@ -60,9 +58,9 @@ void handleSystemCommand(uint8_t commande,
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_ERM_CC_EXPLORATION_ON_OFF — Activation / désactivation Exploration
+     * EXPLORATION_ON_OFF — Activation / désactivation Exploration
      * ------------------------------------------------------------------ */
-    case CanCmd::CMD_ERM_CC_EXPLORATION_ON_OFF:
+    case Cmd_ERM_to_CC::EXPLORATION_ON_OFF:
         if (msg.data[0])
         {
             Settings::explorationOn(true);
@@ -79,9 +77,9 @@ void handleSystemCommand(uint8_t commande,
         break;
 
     /* --------------------------------------------------------------------
-     * CMD_ERM_CC_SAVE_ALL — Sauvegarde settings.json
+     * SAVE_ALL — Sauvegarde settings.json
      * ------------------------------------------------------------------ */
-    case CanCmd::CMD_ERM_CC_SAVE_ALL:
+    case Cmd_ERM_to_CC::SAVE_ALL:
 #ifdef SAUV_DEPUIS_ERM
         Settings::writeFile(Settings::canton);
 #else

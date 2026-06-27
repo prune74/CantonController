@@ -3,25 +3,18 @@
 
 /*
  * ============================================================================
- *  Protocol.h — Gestion Canton 2026
+ *  Protocol.h — Discovery 2026
  * ============================================================================
- *  Fichier partagé entre :
- *    • ExplorationMaster (ERM)
- *    • Canton Controller (CC)
- *    • Extension Canton Controller (EXCC)
- *
- *  Objectifs :
- *    → cohérence totale du protocole Discovery 2026
- *    → séparation claire des flux :
- *         - CC ↔ ERM (exploration / supervision)
- *         - CC ↔ CC (exploitation)
- *         - CC ↔ EXCC (actionneurs)
- *    → éviter toute collision d’opcodes
+ *  Structure modernisée :
+ *    → une enum class par liaison CAN
+ *    → aucune collision d’opcodes
+ *    → lisibilité maximale
+ *    → documentation naturelle du protocole
  * ============================================================================
  */
 
 /* ============================================================================
- *  ENUM ASPECTS SNCF
+ *  ENUM ASPECTS SNCF (EXCC → CC)
  * ==========================================================================*/
 enum ExccAspect : uint8_t
 {
@@ -39,72 +32,88 @@ enum ExccAspect : uint8_t
 };
 
 /* ============================================================================
- *  COMMANDES CAN 29 bits — ENUM CLASS
+ *  COMMANDES EXCC → CC (29 bits)
  * ==========================================================================*/
-enum class CanCmd : uint16_t
+enum class Cmd_EXCC_to_CC : uint16_t
 {
-    /* Exploration CC ↔ ERM */
-    CMD_EXPLORATION_CC_DEMANDE_ID = 0xC0,
-
-    /* Exploration CC ↔ CC */
-    CMD_EXPLORATION_ID_VOISIN = 0xC0,
-    CMD_EXPLORATION_UPDATE_MASQUE_AIG = 0xC1,
-
-    /* Exploitation CC ↔ CC */
-    CMD_EXPLOITATION_UPDATE_VOISINS = 0xE0,
-    CMD_EXPLOITATION_RESERVATION_LOCO = 0xE3,
-    CMD_EXPLOITATION_RAILCOM_VOISIN = 0xE5,
-    CMD_EXPLOITATION_ASPECT_VOISIN = 0xE7,
-    CMD_EXPLOITATION_AIGUILLAGE = 0xE9,
-
-    /* EXCC → CC */
-    EXCC_CC_PONG = 0xD1,
-    EXCC_CC_BOOSTER_INFO = 0xD2,
-    EXCC_CC_POSITION_AIGUILLE = 0xD6,
-    EXCC_CC_OCCUPATION = 0xD7,
-    EXCC_CC_PONCTUEL_H = 0xD8,
-    EXCC_CC_PONCTUEL_AH = 0xD9,
-    EXCC_CC_RAILCOM_ADRESSE = 0xDA,
-    EXCC_CC_CALIB_BOOSTER_INFO = 0xDB,
-
-    /* CC → EXCC */
-    CC_EXCC_SERVO_MOVE = 0xF0,
-    CC_EXCC_SERVO_CONFIG = 0xF1,
-    CC_EXCC_SERVO_TEST = 0xF2,
-    CC_EXCC_RECALIBRER_BOOSTER = 0xF3,
-    CC_EXCC_SET_SEUILS = 0xF4,
-    CC_EXCC_BOOSTER_POWER = 0xF5,
-    CC_EXCC_CONFIG_SIGNAUX = 0xF6,
-    CC_EXCC_ASPECT_HORAIRE = 0xF7,
-    CC_EXCC_ASPECT_ANTIHORAIRE = 0xF8,
-    CC_EXCC_DIRECTION_HORAIRE = 0xF9,
-    CC_EXCC_DIRECTION_ANTIHORAIRE = 0xFA,
-    CC_EXCC_OCCUPATION_VOISINS = 0xFB,
-    CC_EXCC_PING = 0xFC,
-
-    /* Gestion globale ERM ↔ CC */
-    CMD_ERM_CC_WIFI_ON_OFF = 0xBD,
-    CMD_ERM_CC_EXPLORATION_ON_OFF = 0xBE,
-    CMD_ERM_CC_SAVE_ALL = 0xBF,
-    CMD_ERM_CC_RESTART_ALL = 0xBC,
-    CMD_ERM_CC_SET_PROFILE = 0x20,
-    CMD_ERM_CC_OFFLINE = 0xC3,
-
-    /* Demande d’ID si nécessaire */
-    CMD_CC_ERM_TEST_BUS = 0xB2,
-
-    /* Reponse à la demande de la présence de la carte ERM */
-    CMD_ERM_CC_TEST_BUS_REPLY = 0xB3,
-
-    /* Demande d’ID si nécessaire */
-    CMD_CC_ERM_REQUEST_ID = 0xB4,
-
-    /* Reponse à demande d'identifiant */
-    CMD_ERM_CC_REQUEST_ID = 0xB5,
+    PONG = 0xD1,
+    BOOSTER_INFO = 0xD2,
+    POSITION_AIGUILLE = 0xD6,
+    OCCUPATION = 0xD7,
+    PONCTUEL_H = 0xD8,
+    PONCTUEL_AH = 0xD9,
+    RAILCOM_ADRESSE = 0xDA,
+    CALIB_BOOSTER_INFO = 0xDB,
 };
 
 /* ============================================================================
- *  CODES INTERNES EXCC — ENUM CLASS
+ *  COMMANDES CC → EXCC (29 bits)
+ * ==========================================================================*/
+enum class Cmd_CC_to_EXCC : uint16_t
+{
+    SERVO_MOVE = 0xF0,
+    SERVO_CONFIG = 0xF1,
+    SERVO_TEST = 0xF2,
+    RECALIBRER_BOOSTER = 0xF3,
+    SET_SEUILS = 0xF4,
+    BOOSTER_POWER = 0xF5,
+    CONFIG_SIGNAUX = 0xF6,
+    ASPECT_HORAIRE = 0xF7,
+    ASPECT_ANTIHORAIRE = 0xF8,
+    DIRECTION_HORAIRE = 0xF9,
+    DIRECTION_ANTIHORAIRE = 0xFA,
+    OCCUPATION_VOISINS = 0xFB,
+    PING = 0xFC,
+};
+
+/* ============================================================================
+ *  COMMANDES CC ↔ CC (Exploitation ferroviaire)
+ * ==========================================================================*/
+enum class Cmd_CC_to_CC : uint16_t
+{
+    UPDATE_VOISINS = 0xE0,
+    RESERVATION_LOCO = 0xE3,
+    RAILCOM_VOISIN = 0xE5,
+    ASPECT_VOISIN = 0xE7,
+    AIGUILLAGE = 0xE9,
+};
+
+/* ============================================================================
+ *  COMMANDES CC ↔ CC (Exploration topologique)
+ * ==========================================================================*/
+enum class Cmd_Exploration_CC : uint16_t
+{
+    DEMANDE_ID = 0xC0,
+    UPDATE_MASQUE_AIG = 0xC1,
+    ID_VOISIN = 0xC2,
+};
+
+/* ============================================================================
+ *  COMMANDES ERM → CC
+ * ==========================================================================*/
+enum class Cmd_ERM_to_CC : uint16_t
+{
+    TEST_BUS_REPLY = 0xB3,
+    REQUEST_ID_REPLY = 0xB5,
+    WIFI_ON_OFF = 0xBD,
+    EXPLORATION_ON_OFF = 0xBE,
+    SAVE_ALL = 0xBF,
+    RESTART_ALL = 0xBC,
+    SET_PROFILE = 0x20,
+    OFFLINE = 0xC3,
+};
+
+/* ============================================================================
+ *  COMMANDES CC → ERM
+ * ==========================================================================*/
+enum class Cmd_CC_to_ERM : uint16_t
+{
+    TEST_BUS = 0xB2,
+    REQUEST_ID = 0xB4,
+};
+
+/* ============================================================================
+ *  CODES INTERNES EXCC (non-CAN)
  * ==========================================================================*/
 enum class ExccCode : uint8_t
 {
@@ -127,8 +136,11 @@ enum class ExccCode : uint8_t
 };
 
 /* ============================================================================
- *  CAN 11 bits — constexpr
+ *  COMMANDES GLOBALES 11 bits
  * ==========================================================================*/
-constexpr uint16_t CAN11_ID_HEARTBEAT = 0x200;
-constexpr uint16_t CAN11_ID_EMERGENCY_STOP = 0x201;
-constexpr uint16_t CAN11_ID_CLEAR_STOP = 0x202;
+enum class Cmd_Global11 : uint16_t
+{
+    HEARTBEAT = 0x200,
+    EMERGENCY_STOP = 0x201,
+    CLEAR_STOP = 0x202,
+};

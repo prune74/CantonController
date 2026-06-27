@@ -3,8 +3,8 @@
  * ---------------------------------------------------------------------------
  * Dialogue CAN initial avec la carte ERM :
  *
- *   Étape 1 : attendre CMD_ERM_CC_TEST_BUS_REPLY (MainBoard prête)
- *   Étape 2 : demander un ID si le CC n’en possède pas (CMD_CC_ERM_REQUEST_ID)
+ *   Étape 1 : attendre TEST_BUS_REPLY (MainBoard prête)
+ *   Étape 2 : demander un ID si le CC n’en possède pas (REQUEST_ID)
  *   Étape 3 : gérer les timeouts (reboot si MainBoard absente)
  */
 
@@ -12,9 +12,10 @@
 #include "Canton.h"
 #include "CC_CAN.h"
 #include "debug_cc.h"
+#include "Protocol.h"
 
 /* ============================================================================
- *  Callback : la carte ERM a envoyé CMD_ERM_CC_TEST_BUS_REPLY
+ *  Callback : la carte ERM a envoyé TEST_BUS_REPLY
  * ==========================================================================*/
 void Settings::sMainReady(bool val)
 {
@@ -27,33 +28,26 @@ void Settings::sMainReady(bool val)
  * ==========================================================================*/
 bool Settings::beginCAN()
 {
-    Serial.printf("[Settings][CAN][CC] Attente de la carte ERM (CMD_ERM_CC_TEST_BUS_REPLY)...\n");
+    Serial.printf("[Settings][CAN][CC] Attente de la carte ERM (TEST_BUS_REPLY)...\n");
 
     uint8_t countReset = 0;
 
-    // -----------------------------------------------------------------------
-    // Mode autonome (tests Web sans carte ERM)
-    // -----------------------------------------------------------------------
 #if (CC_STANDALONE_MODE)
     {
         CC_LOG_WARN("[Settings][CAN][CC] Mode standalone actif — handshake CAN ignoré");
-
-        // Autoriser la WebUI même sans ERM
         Settings::isMainReady = true;
-
         return true;
     }
 #endif
 
     // -----------------------------------------------------------------------
-    // Étape 1 — Attente du message CMD_ERM_CC_TEST_BUS_REPLY
-    // Test de la présence de la carte ERM
+    // Étape 1 — Attente du message TEST_BUS_REPLY
     // -----------------------------------------------------------------------
     while (!isMainReady)
     {
         CC_CAN::sendMsg(
             0,
-            static_cast<uint16_t>(CanCmd::CMD_CC_ERM_TEST_BUS),
+            (uint16_t)Cmd_CC_to_ERM::TEST_BUS,
             0,
             canton->ID()
         );
@@ -76,13 +70,13 @@ bool Settings::beginCAN()
     // -----------------------------------------------------------------------
     if (canton->ID() == UNUSED_ID)
     {
-        Serial.printf("[Settings][CAN][CC] Le CC n’a pas d’ID → demande CMD_CC_ERM_REQUEST_ID\n");
+        Serial.printf("[Settings][CAN][CC] Le CC n’a pas d’ID → demande REQUEST_ID\n");
 
         while (canton->ID() == UNUSED_ID)
         {
             CC_CAN::sendMsg(
                 0,
-                static_cast<uint16_t>(CanCmd::CMD_CC_ERM_REQUEST_ID),
+                (uint16_t)Cmd_CC_to_ERM::REQUEST_ID,
                 0,
                 0
             );
@@ -93,7 +87,6 @@ bool Settings::beginCAN()
 
         Serial.printf("\n[Settings][CAN][CC] ✔ ID attribué : %d\n", canton->ID());
 
-        // Sauvegarde settings.json
         writeFile(Settings::canton);
     }
 

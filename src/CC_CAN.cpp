@@ -14,6 +14,7 @@
 
 #include "CanMsg.h"
 #include "CanBus.h"
+#include "Protocol.h"
 
 // Handlers CAN modernes
 void handleSystemCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idSatExpediteur);
@@ -38,31 +39,7 @@ void CC_CAN::setup(Canton *canton)
         6,
         &canReceiveHandle,
         0);
-
-#ifdef TEST_MEMORY_TASK
-    xTaskCreate(
-        testMemory,
-        "TestMemory",
-        2 * 1024,
-        (void *)canReceiveHandle,
-        2,
-        nullptr);
-#endif
 }
-
-#ifdef TEST_MEMORY_TASK
-void CC_CAN::testMemory(void *pvParameters)
-{
-    TaskHandle_t canReceiveHandle = (TaskHandle_t)pvParameters;
-
-    for (;;)
-    {
-        UBaseType_t freeStack = uxTaskGetStackHighWaterMark(canReceiveHandle);
-        Serial.printf("[CC_CAN][CC] free stack = %u bytes\n", freeStack);
-        vTaskDelay(pdMS_TO_TICKS(10000));
-    }
-}
-#endif
 
 // ---------------------------------------------------------------------------
 // canReceiveMsg() — tâche FreeRTOS de réception / dispatch CAN
@@ -94,11 +71,16 @@ void CC_CAN::canReceiveMsg(void *pvParameters)
 void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
 {
     // STOP global uniquement sur bus 0
-    if (bus == 0 && msg.is11() && msg.id == CAN11_ID_EMERGENCY_STOP)
+    if (bus == 0 && msg.is11())
     {
-        canton->setStopActive(true);
-        CC_LOG_ERROR("[CC_CAN][CC] STOP global reçu (canton %u)\n", canton->ID());
-        return;
+        Cmd_Global11 g = (Cmd_Global11)msg.id;
+
+        if (g == Cmd_Global11::EMERGENCY_STOP)
+        {
+            canton->setStopActive(true);
+            CC_LOG_ERROR("[CC_CAN][CC] STOP global reçu (canton %u)\n", canton->ID());
+            return;
+        }
     }
 
     if (!msg.is29())
@@ -107,29 +89,25 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
     uint8_t commande = msg.cmde();
     uint16_t idExpediteur = msg.nodeId();
 
-    // Conversion vers enum class
-    CanCmd cmd = static_cast<CanCmd>(commande);
-
     // -----------------------------------------------------------------------
-    // DISPATCH MODERNE — 100 % conforme à l’enum CanCmd
+    // DISPATCH MODERNE — basé sur les enums par liaison
     // -----------------------------------------------------------------------
 
-    // -------------------------
-    // Commandes SYSTÈME
-    // -------------------------
-    switch (cmd)
+    // ============================
+    // 1) COMMANDES ERM → CC
+    // ============================
+    switch ((Cmd_ERM_to_CC)commande)
     {
-    case CanCmd::CMD_ERM_CC_TEST_BUS_REPLY:
-    case CanCmd::CMD_ERM_CC_REQUEST_ID:
-    case CanCmd::CMD_ERM_CC_RESTART_ALL:
-    case CanCmd::CMD_ERM_CC_WIFI_ON_OFF:
-    case CanCmd::CMD_ERM_CC_EXPLORATION_ON_OFF:
-    case CanCmd::CMD_ERM_CC_SAVE_ALL:
-    case CanCmd::CMD_ERM_CC_SET_PROFILE:
+    case Cmd_ERM_to_CC::TEST_BUS_REPLY:
+    case Cmd_ERM_to_CC::REQUEST_ID_REPLY:
+    case Cmd_ERM_to_CC::RESTART_ALL:
+    case Cmd_ERM_to_CC::WIFI_ON_OFF:
+    case Cmd_ERM_to_CC::EXPLORATION_ON_OFF:
+    case Cmd_ERM_to_CC::SAVE_ALL:
         handleSystemCommand(commande, msg, canton, idExpediteur);
         return;
 
-    case CanCmd::CMD_ERM_CC_OFFLINE:
+    case Cmd_ERM_to_CC::OFFLINE:
         handleSupervisionCommand(commande, msg, canton);
         return;
 
@@ -137,45 +115,60 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
         break;
     }
 
-    // -------------------------
-    // Commandes EXPLORATION
-    // -------------------------
-    if (cmd == CanCmd::CMD_EXPLORATION_CC_DEMANDE_ID ||
-        cmd == CanCmd::CMD_EXPLORATION_ID_VOISIN ||
-        cmd == CanCmd::CMD_EXPLORATION_UPDATE_MASQUE_AIG)
+    // ============================
+    // 2) COMMANDES EXPLORATION CC ↔ CC
+    // ============================
+    switch ((Cmd_Exploration_CC)commande)
     {
+    case Cmd_Exploration_CC::DEMANDE_ID:
+    case Cmd_Exploration_CC::ID_VOISIN:
+    case Cmd_Exploration_CC::UPDATE_MASQUE_AIG:
         handleExplorationCommand(commande, msg, canton, idExpediteur);
         return;
+
+    default:
+        break;
     }
 
-    // -------------------------
-    // Commandes EXPLOITATION
-    // -------------------------
-    if (cmd == CanCmd::CMD_EXPLOITATION_UPDATE_VOISINS ||
-        cmd == CanCmd::CMD_EXPLOITATION_RESERVATION_LOCO ||
-        cmd == CanCmd::CMD_EXPLOITATION_RAILCOM_VOISIN ||
-        cmd == CanCmd::CMD_EXPLOITATION_ASPECT_VOISIN ||
-        cmd == CanCmd::CMD_EXPLOITATION_AIGUILLAGE)
+    // ============================
+    // 3) COMMANDES EXPLOITATION CC ↔ CC
+    // ============================
+    switch ((Cmd_CC_to_CC)commande)
     {
+    case Cmd_CC_to_CC::UPDATE_VOISINS:
+    case Cmd_CC_to_CC::RESERVATION_LOCO:
+    case Cmd_CC_to_CC::RAILCOM_VOISIN:
+    case Cmd_CC_to_CC::ASPECT_VOISIN:
+    case Cmd_CC_to_CC::AIGUILLAGE:
         handleExploitCommand(commande, msg, canton, idExpediteur);
         return;
+
+    default:
+        break;
     }
 
-    // -------------------------
-    // Commandes EXCC → CC
-    // -------------------------
-    if (cmd == CanCmd::EXCC_CC_PONG ||
-        cmd == CanCmd::EXCC_CC_BOOSTER_INFO ||
-        cmd == CanCmd::EXCC_CC_POSITION_AIGUILLE ||
-        cmd == CanCmd::EXCC_CC_OCCUPATION ||
-        cmd == CanCmd::EXCC_CC_PONCTUEL_H ||
-        cmd == CanCmd::EXCC_CC_PONCTUEL_AH ||
-        cmd == CanCmd::EXCC_CC_RAILCOM_ADRESSE ||
-        cmd == CanCmd::EXCC_CC_CALIB_BOOSTER_INFO)
+    // ============================
+    // 4) COMMANDES EXCC → CC
+    // ============================
+    switch ((Cmd_EXCC_to_CC)commande)
     {
+    case Cmd_EXCC_to_CC::PONG:
+    case Cmd_EXCC_to_CC::BOOSTER_INFO:
+    case Cmd_EXCC_to_CC::POSITION_AIGUILLE:
+    case Cmd_EXCC_to_CC::OCCUPATION:
+    case Cmd_EXCC_to_CC::PONCTUEL_H:
+    case Cmd_EXCC_to_CC::PONCTUEL_AH:
+    case Cmd_EXCC_to_CC::RAILCOM_ADRESSE:
+    case Cmd_EXCC_to_CC::CALIB_BOOSTER_INFO:
         CC_CAN_EXCC::handleEXCCCommand(commande, msg, canton, idExpediteur);
         return;
+
+    default:
+        break;
     }
 
+    // ============================
+    // 5) Commande inconnue
+    // ============================
     CC_LOG_WARN("[CC_CAN][CC] Cmd 0x%02X non gérée (bus %u)\n", commande, bus);
 }
