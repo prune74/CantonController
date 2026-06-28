@@ -51,7 +51,7 @@ void envoyerCommandeDCC(Canton *canton)
         uint32_t id =
             (0 << 26) |     // priorité
             (0x04 << 18) |  // opcode DCC
-            (canton->ID()); // nodeId
+            (canton->ID()); // cantonID
 
         msg.id = id;
         msg.dlc = 6;

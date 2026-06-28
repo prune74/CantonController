@@ -76,6 +76,16 @@ namespace CC_CAN_EXCC
     void sendConfigSignaux(Canton *canton,
                            uint8_t type0, uint8_t type1,
                            uint8_t pos0, uint8_t pos1);
+    // ---------------------------------------------------------------------------
+    // Configuration signaux
+    // ---------------------------------------------------------------------------
+    void sendCantonID(Canton *canton);
+
+    // ---------------------------------------------------------------------------
+    // Profil de voie 12V ou 15V
+    // ---------------------------------------------------------------------------
+    void sendTrackProfile(Canton *canton, bool profile);
+    void sendTrackProfileDepuisSettings();
 
     // -----------------------------------------------------------------------
     // Réception EXCC → CC

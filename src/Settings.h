@@ -58,6 +58,7 @@ public:
      * =====================================================================*/
     static bool WIFI_ON;
     static bool EXPLORATION_ON;
+    static bool TRACK_PROFILE;
 
     static String ssid_str;
     static String password_str;

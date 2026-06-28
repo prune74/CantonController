@@ -6,13 +6,13 @@
  * Rôle :
  *   - activer ou lever le STOP local
  *   - couper ou réactiver le booster via l’EXCC
- *   - suspendre ou reprendre le heartbeat CC → Master
+ *   - suspendre ou reprendre le heartbeat CC → ERM
  *
  * Important :
  *   - aucune logique métier ici
  *   - aucune logique d’aiguilles ou de signaux
  *   - ce module relaie simplement l’ordre STOP → EXCC
- *   - la suspension du heartbeat permet au Master de déclencher STOP global
+ *   - la suspension du heartbeat permet au ERM de déclencher STOP global
  */
 
 #include "Canton.h"
@@ -30,7 +30,7 @@
  *  Architecture :
  *      - un seul EXCC → pas d’index à gérer
  *      - le CC ne doit PAS envoyer de STOP global (0x201)
- *      - le Master détecte l’absence de heartbeat → STOP global
+ *      - le ERM détecte l’absence de heartbeat → STOP global
  * ==========================================================================*/
 void Canton::setStopActive(bool v)
 {
@@ -49,7 +49,7 @@ void Canton::setStopActive(bool v)
         // 1) Couper le booster local
         EXCC_Link::envoyerBoosterPower(false);
 
-        // 2) Suspendre le heartbeat → Master déclenche STOP global
+        // 2) Suspendre le heartbeat → ERM déclenche STOP global
         CCWatchdog_suspend();
     }
     else

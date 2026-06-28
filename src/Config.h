@@ -46,7 +46,7 @@
 // #define TEST_MEMORY_TASK
 
 /* ============================================================================
- *  MODE STANDALONE (sans Master)
+ *  MODE STANDALONE (sans ERM)
  * ============================================================================
  */
 #define CC_STANDALONE_MODE 1
@@ -76,7 +76,7 @@ enum : uint8_t
  */
 #define CENTRALE_DCC_ID 253
 #define UNUSED_ID 255
-static constexpr uint8_t NODE_UNUSED_ID = UNUSED_ID;
+static constexpr uint8_t CANTON_UNUSED_ID = UNUSED_ID;
 
 /* ============================================================================
  *  BROCHES ESP32-WROVER

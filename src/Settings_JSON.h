@@ -8,6 +8,9 @@
  *   - Settings_JSON_Generaux.cpp
  *       → paramètres généraux du CC (ID, WiFi, exploration, vitesse, rôle…)
  *
+ *   - Settings_JSON_ProfileVoie.cpp
+ *       → profil de voie (N / HO / etc.)
+ *
  *   - Settings_JSON_Manoeuvre.cpp
  *       → état du mode MANOEUVRE (ON/OFF)
  *
@@ -28,8 +31,6 @@
  *
  *   - Settings_JSON_Booster.cpp
  *       → seuils Booster (libre / occupé)
- *
- * Ce header centralise toutes les signatures de chargement et de sauvegarde.
  */
 
 #pragma once
@@ -42,6 +43,7 @@ class Canton;
    Modules JSON — Chargement (settings.json → objets Canton)
    ==========================================================================*/
 void Settings_JSON_loadGeneraux      (Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadProfileVoie   (Canton *canton, JsonDocument &doc);
 void Settings_JSON_loadModeManoeuvre (Canton *canton, JsonDocument &doc);
 void Settings_JSON_loadTopologie     (Canton *canton, JsonDocument &doc);
 void Settings_JSON_loadVoisins       (Canton *canton, JsonDocument &doc);
@@ -54,6 +56,7 @@ void Settings_JSON_loadBooster       (JsonDocument &doc);
    Modules JSON — Sauvegarde (objets Canton → settings.json)
    ==========================================================================*/
 void Settings_JSON_saveGeneraux      (Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveProfileVoie   (Canton *canton, JsonDocument &doc);
 void Settings_JSON_saveModeManoeuvre (Canton *canton, JsonDocument &doc);
 void Settings_JSON_saveTopologie     (Canton *canton, JsonDocument &doc);
 void Settings_JSON_saveVoisins       (Canton *canton, JsonDocument &doc);

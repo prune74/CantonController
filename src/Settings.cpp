@@ -40,6 +40,7 @@
 
 bool Settings::WIFI_ON = true;
 bool Settings::EXPLORATION_ON = true;
+bool Settings::TRACK_PROFILE = false;   // 12V par défaut
 
 String Settings::ssid_str = "";
 String Settings::password_str = "";
@@ -132,6 +133,7 @@ void Settings::loadFile(Canton *canton) // 🟢
     // Chargement des sections JSON 2026
     // ------------------------------------------------------------------------
     Settings_JSON_loadGeneraux(canton, doc);
+    Settings_JSON_loadProfileVoie(canton, doc);
     Settings_JSON_loadModeManoeuvre(canton, doc);
     Settings_JSON_loadTopologie(canton, doc);
     Settings_JSON_loadVoisins(canton, doc);
@@ -155,6 +157,7 @@ void Settings::writeFile(Canton *canton) // 🟢
     // Sauvegarde des sections JSON 2026
     // ------------------------------------------------------------------------
     Settings_JSON_saveGeneraux(canton, doc);
+    Settings_JSON_loadProfileVoie(canton, doc);
     Settings_JSON_saveModeManoeuvre(canton, doc);
     Settings_JSON_saveTopologie(canton, doc);
     Settings_JSON_saveVoisins(canton, doc);

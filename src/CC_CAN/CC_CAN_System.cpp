@@ -5,6 +5,7 @@
  */
 
 #include "CC_CAN.h"
+#include "CC_CAN_EXCC.h"
 #include "debug_cc.h"
 #include "Settings.h"
 #include "Exploration.h"
@@ -86,6 +87,24 @@ void handleSystemCommand(uint8_t commande,
         CC_LOG("[CAN][System][CC] Sauvegarde automatique désactivée.\n");
 #endif
         break;
+
+    /* --------------------------------------------------------------------
+     * SET_PROFILE — Profil de voie (12V / 15V)
+     * ------------------------------------------------------------------ */
+    case Cmd_ERM_to_CC::SET_PROFILE:
+    {
+        bool profile = (msg.data[0] == 1);
+
+        Settings::TRACK_PROFILE = profile;
+        Settings::writeFile(Settings::canton);
+
+        CC_LOG_INFO("[CAN][System][CC] SET_PROFILE : %s\n",
+                    profile ? "15V (HO)" : "12V (N)");
+
+        CC_CAN_EXCC::sendTrackProfileDepuisSettings();
+
+        break;
+    }
 
     default:
         break;

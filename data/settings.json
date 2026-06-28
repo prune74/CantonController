@@ -18,6 +18,9 @@
   // Exploration (scan des voisins)
   "exploration_on": false,
 
+  // Profil de voie 12V ou 15V
+  "track_profile": true,
+
   // Booster activé
   "booster_on": true,
 

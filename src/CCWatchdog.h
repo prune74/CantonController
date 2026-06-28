@@ -6,7 +6,7 @@
  * Interface du module Watchdog CC.
  *
  * Rôle :
- *   - démarrer la tâche FreeRTOS qui envoie le heartbeat CC → Master
+ *   - démarrer la tâche FreeRTOS qui envoie le heartbeat CC → ERM
  *   - suspendre / reprendre le heartbeat (STOP local)
  *
  * Important :

@@ -34,6 +34,7 @@ void CC_CAN_EXCC::sendEXCC(uint8_t prio, uint8_t cmde, uint8_t resp,
 void CC_CAN_EXCC::sendPing(Canton *canton)
 {
     sendEXCC(1, (uint16_t)Cmd_CC_to_EXCC::PING, 0, canton->ID());
+    sendCantonID(canton);
 }
 
 void CC_CAN_EXCC::sendBoosterPower(Canton *canton, bool on)
@@ -177,6 +178,22 @@ void CC_CAN_EXCC::sendConfigSignaux(Canton *canton,
     uint8_t payload[4] = {type0, type1, pos0, pos1};
     sendEXCC(1, (uint16_t)Cmd_CC_to_EXCC::CONFIG_SIGNAUX,
              0, canton->ID(), payload, 4);
+}
+
+// ---------------------------------------------------------------------------
+// ID Canton
+// ---------------------------------------------------------------------------
+void CC_CAN_EXCC::sendCantonID(Canton *canton)
+{
+    uint8_t payload[1] = { uint8_t(canton->ID() & 0xFF) };
+
+    sendEXCC(
+        1,
+        (uint16_t)Cmd_CC_to_EXCC::CANTON_ID,
+        0,
+        canton->ID(),
+        payload,
+        1);
 }
 
 // ---------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 TaskHandle_t gHeartbeatTask = nullptr;
 
 /* ============================================================================
- *  sendHeartbeat() — Envoi d’une trame 0x200 au Master
+ *  sendHeartbeat() — Envoi d’une trame 0x200 au ERM
  * ---------------------------------------------------------------------------
  *  Format :
  *      ID   = 0x200 (CAN11_ID_HEARTBEAT)
@@ -31,7 +31,7 @@ static void sendHeartbeat()
         return;
 
     CanMsg msg;
-    msg.id = (uint16_t)Cmd_Global11::HEARTBEAT;  // 0x200
+    msg.id = (uint16_t)Cmd_Global11::HEARTBEAT; // 0x200
     msg.dlc = 2;
 
     msg.data[0] = id >> 8;
@@ -41,7 +41,6 @@ static void sendHeartbeat()
 
     CC_LOG_TRACE("[CCWatchdog][CC] Heartbeat envoyé (ID=%u)\n", id);
 }
-
 
 /* ============================================================================
  *  taskHeartbeat() — Tâche FreeRTOS
@@ -83,7 +82,7 @@ void CCWatchdog_begin()
  *  CCWatchdog_suspend() — Arrêt du heartbeat
  * ---------------------------------------------------------------------------
  *  - utilisé lorsque le CC entre en STOP local
- *  - le Master ne reçoit plus 0x200 → STOP global
+ *  - le ERM ne reçoit plus 0x200 → STOP global
  * ==========================================================================*/
 void CCWatchdog_suspend()
 {
@@ -98,7 +97,7 @@ void CCWatchdog_suspend()
  *  CCWatchdog_resume() — Reprise du heartbeat
  * ---------------------------------------------------------------------------
  *  - utilisé lorsque le STOP est levé
- *  - le Master recommence à recevoir 0x200
+ *  - le ERM recommence à recevoir 0x200
  * ==========================================================================*/
 void CCWatchdog_resume()
 {

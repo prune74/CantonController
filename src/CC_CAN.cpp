@@ -87,7 +87,7 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
         return;
 
     uint8_t commande = msg.cmde();
-    uint16_t idExpediteur = msg.nodeId();
+    uint16_t idExpediteur = msg.id & 0x7FF;
 
     // -----------------------------------------------------------------------
     // DISPATCH MODERNE — basé sur les enums par liaison
@@ -104,6 +104,7 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
     case Cmd_ERM_to_CC::WIFI_ON_OFF:
     case Cmd_ERM_to_CC::EXPLORATION_ON_OFF:
     case Cmd_ERM_to_CC::SAVE_ALL:
+    case Cmd_ERM_to_CC::SET_PROFILE:
         handleSystemCommand(commande, msg, canton, idExpediteur);
         return;
 

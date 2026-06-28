@@ -10,7 +10,7 @@
 //   - Initialisation EXCC (Extension Canton Controller)
 //   - Gestion RailCom (mode normal) ou Exploration (mode interne)
 //   - Interface Web + WiFi
-//   - Démarrage du Watchdog CC → Master (heartbeat 0x200)
+//   - Démarrage du Watchdog CC → ERM (heartbeat 0x200)
 //
 // Ce fichier NE CONTIENT AUCUNE LOGIQUE FERROVIAIRE :
 //   → tout est délégué à Canton, GestionReseau, Exploration, EXCC_Link.
@@ -46,7 +46,7 @@
 #include "WebHandler.h"
 #include "Wifi_fl.h"
 
-// --- Watchdog CC → Master ---------------------------------------------------
+// --- Watchdog CC → ERM ---------------------------------------------------
 #include "CCWatchdog.h"
 
 // --- Logs CC ----------------------------------------------------------------
@@ -140,15 +140,15 @@ void setup()
     EXCC_Link::begin();
 
     // ------------------------------------------------------------------------
-    // Watchdog CC → Master (Heartbeat 0x200)
+    // Watchdog CC → ERM (Heartbeat 0x200)
     // ------------------------------------------------------------------------
     // Rôle :
     //   - envoi périodique d’un heartbeat toutes les 100 ms
-    //   - permet au Master de superviser la présence du CC
+    //   - permet au ERM de superviser la présence du CC
     //
     // Important :
     //   - si le CC entre en STOP local → Canton_Stop.cpp suspend le heartbeat
-    //   - le Master détecte l’absence de heartbeat → STOP global réseau
+    //   - le ERM détecte l’absence de heartbeat → STOP global réseau
     //
     // Le watchdog doit être démarré APRÈS :
     //   - l’attribution de l’ID canton

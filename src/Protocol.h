@@ -64,6 +64,8 @@ enum class Cmd_CC_to_EXCC : uint16_t
     DIRECTION_ANTIHORAIRE = 0xFA,
     OCCUPATION_VOISINS = 0xFB,
     PING = 0xFC,
+    CANTON_ID = 0xFD,
+    PROFILE_VOIE = 0xFE,
 };
 
 /* ============================================================================

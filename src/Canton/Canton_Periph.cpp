@@ -32,7 +32,7 @@ uint8_t CantonPeriph::comptInst = 0;
  *  Constructeur
  * ==========================================================================*/
 CantonPeriph::CantonPeriph()
-    : m_id(NODE_UNUSED_ID),
+    : m_id(CANTON_UNUSED_ID),
       m_busy(false),
       m_reserved(0),
       m_acces(true),

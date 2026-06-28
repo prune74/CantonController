@@ -144,6 +144,7 @@ void EXCC_Link::onExccOnline() // 🟢
     CC_CAN_EXCC::sendAspectsDepuisEtatCourant();
     CC_CAN_EXCC::sendFeuxDepuisEtatCourant();
     CC_CAN_EXCC::sendAiguillesDepuisEtatCourant();
+    CC_CAN_EXCC::sendTrackProfileDepuisSettings();
 
     // Envoi des seuils calibrés
     uint16_t libre = Settings::boosterSeuilLibre();
@@ -196,3 +197,4 @@ void EXCC_Link::envoyerSeuilsBooster(uint16_t libre, uint16_t occupe) // 🟢
     CC_LOG_INFO("[EXCC][CC] → Seuils envoyés (CAN) : libre=%u  occupé=%u\n",
                 libre, occupe);
 }
+

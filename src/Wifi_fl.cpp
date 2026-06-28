@@ -26,7 +26,7 @@ void Fl_Wifi::start()
     Serial.print("\n\n");
 
 #else
-    // 🔥 Version corrigée : utilisation des String (comme la Master)
+    // 🔥 Version corrigée : utilisation des String (comme la ERM)
     Serial.print("Connecting to: ");
     Serial.println(Settings::ssid_str);
 
