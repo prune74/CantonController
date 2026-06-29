@@ -44,7 +44,7 @@ namespace CC_CAN_EXCC
         // Envoi au EXCC
         sendTrackProfile(Settings::canton, profile);
 
-        CC_LOG_INFO("[TrackProfileCAN][CC] Profil envoyé (CMD_CC_EXCC_SET_PROFILE)\n");
+        CC_LOG_INFO("[TrackProfileCAN][CC] Profil envoyé (SET_PROFILE)\n");
     }
 
     /* ============================================================================

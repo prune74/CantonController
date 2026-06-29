@@ -8,7 +8,7 @@
  * Ce fichier constitue la fondation commune pour :
  *   - FeuxDirection_CodeBarre (décodage du code‑barres)
  *   - FeuxDirection_Conditions (vérification des aiguilles physiques)
- *   - FeuxDirection (API publique pour le SA)
+ *   - FeuxDirection (API publique pour le CC)
  *
  * IMPORTANT :
  *   - aucune logique métier
@@ -108,7 +108,7 @@ namespace FeuxDirection
     };
 
     /* =========================================================================
-     *  Résultat final pour le SA : état du feu directionnel
+     *  Résultat final pour le CC : état du feu directionnel
      * -------------------------------------------------------------------------
      *  Répond à la question :
      *      « Quel feu dois‑je allumer ? »

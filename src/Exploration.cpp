@@ -96,8 +96,8 @@ void Exploration::begin(Canton *nd) // 🟢
     canton = nd;
 
     // Boutons via MCP23017
-    canton->mcp.pinMode(MCP_PIN_BTN_SAT_MOINS, INPUT_PULLUP);
-    canton->mcp.pinMode(MCP_PIN_BTN_SAT_PLUS, INPUT_PULLUP);
+    canton->mcp.pinMode(MCP_PIN_BTN_CC_MOINS, INPUT_PULLUP);
+    canton->mcp.pinMode(MCP_PIN_BTN_CC_PLUS, INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_INTER_DEV_2, INPUT_PULLUP);
     canton->mcp.pinMode(MCP_PIN_INTER_DEV_1, INPUT_PULLUP);
 
@@ -202,8 +202,8 @@ void Exploration::process(void *p) // 🟢
     for (;;)
     {
         // Lecture boutons
-        bool satMoins = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_MOINS);
-        bool satPlus = !canton->mcp.digitalRead(MCP_PIN_BTN_SAT_PLUS);
+        bool satMoins = !canton->mcp.digitalRead(MCP_PIN_BTN_CC_MOINS);
+        bool satPlus = !canton->mcp.digitalRead(MCP_PIN_BTN_CC_PLUS);
         bool dev2 = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_2);
         bool dev1 = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_1);
 

@@ -14,6 +14,7 @@
  */
 
 #include "Signal.h"
+#include "Protocol.h"
 #include "debug_cc.h"
 
 // ---------------------------------------------------------------------------
@@ -24,7 +25,6 @@
 Signal::Signal() // 🟢
     : m_type(0),
       m_position(0),
-      //m_length(0),
       m_hasCarre(false),
       m_hasOeilleton(false),
       m_hasRal(false),

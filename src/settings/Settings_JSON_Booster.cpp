@@ -1,7 +1,7 @@
 /*
  * Settings_JSON_Booster.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Gestion des seuils du Booster (CMD_EXCC_09) dans settings.json.
+ * Gestion des seuils du Booster dans settings.json.
  *
  * Clés JSON :
  *   - "booster_seuil_libre"

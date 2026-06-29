@@ -50,14 +50,14 @@ public:
     // -----------------------------------------------------------------------
     // Commandes CC → EXCC (via CAN)
     // -----------------------------------------------------------------------
-    static void envoyerBoosterPower(bool on); // cmd CMD_CC_EXCC_BOOSTER_POWER
-    static void demanderRecalibration();      // cmd CMD_EXCC_CC_CALIB_BOOSTER_INFO
+    static void envoyerBoosterPower(bool on); // cmd BOOSTER_POWER
+    static void demanderRecalibration();      // cmd CALIB_BOOSTER_INFO
     static void envoyerSeuilsBooster(uint16_t libre,
-                                     uint16_t occupe); // cmd CMD_CC_EXCC_SET_SEUILS
+                                     uint16_t occupe); // cmd SET_SEUILS
 
 private:
     // -----------------------------------------------------------------------
-    // PING périodique (commande CAN CMD_CC_EXCC_PING)
+    // PING périodique (commande CAN PING)
     // -----------------------------------------------------------------------
     static void envoyerPingPeriodique();
 };

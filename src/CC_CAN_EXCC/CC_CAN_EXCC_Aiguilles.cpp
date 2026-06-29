@@ -1,7 +1,7 @@
 /*
  * CC_CAN_EXCC_Aiguilles.cpp — Gestion Canton 2026 (CAN → EXCC)
  * ---------------------------------------------------------------------------
- * Envoi des mouvements réels d’aiguilles vers l’EXCC via CAN (commande CMD_EXCC_CC_POSITION_AIGUILLE).
+ * Envoi des mouvements réels d’aiguilles vers l’EXCC via CAN (commande POSITION_AIGUILLE).
  */
 
 #include "CC_CAN_EXCC.h"
@@ -12,7 +12,7 @@
 /* ============================================================================
  *  sendAiguillesDepuisEtatCourant()
  * ---------------------------------------------------------------------------
- *  Envoie CMD_EXCC_CC_POSITION_AIGUILLE pour chaque aiguille logique active.
+ *  Envoie POSITION_AIGUILLE pour chaque aiguille logique active.
  * ==========================================================================*/
 namespace CC_CAN_EXCC
 {
@@ -32,7 +32,7 @@ namespace CC_CAN_EXCC
             // Envoi CAN → EXCC
             CC_CAN_EXCC::sendPositionAiguille(canton, idx, direction);
 
-            CC_LOG_INFO("[TopoCAN][CC] CMD_EXCC_CC_POSITION_AIGUILLE → servo=%u direction=%u (estDroit=%u)\n",
+            CC_LOG_INFO("[TopoCAN][CC] POSITION_AIGUILLE → servo=%u direction=%u (estDroit=%u)\n",
                         idx, direction, aig->estDroit());
         }
 

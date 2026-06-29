@@ -2,7 +2,7 @@
  * Occupation.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
  * Nouveau rôle :
- *   - Recevoir l’occupation finale depuis l’EXCC (CMD_EXCC_CC_OCCUPATION)
+ *   - Recevoir l’occupation finale depuis l’EXCC (OCCUPATION)
  *   - Mettre à jour l’état logique du canton (busy)
  */
 
@@ -51,7 +51,7 @@ void Occupation::updateEtat(bool occupe)
 }
 
 // ---------------------------------------------------------------------------
-// onOccupation() — callback appelé par CC_CAN_EXCC
+// onOccupation()
 // ---------------------------------------------------------------------------
 void Occupation::onOccupation(uint8_t code)
 {

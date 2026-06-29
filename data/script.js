@@ -10,7 +10,7 @@
  * IMPORTANT :
  *   - aucune logique métier ici
  *   - aucune logique ferroviaire
- *   - ce module ne fait que relayer UI ↔ SA
+ *   - ce module ne fait que relayer UI ↔ CC
  * ==========================================================================*/
 
 /* ============================================================================

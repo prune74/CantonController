@@ -25,7 +25,7 @@ namespace CC_CAN_EXCC
                            uint16_t occupe);
 
     // -----------------------------------------------------------------------
-    // Aiguilles / mouvement réel (CMD_EXCC_CC_POSITION_AIGUILLE)
+    // Aiguilles / mouvement réel (POSITION_AIGUILLE)
     // -----------------------------------------------------------------------
     void sendAiguillesDepuisEtatCourant();
     void sendPositionAiguille(Canton *canton,
@@ -33,14 +33,14 @@ namespace CC_CAN_EXCC
                               uint8_t direction);
 
     // -----------------------------------------------------------------------
-    // Aspects SNCF (CMD_CC_EXCC_ASPECT_HORAIRE / CMD_CC_EXCC_ASPECT_ANTIHORAIRE)
+    // Aspects SNCF (ASPECT_HORAIRE / ASPECT_ANTIHORAIRE)
     // -----------------------------------------------------------------------
     void sendAspectsDepuisEtatCourant();
     void sendAspectHoraire(Canton *canton, ExccAspect aspect);
     void sendAspectAntiHoraire(Canton *canton, ExccAspect aspect);
 
     // -----------------------------------------------------------------------
-    // Feux directionnels (CMD_CC_EXCC_DIRECTION_HORAIRE / CMD_CC_EXCC_DIRECTION_ANTIHORAIRE)
+    // Feux directionnels (DIRECTION_HORAIRE / DIRECTION_ANTIHORAIRE)
     // -----------------------------------------------------------------------
     void sendFeuxDepuisEtatCourant();
     void sendFeuDirectionHoraire(Canton *canton, uint8_t code);
@@ -53,7 +53,7 @@ namespace CC_CAN_EXCC
     void sendOccupationVoisins(Canton *canton, uint8_t valeur);
 
     // -----------------------------------------------------------------------
-    // Servos (CMD_CC_EXCC_SERVO_MOVE / CMD_CC_EXCC_SERVO_CONFIG / CMD_CC_EXCC_SERVO_TEST)
+    // Servos (SERVO_MOVE / SERVO_CONFIG / SERVO_TEST)
     // -----------------------------------------------------------------------
     void sendConfigurationServosDepuisSettings();
     void sendServoMove(Canton *canton,
@@ -70,7 +70,7 @@ namespace CC_CAN_EXCC
                        uint8_t servoIndex);
 
     // -----------------------------------------------------------------------
-    // Configuration signaux (CMD_CC_EXCC_CONFIG_SIGNAUX)
+    // Configuration signaux (CONFIG_SIGNAUX)
     // -----------------------------------------------------------------------
     void sendConfigurationSignauxDepuisSettings();
     void sendConfigSignaux(Canton *canton,

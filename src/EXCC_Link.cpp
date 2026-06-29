@@ -53,7 +53,7 @@ void EXCC_Link::begin() // 🟢
 }
 
 // ---------------------------------------------------------------------------
-// Envoi périodique du PING (commande CAN CMD_CC_EXCC_PING)
+// Envoi périodique du PING (commande CAN PING)
 // ---------------------------------------------------------------------------
 static void envoyerPing() // 🟢
 {
@@ -94,7 +94,7 @@ void EXCC_Link::onPong() // 🟢
 }
 
 // ---------------------------------------------------------------------------
-// Réception des informations Booster (commande CAN CMD_EXCC_CC_BOOSTER_INFO)
+// Réception des informations Booster (commande CAN BOOSTER_INFO)
 // ---------------------------------------------------------------------------
 void EXCC_Link::onBooster(uint8_t etat, uint8_t courant, uint8_t tension) // 🟢
 {
@@ -159,7 +159,7 @@ void EXCC_Link::onExccOffline() // 🟢
 }
 
 // ---------------------------------------------------------------------------
-// Commande ON/OFF du booster (commande CAN CMD_CC_EXCC_BOOSTER_POWER)
+// Commande ON/OFF du booster (commande CAN BOOSTER_POWER)
 // ---------------------------------------------------------------------------
 void EXCC_Link::envoyerBoosterPower(bool on) // 🟢
 {
@@ -172,7 +172,7 @@ void EXCC_Link::envoyerBoosterPower(bool on) // 🟢
 }
 
 // ---------------------------------------------------------------------------
-// Demande de recalibration (commande CAN CMD_EXCC_CC_CALIB_BOOSTER_INFO)
+// Demande de recalibration (commande CAN CALIB_BOOSTER_INFO)
 // ---------------------------------------------------------------------------
 void EXCC_Link::demanderRecalibration() // 🟢
 {
@@ -185,7 +185,7 @@ void EXCC_Link::demanderRecalibration() // 🟢
 }
 
 // ---------------------------------------------------------------------------
-// Envoi des seuils calibrés (commande CAN CMD_CC_EXCC_SET_SEUILS)
+// Envoi des seuils calibrés (commande CAN SET_SEUILS)
 // ---------------------------------------------------------------------------
 void EXCC_Link::envoyerSeuilsBooster(uint16_t libre, uint16_t occupe) // 🟢
 {
@@ -197,4 +197,3 @@ void EXCC_Link::envoyerSeuilsBooster(uint16_t libre, uint16_t occupe) // 🟢
     CC_LOG_INFO("[EXCC][CC] → Seuils envoyés (CAN) : libre=%u  occupé=%u\n",
                 libre, occupe);
 }
-

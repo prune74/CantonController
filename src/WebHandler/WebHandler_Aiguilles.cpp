@@ -5,8 +5,8 @@
  *   - mise à jour des positions logiques droite / déviée
  *   - mise à jour de la vitesse logique (slider 0–10)
  *   - envoi CAN vers l’EXCC :
- *       - CMD_CC_EXCC_SERVO_CONFIG : servoConfig (positions + vitesse)
- *       - CMD_CC_EXCC_SERVO_TEST : servoTest
+ *       - SERVO_CONFIG : servoConfig (positions + vitesse)
+ *       - SERVO_TEST : servoTest
  * Le CC ne pilote aucun servo :
  *   → il transmet uniquement les paramètres logiques à l’EXCC via CAN.
  */

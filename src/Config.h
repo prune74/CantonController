@@ -52,7 +52,7 @@
 #define CC_STANDALONE_MODE 1
 
 /* ============================================================================
- *  INDEX DES SATELLITES (topologie SP/SM)
+ *  INDEX DES Canton Controller (topologie SP/SM)
  * ============================================================================
  *  pXX = voisins sens horaire (SP)
  *  mXX = voisins sens anti‑horaire (SM)
@@ -122,10 +122,10 @@ static constexpr uint8_t signalSize = 2;  // Signaux H / AH
 #define MCP23017_ADDR 0x20
 
 // Boutons Exploration
-#define MCP_PIN_BTN_SAT_MOINS 0 // GPA0
-#define MCP_PIN_BTN_SAT_PLUS 1  // GPA1
-#define MCP_PIN_INTER_DEV_2 2   // GPA2
-#define MCP_PIN_INTER_DEV_1 3   // GPA3
+#define MCP_PIN_BTN_CC_MOINS 0 // GPA0
+#define MCP_PIN_BTN_CC_PLUS 1  // GPA1
+#define MCP_PIN_INTER_DEV_2 2  // GPA2
+#define MCP_PIN_INTER_DEV_1 3  // GPA3
 
 // Mode Manoeuvre
 #define MCP_PIN_BTN_MANOEUVRE 4 // GPA4

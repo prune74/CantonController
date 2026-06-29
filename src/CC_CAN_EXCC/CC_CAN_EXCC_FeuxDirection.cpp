@@ -4,8 +4,8 @@
  * Transmission des feux directionnels vers l’EXCC via CAN.
  *
  * Commandes :
- *   - CMD_CC_EXCC_DIRECTION_HORAIRE : feu directionnel horaire
- *   - CMD_CC_EXCC_DIRECTION_ANTIHORAIRE : feu directionnel anti‑horaire
+ *   - DIRECTION_HORAIRE : feu directionnel horaire
+ *   - DIRECTION_ANTIHORAIRE : feu directionnel anti‑horaire
  *
  * Rôle :
  *   - mettre à jour les feux directionnels (logique métier dans Canton_FeuxDirection)
@@ -21,8 +21,8 @@
  *  sendFeuxDepuisEtatCourant()
  * ---------------------------------------------------------------------------
  *  Met à jour les feux directionnels dans le Canton puis envoie :
- *    → CMD_CC_EXCC_DIRECTION_HORAIRE (horaire)
- *    → CMD_CC_EXCC_DIRECTION_ANTIHORAIRE (anti‑horaire)
+ *    → DIRECTION_HORAIRE (horaire)
+ *    → DIRECTION_ANTIHORAIRE (anti‑horaire)
  * ==========================================================================*/
 namespace CC_CAN_EXCC
 {

@@ -9,7 +9,7 @@ namespace CC_CAN_EXCC
 {
     void sendConfigurationServosDepuisSettings()
     {
-        CC_LOG_INFO("[ServoCAN][CC] Envoi configuration servos (CMD_CC_EXCC_SERVO_CONFIG)...\n");
+        CC_LOG_INFO("[ServoCAN][CC] Envoi configuration servos (SERVO_CONFIG)...\n");
 
         if (!SPIFFS.begin(true))
         {
@@ -52,7 +52,7 @@ namespace CC_CAN_EXCC
 
             sendServoConfig(Settings::canton, servo, posDroit, posDevie, speed);
 
-            CC_LOG_INFO("[ServoCAN][CC] CMD_CC_EXCC_SERVO_CONFIG → servo %u (D:%u V:%u S:%u)\n",
+            CC_LOG_INFO("[ServoCAN][CC] SERVO_CONFIG → servo %u (D:%u V:%u S:%u)\n",
                         servo, posDroit, posDevie, speed);
         }
 

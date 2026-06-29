@@ -9,7 +9,7 @@ namespace CC_CAN_EXCC
 {
     void sendConfigurationSignauxDepuisSettings()
     {
-        CC_LOG_INFO("[SignauxCAN][CC] Envoi configuration signaux (CMD_CC_EXCC_CONFIG_SIGNAUX)...\n");
+        CC_LOG_INFO("[SignauxCAN][CC] Envoi configuration signaux (CONFIG_SIGNAUX)...\n");
 
         if (!SPIFFS.begin(true))
         {
@@ -45,6 +45,6 @@ namespace CC_CAN_EXCC
 
         sendConfigSignaux(Settings::canton, type0, type1, pos0, pos1);
 
-        CC_LOG_INFO("[SignauxCAN][CC] Configuration signaux envoyée (CMD_CC_EXCC_CONFIG_SIGNAUX)\n");
+        CC_LOG_INFO("[SignauxCAN][CC] Configuration signaux envoyée (CONFIG_SIGNAUX)\n");
     }
 }

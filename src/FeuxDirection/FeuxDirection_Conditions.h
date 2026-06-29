@@ -34,7 +34,7 @@ namespace FeuxDirection
      *  Abstraction minimale permettant d’interroger les positions réelles des
      *  aiguilles, indépendamment du matériel ou du canton.
      *
-     *  Le SA (GestionRéseau) fournit une implémentation concrète.
+     *  Le CC (CantonController) fournit une implémentation concrète.
      *
      *  Exemple :
      *      class AigFromCanton : public IAiguillesPhysiques {
