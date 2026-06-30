@@ -34,41 +34,55 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     // -----------------------------------------------------------------------
     // 1) Valeurs par défaut : CARRÉ
     // -----------------------------------------------------------------------
-    ExccAspect aspectAval = ExccAspect::ASPECT_CARRE;   // côté H
+    ExccAspect aspectAvalH = ExccAspect::ASPECT_CARRE;  // côté H
     ExccAspect aspectAvalAH = ExccAspect::ASPECT_CARRE; // côté AH
 
     // -----------------------------------------------------------------------
-    // 2) Récupération des aspects aval SP1 / SM1
+    // 2) Récupération des aspects aval SP1 / SP2  (côté H)
     // -----------------------------------------------------------------------
-    CantonPeriph *sp1 = canton->voisinSP1();
-    CantonPeriph *sm1 = canton->voisinSM1();
+    CantonPeriph *voisinH = canton->voisinSP1();
+    if (!voisinH)
+        voisinH = canton->voisinSP2(); // fallback si SP1 absent
 
-    if (sp1)
-        aspectAval = static_cast<ExccAspect>(sp1->aspectRecu[1]);
-
-    if (sm1)
-        aspectAvalAH = static_cast<ExccAspect>(sm1->aspectRecu[0]);
+    if (voisinH)
+        aspectAvalH = static_cast<ExccAspect>(voisinH->aspectRecu[1]);
 
     // -----------------------------------------------------------------------
-    // 3) Vérification des aiguilles locales
+    // 3) Récupération des aspects aval SM1 / SM2 (côté AH)
     // -----------------------------------------------------------------------
-    Aig *aigSP1 = canton->getAig(0); // côté H
-    Aig *aigSM1 = canton->getAig(3); // côté AH
+    CantonPeriph *voisinAH = canton->voisinSM1();
+    if (!voisinAH)
+        voisinAH = canton->voisinSM2(); // fallback si SM1 absent
 
-    bool voieDevieSP1 = (aigSP1 && !aigSP1->estDroit());
-    bool voieDevieSM1 = (aigSM1 && !aigSM1->estDroit());
+    if (voisinAH)
+        aspectAvalAH = static_cast<ExccAspect>(voisinAH->aspectRecu[0]);
 
     // -----------------------------------------------------------------------
-    // 4) Déduction des aspects locaux (BAL)
+    // 4) Vérification des aiguilles locales
+    // -----------------------------------------------------------------------
+    Aig *aigSP = canton->getAig(0); // côté H
+    Aig *aigSM = canton->getAig(3); // côté AH
+
+    bool voieDevieSP = (aigSP && !aigSP->estDroit());
+    bool voieDevieSM = (aigSM && !aigSM->estDroit());
+
+    // -----------------------------------------------------------------------
+    // 5) Déduction des aspects locaux (BAL)
     // -----------------------------------------------------------------------
     signalValue[0] = static_cast<uint8_t>(
-        deduireAspectDepuisAval(aspectAval, voieDevieSP1));
+        deduireAspectDepuisAval(aspectAvalH, voieDevieSP));
 
     signalValue[1] = static_cast<uint8_t>(
-        deduireAspectDepuisAval(aspectAvalAH, voieDevieSM1));
+        deduireAspectDepuisAval(aspectAvalAH, voieDevieSM));
 
     // -----------------------------------------------------------------------
-    // 5) Application du MODE MANOEUVRE (voie de service)
+    // 5bis) Stockage de l’aspect local dans le canton (pour PilotageDistribue)
+    // -----------------------------------------------------------------------
+    canton->setAspectLocal(SensHoraire, signalValue[0]);
+    canton->setAspectLocal(SensAntiHoraire, signalValue[1]);
+
+    // -----------------------------------------------------------------------
+    // 6) Application du MODE MANOEUVRE (voie de service)
     // -----------------------------------------------------------------------
     if (canton->modeManoeuvre())
     {
@@ -93,7 +107,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     }
 
     // -----------------------------------------------------------------------
-    // 6) Déduction du type de mât + mise à jour des objets Signal
+    // 7) Déduction du type de mât + mise à jour des objets Signal
     // -----------------------------------------------------------------------
     uint8_t typeMatH = canton->deduireTypeSignal(SensHoraire);
     uint8_t typeMatAH = canton->deduireTypeSignal(SensAntiHoraire);
@@ -107,7 +121,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         sAH->type(typeMatAH);
 
     // -----------------------------------------------------------------------
-    // 7) Calcul des feux directionnels
+    // 8) Calcul des feux directionnels
     // -----------------------------------------------------------------------
     canton->updateFeuDirection(SensHoraire);
     canton->updateFeuDirection(SensAntiHoraire);
@@ -116,7 +130,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
     uint8_t dirValue1 = canton->getFeuDirection(SensAntiHoraire);
 
     // -----------------------------------------------------------------------
-    // 8) Envoi conditionnel (anti‑spam + changement)
+    // 9) Envoi conditionnel (anti‑spam + changement)
     // -----------------------------------------------------------------------
     if ((signalValue[0] != oldSignalValue0 ||
          signalValue[1] != oldSignalValue1 ||
@@ -125,7 +139,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         (now - lastEnvoi > tempoEnvoi))
     {
         // ---------------------------------------------------------------
-        // 8A) ASPECT HORAIRE
+        // 9A) ASPECT HORAIRE
         // ---------------------------------------------------------------
         if (signalValue[0] != oldSignalValue0)
         {
@@ -145,7 +159,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         }
 
         // ---------------------------------------------------------------
-        // 8B) ASPECT ANTI‑HORAIRE
+        // 9B) ASPECT ANTI‑HORAIRE
         // ---------------------------------------------------------------
         if (signalValue[1] != oldSignalValue1)
         {
@@ -165,7 +179,7 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         }
 
         // ---------------------------------------------------------------
-        // 8C) FEUX DIRECTIONNELS
+        // 9C) FEUX DIRECTIONNELS
         // ---------------------------------------------------------------
         if (dirValue0 != oldDirValue0)
         {
@@ -180,13 +194,13 @@ void mettreAJourAspectSignal(Canton *canton, uint8_t *signalValue)
         }
 
         // ---------------------------------------------------------------
-        // 8D) OCCUPATION DES CANTONS VOISINS
+        // 9D) OCCUPATION DES CANTONS VOISINS
         // ---------------------------------------------------------------
         uint8_t occVoisins = 0;
 
-        if (sp1 && sp1->busy())
+        if (voisinH && voisinH->busy())
             occVoisins |= 0x01;
-        if (sm1 && sm1->busy())
+        if (voisinAH && voisinAH->busy())
             occVoisins |= 0x02;
 
         CC_CAN_EXCC::sendOccupationVoisins(canton, occVoisins);

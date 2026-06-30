@@ -1,7 +1,7 @@
 /*
  * DeductionAspect.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Déduction de l’aspect amont à partir de l’aspect aval.
+ * Déduction de l’aspect amont à partir de l’aspect aval (logique BAL complète).
  */
 
 #include "DeductionAspect.h"
@@ -15,31 +15,29 @@ ExccAspect deduireAspectDepuisAval(ExccAspect aval, bool voieDevie)
 {
     switch (aval)
     {
-    // 🔴 Carré → carré
+    // 🔴 Carré → avertissement (préparation à l’arrêt)
     case ExccAspect::ASPECT_CARRE:
-        return ExccAspect::ASPECT_CARRE;
-
-    // 🟣 Carré Violet → carré Violet
     case ExccAspect::ASPECT_CARRE_VIOLET:
-        return ExccAspect::ASPECT_CARRE_VIOLET;
+        return ExccAspect::ASPECT_AVERTISSEMENT;
 
     // 🔴 Sémaphore → avertissement
     case ExccAspect::ASPECT_SEMAPHORE:
         return ExccAspect::ASPECT_AVERTISSEMENT;
 
-    // 🟡 Avertissement → voie libre
+    // 🟡 Avertissement → ralentissement 60 ou 30 selon déviation
     case ExccAspect::ASPECT_AVERTISSEMENT:
-        return ExccAspect::ASPECT_VOIE_LIBRE;
+        return voieDevie ? ExccAspect::ASPECT_RALENTISSEMENT_30
+                         : ExccAspect::ASPECT_RALENTISSEMENT_60;
 
-    // ⏬ Ralentissement 30 → rappel 30 si voie déviée
-    case ExccAspect::ASPECT_RALENTISSEMENT_30:
-        return voieDevie ? ExccAspect::ASPECT_RAPPEL_30
-                         : ExccAspect::ASPECT_RALENTISSEMENT_30;
-
-    // ⏬ Ralentissement 60 → rappel 60 si voie déviée
+    // ⏬ Ralentissement 60 → voie libre (droit) ou rappel 60 (dévié)
     case ExccAspect::ASPECT_RALENTISSEMENT_60:
         return voieDevie ? ExccAspect::ASPECT_RAPPEL_60
-                         : ExccAspect::ASPECT_RALENTISSEMENT_60;
+                         : ExccAspect::ASPECT_VOIE_LIBRE;
+
+    // ⏬ Ralentissement 30 → voie libre (droit) ou rappel 30 (dévié)
+    case ExccAspect::ASPECT_RALENTISSEMENT_30:
+        return voieDevie ? ExccAspect::ASPECT_RAPPEL_30
+                         : ExccAspect::ASPECT_VOIE_LIBRE;
 
     // ⏸ Rappel 30 → rappel 30
     case ExccAspect::ASPECT_RAPPEL_30:
@@ -57,11 +55,11 @@ ExccAspect deduireAspectDepuisAval(ExccAspect aval, bool voieDevie)
     case ExccAspect::ASPECT_MANOEUVRE:
         return ExccAspect::ASPECT_MANOEUVRE;
 
-    // ⚫ Masqué → avertissement
+    // ⚫ Masqué → avertissement (sécurité)
     case ExccAspect::ASPECT_MASQUE:
         return ExccAspect::ASPECT_AVERTISSEMENT;
 
-    // 🧩 Défaut → carré
+    // 🧩 Défaut → carré (sécurité)
     default:
         return ExccAspect::ASPECT_CARRE;
     }

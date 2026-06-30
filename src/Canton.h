@@ -240,6 +240,24 @@ public:
     // -----------------------------------------------------------------------
     void debugTopologieEtAiguilles();
 
+    // -----------------------------------------------------------------------
+    // Aspect local du canton (H / AH) pour le pilotage distribué
+    // -----------------------------------------------------------------------
+    void setAspectLocal(SensDeMarche sens, uint8_t aspect)
+    {
+        if (sens == SensHoraire)
+            m_aspectLocalH = aspect;
+        else
+            m_aspectLocalAH = aspect;
+    }
+
+    ExccAspect aspectLocal(SensDeMarche sens) const
+    {
+        return (sens == SensHoraire)
+                   ? static_cast<ExccAspect>(m_aspectLocalH)
+                   : static_cast<ExccAspect>(m_aspectLocalAH);
+    }
+
 private:
     uint16_t m_id;
 
@@ -277,4 +295,10 @@ private:
     // -----------------------------------------------------------------------
     bool m_ponctuelH = false;
     bool m_ponctuelAH = false;
+
+    // -----------------------------------------------------------------------
+    // Aspect local du canton
+    // -----------------------------------------------------------------------
+    uint8_t m_aspectLocalH = static_cast<uint8_t>(ExccAspect::ASPECT_CARRE);
+    uint8_t m_aspectLocalAH = static_cast<uint8_t>(ExccAspect::ASPECT_CARRE);
 };

@@ -1,7 +1,7 @@
 /*
  * PilotageDistribue.cpp — Gestion Canton 2026
  * ---------------------------------------------------------------------------
- * Pilotage distribué des locomotives selon l’aspect reçu du canton voisin.
+ * Pilotage distribué des locomotives selon l’aspect LOCAL du canton.
  */
 
 #include "PilotageDistribue.h"
@@ -22,85 +22,38 @@ void executerPilotageDistribue(Canton *canton)
     if (!loco)
         return;
 
-    ExccAspect aspectCommande = ExccAspect::ASPECT_CARRE;
-    CantonPeriph *voisin = nullptr;
-
     // -----------------------------------------------------------------------
-    // 1) Déterminer le voisin pertinent selon le sens de marche
+    // 1) Déterminer l’aspect LOCAL selon le sens de marche
     // -----------------------------------------------------------------------
     SensDeMarche sens = loco->sens();
+    ExccAspect aspectCommande = ExccAspect::ASPECT_CARRE;
 
-    switch (sens)
+    if (sens == SensHoraire)
     {
-    case SensHoraire:
-    {
-        voisin = canton->voisinSP1();
-        if (voisin)
-        {
-            aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[1]);
-            CC_LOG_TRACE("[PilotageDistribue][CC] Sens H → SP1=%u aspect(H)=%u\n",
-                         canton->SP1_idx(),
-                         static_cast<uint8_t>(aspectCommande));
-        }
-        else
-        {
-            voisin = canton->voisinSP2();
-            if (voisin)
-            {
-                aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[1]);
-                CC_LOG_TRACE("[PilotageDistribue][CC] Sens H → SP1 absent → SP2=%u aspect(H)=%u\n",
-                             canton->SP2_idx(),
-                             static_cast<uint8_t>(aspectCommande));
-            }
-            else
-            {
-                CC_LOG_WARN("[PilotageDistribue][CC] Sens H → aucun voisin SP1/SP2\n");
-            }
-        }
-        break;
+        aspectCommande = canton->aspectLocal(SensHoraire);
+        CC_LOG_TRACE("[PilotageDistribue][CC] Sens H → aspect local(H)=%u\n",
+                     static_cast<uint8_t>(aspectCommande));
     }
-
-    case SensAntiHoraire:
+    else if (sens == SensAntiHoraire)
     {
-        voisin = canton->voisinSM1();
-        if (voisin)
-        {
-            aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[0]);
-            CC_LOG_TRACE("[PilotageDistribue][CC] Sens AH → SM1=%u aspect(AH)=%u\n",
-                         canton->SM1_idx(),
-                         static_cast<uint8_t>(aspectCommande));
-        }
-        else
-        {
-            voisin = canton->voisinSM2();
-            if (voisin)
-            {
-                aspectCommande = static_cast<ExccAspect>(voisin->aspectRecu[0]);
-                CC_LOG_TRACE("[PilotageDistribue][CC] Sens AH → SM1 absent → SM2=%u aspect(AH)=%u\n",
-                             canton->SM2_idx(),
-                             static_cast<uint8_t>(aspectCommande));
-            }
-            else
-            {
-                CC_LOG_WARN("[PilotageDistribue][CC] Sens AH → aucun voisin SM1/SM2\n");
-            }
-        }
-        break;
+        aspectCommande = canton->aspectLocal(SensAntiHoraire);
+        CC_LOG_TRACE("[PilotageDistribue][CC] Sens AH → aspect local(AH)=%u\n",
+                     static_cast<uint8_t>(aspectCommande));
     }
-
-    default:
+    else
+    {
         CC_LOG_WARN("[PilotageDistribue][CC] Sens inconnu → pilotage ignoré\n");
         return;
     }
 
     // -----------------------------------------------------------------------
-    // 2) Appliquer la vitesse correspondant à l’aspect reçu
+    // 2) Appliquer la vitesse correspondant à l’aspect LOCAL
     // -----------------------------------------------------------------------
     switch (aspectCommande)
     {
     case ExccAspect::ASPECT_CARRE:
     case ExccAspect::ASPECT_CARRE_VIOLET:
-        CC_LOG_INFO("[PilotageDistribue][CC] Carré (rouge/violet) → arrêt\n");
+        CC_LOG_INFO("[PilotageDistribue][CC] Carré → arrêt\n");
         loco->speed(0);
         break;
 
