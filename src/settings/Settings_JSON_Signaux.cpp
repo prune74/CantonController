@@ -90,7 +90,7 @@ void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc) // 🟢
         // -------------------------------------------------------------------
         // Signal présent → sauvegarde du type réel + position
         // -------------------------------------------------------------------
-        doc[baseType] = s->type();         // SIG_BAL / SIG_CARRE / SIG_RAL / SIG_RAPPEL / SIG_MANOEUVRE
+        doc[baseType] = s->type();         // TYPE_A / TYPE_C / TYPE_E / TYPE_G / TYPE_M
         doc[basePosition] = s->position(); // Position H ou AH
     }
 }

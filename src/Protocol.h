@@ -35,15 +35,15 @@ enum class ExccAspect : uint8_t
  *  🟦 ENUM TYPE DE MATS
  * ============================================================
  */
-enum SignalProfil : uint8_t
+enum SignalType : uint8_t
 {
     SIG_ABSENT = 0, // Aucun signal présent physiquement
 
-    SIG_BAL = 1,       // 3 feux : Rouge / Jaune / Vert (BAL)
-    SIG_CARRE = 2,     // 5 feux : Carré + Œilleton
-    SIG_RAL = 3,       // 7 feux : Ralentissement 30/60
-    SIG_RAPPEL = 4,    // 9 feux : Rappel 30/60
-    SIG_MANOEUVRE = 5, // 2 feux : Blanc + Violet
+    TYPE_A = 1, // BAL (cible A), 3 feux
+    TYPE_C = 2, // Carré + BAL (cible C), 5 feux
+    TYPE_E = 3, // Ralentissement (cible E), 7 feux
+    TYPE_G = 4, // Rappel (cible G), 9 feux
+    TYPE_M = 5  // Manœuvre (cible M), 2 feux
 };
 
 /* ============================================================================

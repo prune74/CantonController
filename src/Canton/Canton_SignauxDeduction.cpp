@@ -52,11 +52,11 @@ bool Canton::cantonPrecedentEstEnRalentissement(SensDeMarche sens) const
         return false;
 
     // Conversion des octets reçus en enum class ExccAspect
-    ExccAspect aH  = static_cast<ExccAspect>(v->aspectRecu[0]);
+    ExccAspect aH = static_cast<ExccAspect>(v->aspectRecu[0]);
     ExccAspect aAH = static_cast<ExccAspect>(v->aspectRecu[1]);
 
-    return (aH  == ExccAspect::ASPECT_RALENTISSEMENT_30 ||
-            aH  == ExccAspect::ASPECT_RALENTISSEMENT_60 ||
+    return (aH == ExccAspect::ASPECT_RALENTISSEMENT_30 ||
+            aH == ExccAspect::ASPECT_RALENTISSEMENT_60 ||
             aAH == ExccAspect::ASPECT_RALENTISSEMENT_30 ||
             aAH == ExccAspect::ASPECT_RALENTISSEMENT_60);
 }
@@ -87,16 +87,16 @@ bool Canton::besoinCarre(SensDeMarche sens) const
 uint8_t Canton::deduireTypeSignal(SensDeMarche sens) const
 {
     if (estImpasse())
-        return SIG_MANOEUVRE;
+        return TYPE_M;
 
     if (besoinRappel(sens))
-        return SIG_RAPPEL;
+        return TYPE_G;
 
     if (besoinRalentissement(sens))
-        return SIG_RAL;
+        return TYPE_E;
 
     if (besoinCarre(sens))
-        return SIG_CARRE;
+        return TYPE_C;
 
-    return SIG_BAL;
+    return TYPE_A;
 }
