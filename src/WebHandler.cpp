@@ -70,11 +70,36 @@ void WebHandler::init(Canton *n, uint16_t webPort)
 // ---------------------------------------------------------------------------
 void WebHandler::loop()
 {
-    if (!_ws || _ws->count() == 0)
+    if (!_ws)
         return;
 
-    StaticJsonDocument<256> doc;
+    // Nettoyage des clients fantômes
+    _ws->cleanupClients();
 
+    // Si aucun client → on n’envoie rien
+    if (_ws->count() == 0)
+        return;
+
+    // Limiteur de fréquence (20 Hz)
+    static uint32_t lastSend = 0;
+    uint32_t now = millis();
+    if (now - lastSend < 50)
+        return;
+    lastSend = now;
+
+    // Vérification des buffers
+    for (size_t i = 0; i < _ws->count(); i++) {
+        AsyncWebSocketClient *c = _ws->client(i);
+        if (!c) {
+            return; // client fantôme
+        }
+        if (c->queueIsFull()) {
+            return; // client saturé → on n’envoie rien
+        }
+    }
+
+    // Construction du JSON
+    StaticJsonDocument<256> doc;
     doc["booster_tension"]      = Booster::tension();
     doc["booster_courant"]      = Booster::courant();
     doc["booster_etat"]         = Booster::etat();
@@ -83,5 +108,7 @@ void WebHandler::loop()
 
     String out;
     serializeJson(doc, out);
+
+    // Envoi sécurisé
     _ws->textAll(out);
 }

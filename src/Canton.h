@@ -258,6 +258,15 @@ public:
                    : static_cast<ExccAspect>(m_aspectLocalAH);
     }
 
+    // -----------------------------------------------------------------------
+    // Pilotage distribué (wrapper Canton)
+    // -----------------------------------------------------------------------
+    void pilotageDistribue();
+    bool ponctuelFranchi() const
+    {
+        return m_ponctuelH || m_ponctuelAH;
+    }
+
 private:
     uint16_t m_id;
 

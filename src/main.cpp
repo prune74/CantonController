@@ -45,6 +45,8 @@
 // --- Interface Web + WiFi ---------------------------------------------------
 #include "WebHandler.h"
 #include "Wifi_fl.h"
+#include <SPIFFS.h>
+
 
 // --- Watchdog CC → ERM ---------------------------------------------------
 #include "CCWatchdog.h"
@@ -88,28 +90,31 @@ void setup()
     // ------------------------------------------------------------------------
     Settings::setup(canton);
     vTaskDelay(pdMS_TO_TICKS(100));
+    
+        // ------------------------------------------------------------------------
+        // Initialisation CAN (CanUniversal)
+        // ------------------------------------------------------------------------
+        CcCanConfig::setup(); // ✔ nouveau nom
+        vTaskDelay(pdMS_TO_TICKS(100));
+        CC_CAN::setup(canton); // ✔ nouvelle API CAN du CC
+        vTaskDelay(pdMS_TO_TICKS(100));
 
-    // ------------------------------------------------------------------------
-    // Initialisation CAN (CanUniversal)
-    // ------------------------------------------------------------------------
-    CcCanConfig::setup(); // ✔ nouveau nom
-    vTaskDelay(pdMS_TO_TICKS(100));
-    CC_CAN::setup(canton); // ✔ nouvelle API CAN du CC
-    vTaskDelay(pdMS_TO_TICKS(100));
+        // ------------------------------------------------------------------------
+        // Dialogue CAN avec la carte ERM (test bus, attribution ID…)
+        // ------------------------------------------------------------------------
+        if (!Settings::standalone())
+        {
+            if (!Settings::begin())
+            {
+                CC_LOG_WARN("[ERM][CC] Erreur : configuration CAN impossible\n");
+                return;
+            }
 
-    // ------------------------------------------------------------------------
-    // Dialogue CAN avec la carte ERM (test bus, attribution ID…)
-    // ------------------------------------------------------------------------
-    if (!Settings::begin())
-    {
-        CC_LOG_WARN("[ERM][CC] Erreur : configuration CAN impossible\n");
-        return;
-    }
-
-    CC_LOG_INFO("-----------------------------------\n");
-    CC_LOG_INFO("[ERM][CC] ID Canton : %d\n", canton->ID());
-    CC_LOG_INFO("-----------------------------------\n\n");
-
+            CC_LOG_INFO("-----------------------------------\n");
+            CC_LOG_INFO("[ERM][CC] ID Canton : %d\n", canton->ID());
+            CC_LOG_INFO("-----------------------------------\n\n");
+        }
+    
     // ------------------------------------------------------------------------
     // Chargement complet settings.json
     // ------------------------------------------------------------------------
@@ -118,47 +123,26 @@ void setup()
     // ------------------------------------------------------------------------
     // Initialisation GPIO étendus (MCP23017)
     // ------------------------------------------------------------------------
-    canton->initMCP();
-
-    // ------------------------------------------------------------------------
-    // Mode Exploration interne ou mode normal (RailCom + GestionReseau)
-    // ------------------------------------------------------------------------
-    if (Settings::explorationOn())
-    {
-        Exploration::begin(canton);
-    }
-    else
-    {
-        Railcom::begin();
-        GestionReseau::setup(canton);
-    }
-
+    /*canton->initMCP();
+    
+        // ------------------------------------------------------------------------
+        // Mode Exploration interne ou mode normal (RailCom + GestionReseau)
+        // ------------------------------------------------------------------------
+        if (Settings::explorationOn())
+        {
+            Exploration::begin(canton);
+        }
+        else
+        {
+            Railcom::begin();
+            GestionReseau::setup(canton);
+        }
+    */
     // ------------------------------------------------------------------------
     // Initialisation EXCC (Extension Canton Controller)
     // ------------------------------------------------------------------------
     SupervisionAiguilles::begin(canton);
     EXCC_Link::begin();
-
-    // ------------------------------------------------------------------------
-    // Watchdog CC → ERM (Heartbeat 0x200)
-    // ------------------------------------------------------------------------
-    // Rôle :
-    //   - envoi périodique d’un heartbeat toutes les 100 ms
-    //   - permet au ERM de superviser la présence du CC
-    //
-    // Important :
-    //   - si le CC entre en STOP local → Canton_Stop.cpp suspend le heartbeat
-    //   - le ERM détecte l’absence de heartbeat → STOP global réseau
-    //
-    // Le watchdog doit être démarré APRÈS :
-    //   - l’attribution de l’ID canton
-    //   - l’initialisation CAN
-    //   - l’initialisation EXCC
-    //
-    // Et AVANT :
-    //   - l’interface Web (pour éviter un délai de démarrage)
-    // ------------------------------------------------------------------------
-    CCWatchdog_begin();
 
     // ------------------------------------------------------------------------
     // WiFi + Interface Web
@@ -180,6 +164,30 @@ void setup()
     CC_LOG_INFO("-----------------------------------\n");
     CC_LOG_INFO("[ERM][CC] End setup\n\n");
     CC_LOG_INFO("-----------------------------------\n\n");
+
+    // ------------------------------------------------------------------------
+   // Watchdog CC → ERM (Heartbeat 0x200)
+   // ------------------------------------------------------------------------
+   // Rôle :
+   //   - envoi périodique d’un heartbeat toutes les 100 ms
+   //   - permet au ERM de superviser la présence du CC
+   //
+   // Important :
+   //   - si le CC entre en STOP local → Canton_Stop.cpp suspend le heartbeat
+   //   - le ERM détecte l’absence de heartbeat → STOP global réseau
+   //
+   // Le watchdog doit être démarré APRÈS :
+   //   - l’attribution de l’ID canton
+   //   - l’initialisation CAN
+   //   - l’initialisation EXCC
+   //
+   // Et AVANT :
+   //   - l’interface Web (pour éviter un délai de démarrage)
+   // ------------------------------------------------------------------------
+   if (!Settings::standalone())
+   {
+       CCWatchdog_begin();
+   }
 }
 
 /*============================================================================
@@ -194,37 +202,37 @@ void loop()
     // ------------------------------------------------------------------------
     if (wifiOn)
         webHandler.loop();
+    
+        // ------------------------------------------------------------------------
+        // RailCom : mise à jour de l’adresse loco (mode normal)
+        // ------------------------------------------------------------------------
+        if (!Settings::explorationOn())
+        {
+            if (Railcom::address() && canton->busy())
+            {
+                Loco *loco = canton->getLoco();
+                if (loco)
+                    loco->address(Railcom::address());
+            }
+        }
 
-    // ------------------------------------------------------------------------
-    // RailCom : mise à jour de l’adresse loco (mode normal)
-    // ------------------------------------------------------------------------
-    if (!Settings::explorationOn())
-    {
-        if (Railcom::address() && canton->busy())
+        // Log si l’adresse change
         {
             Loco *loco = canton->getLoco();
-            if (loco)
-                loco->address(Railcom::address());
+            uint16_t currentAddress = loco ? loco->address() : 0;
+
+            if (currentAddress != oldAddress)
+            {
+                CC_LOG_INFO("[ERM][CC] Railcom : adresse loco = %u\n",
+                            currentAddress);
+                oldAddress = currentAddress;
+            }
         }
-    }
 
-    // Log si l’adresse change
-    {
-        Loco *loco = canton->getLoco();
-        uint16_t currentAddress = loco ? loco->address() : 0;
-
-        if (currentAddress != oldAddress)
-        {
-            CC_LOG_INFO("[ERM][CC] Railcom : adresse loco = %u\n",
-                        currentAddress);
-            oldAddress = currentAddress;
-        }
-    }
-
-    // ------------------------------------------------------------------------
-    // EXCC (Extension Canton Controller)
-    // ------------------------------------------------------------------------
-    EXCC_Link::loop();
-
+        // ------------------------------------------------------------------------
+        // EXCC (Extension Canton Controller)
+        // ------------------------------------------------------------------------
+        EXCC_Link::loop();
+    
     vTaskDelay(pdMS_TO_TICKS(50));
 }

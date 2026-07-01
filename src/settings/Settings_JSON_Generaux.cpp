@@ -42,6 +42,9 @@ void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc) // 🟢
     Settings::WIFI_ON        = doc["wifi_on"]        | true;
     Settings::EXPLORATION_ON = doc["exploration_on"] | true;
 
+    // Mode autonome
+    Settings::STANDALONE     = doc["standalone"]     | false;
+
     // SSID / Password
     Settings::ssid_str     = String((const char *)(doc["ssid"]     | ""));
     Settings::password_str = String((const char *)(doc["password"] | ""));
@@ -55,7 +58,7 @@ void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc) // 🟢
 /* ============================================================================
  *  Sauvegarde des paramètres généraux
  * ==========================================================================*/
-void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc)
 {
     doc["idCanton"]       = canton->ID();
     doc["comptAig"]       = Exploration::comptAig();
@@ -68,4 +71,6 @@ void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc) // 🟢
 
     doc["ssid"]           = Settings::ssid;
     doc["password"]       = Settings::password;
+    
+    doc["standalone"]     = Settings::STANDALONE;
 }

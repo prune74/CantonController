@@ -40,7 +40,7 @@
 
 bool Settings::WIFI_ON = true;
 bool Settings::EXPLORATION_ON = true;
-bool Settings::TRACK_PROFILE = false;   // 12V par défaut
+bool Settings::TRACK_PROFILE = false; // 12V par défaut
 
 String Settings::ssid_str = "";
 String Settings::password_str = "";
@@ -49,10 +49,33 @@ char Settings::password[64] = {};
 
 bool Settings::isMainReady = false;
 Canton *Settings::canton = nullptr;
+bool Settings::STANDALONE = false;
 
 // Booster
 uint16_t Settings::s_boosterSeuilLibre = 0;
 uint16_t Settings::s_boosterSeuilOccupe = 0;
+
+// Pilotage Distribué — valeurs par défaut
+uint16_t Settings::LONGUEUR_CANTON_MM = 3000;    // 3 mètres
+uint16_t Settings::ZONE_RALENTISSEMENT_MM = 600; // zone de freinage
+
+uint8_t Settings::ECART_R30_N = 7;
+uint8_t Settings::ECART_R30_HO = 15;
+
+uint8_t Settings::ECART_R60_N = 6;
+uint8_t Settings::ECART_R60_HO = 12;
+
+uint8_t Settings::ECART_AVERT_N = 5;
+uint8_t Settings::ECART_AVERT_HO = 10;
+
+uint8_t Settings::ECART_MAN_N = 4;
+uint8_t Settings::ECART_MAN_HO = 8;
+
+uint8_t Settings::ECART_CARRE_N = 3;
+uint8_t Settings::ECART_CARRE_HO = 7;
+
+uint8_t Settings::ECART_DEFAULT_N = 5;
+uint8_t Settings::ECART_DEFAULT_HO = 10;
 
 /* ============================================================================
  *  Paramètres globaux : WiFi / Exploration
@@ -119,7 +142,8 @@ void Settings::loadFile(Canton *canton) // 🟢
         return;
     }
 
-    StaticJsonDocument<8192> doc;
+    // StaticJsonDocument<8192> doc;
+    DynamicJsonDocument doc(8192);
     DeserializationError err = deserializeJson(doc, file);
     file.close();
 
@@ -141,6 +165,7 @@ void Settings::loadFile(Canton *canton) // 🟢
     Settings_JSON_loadSignaux(canton, doc);
     Settings_JSON_loadDirection(canton, doc);
     Settings_JSON_loadBooster(doc);
+    Settings_JSON_loadPilotageDistribue(doc);
 
     CC_LOG_INFO("[Settings][CC] loadFile() terminé\n");
 }
@@ -151,13 +176,14 @@ void Settings::loadFile(Canton *canton) // 🟢
 
 void Settings::writeFile(Canton *canton) // 🟢
 {
-    StaticJsonDocument<8192> doc;
+    // Créer un document JSON
+    DynamicJsonDocument doc(8192);
 
     // ------------------------------------------------------------------------
     // Sauvegarde des sections JSON 2026
     // ------------------------------------------------------------------------
     Settings_JSON_saveGeneraux(canton, doc);
-    Settings_JSON_loadProfileVoie(canton, doc);
+    Settings_JSON_saveProfileVoie(canton, doc);
     Settings_JSON_saveModeManoeuvre(canton, doc);
     Settings_JSON_saveTopologie(canton, doc);
     Settings_JSON_saveVoisins(canton, doc);
@@ -165,7 +191,11 @@ void Settings::writeFile(Canton *canton) // 🟢
     Settings_JSON_saveSignaux(canton, doc);
     Settings_JSON_saveDirection(canton, doc);
     Settings_JSON_saveBooster(doc);
+    Settings_JSON_savePilotageDistribue(doc);
 
+    // ------------------------------------------------------------------------
+    // Ouverture du fichier en écriture
+    // ------------------------------------------------------------------------
     File file = SPIFFS.open("/settings.json", "w");
     if (!file)
     {
@@ -173,6 +203,9 @@ void Settings::writeFile(Canton *canton) // 🟢
         return;
     }
 
+    // ------------------------------------------------------------------------
+    // Écriture du JSON dans le fichier
+    // ------------------------------------------------------------------------
     serializeJsonPretty(doc, file);
     file.close();
 

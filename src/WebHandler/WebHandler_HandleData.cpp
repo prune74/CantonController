@@ -115,7 +115,7 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client, uint8_t *data
         JsonArray arr = doc["booster_seuils"];
         if (arr.size() >= 2)
         {
-            uint16_t libre  = arr[0];
+            uint16_t libre = arr[0];
             uint16_t occupe = arr[1];
 
             // Mise à jour Settings

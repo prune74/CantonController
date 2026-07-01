@@ -29,18 +29,12 @@ class Settings
 public:
     /* =======================================================================
      *  1) Initialisation générale du système
-     *     - UART RS485
      *     - SPIFFS
      *     - Lecture settings.json
      * =====================================================================*/
     static void setup(Canton *nd); // Initialisation complète (hors CAN)
     static bool begin();           // Dialogue CAN avec la carte ERM
     static bool beginCAN();        // Initialisation du bus CAN
-
-    /* =======================================================================
-     *  2) UART RS485 (CC → EXCC)
-     * =====================================================================*/
-    static HardwareSerial &uart();
 
     /* =======================================================================
      *  3) Paramètres globaux (WiFi, Exploration interne)
@@ -69,8 +63,6 @@ public:
 
     static Canton *canton;
 
-    static HardwareSerial SerialUART;
-
     /* =======================================================================
      *  5) Fonctions internes (modules spécialisés)
      * =====================================================================*/
@@ -93,7 +85,81 @@ public:
     static uint16_t boosterSeuilLibre() { return s_boosterSeuilLibre; }
     static uint16_t boosterSeuilOccupe() { return s_boosterSeuilOccupe; }
 
+    // ---------------------------------------------------------------------------
+    // Pilotage Distribué — Accès public aux paramètres
+    // ---------------------------------------------------------------------------
+    static uint16_t longueurCantonMM() { return LONGUEUR_CANTON_MM; }
+    static uint16_t zoneRalentissementMM() { return ZONE_RALENTISSEMENT_MM; }
+
+    static uint8_t ecartR30_N() { return ECART_R30_N; }
+    static uint8_t ecartR30_HO() { return ECART_R30_HO; }
+
+    static uint8_t ecartR60_N() { return ECART_R60_N; }
+    static uint8_t ecartR60_HO() { return ECART_R60_HO; }
+
+    static uint8_t ecartAvert_N() { return ECART_AVERT_N; }
+    static uint8_t ecartAvert_HO() { return ECART_AVERT_HO; }
+
+    static uint8_t ecartMan_N() { return ECART_MAN_N; }
+    static uint8_t ecartMan_HO() { return ECART_MAN_HO; }
+
+    static uint8_t ecartCarre_N() { return ECART_CARRE_N; }
+    static uint8_t ecartCarre_HO() { return ECART_CARRE_HO; }
+
+    static uint8_t ecartDefault_N() { return ECART_DEFAULT_N; }
+    static uint8_t ecartDefault_HO() { return ECART_DEFAULT_HO; }
+
+    // ---------------------------------------------------------------------------
+    // Pilotage Distribué — Setters publics pour JSON
+    // ---------------------------------------------------------------------------
+    static void setLongueurCantonMM(uint16_t v) { LONGUEUR_CANTON_MM = v; }
+    static void setZoneRalentissementMM(uint16_t v) { ZONE_RALENTISSEMENT_MM = v; }
+
+    static void setEcartR30_N(uint8_t v) { ECART_R30_N = v; }
+    static void setEcartR30_HO(uint8_t v) { ECART_R30_HO = v; }
+
+    static void setEcartR60_N(uint8_t v) { ECART_R60_N = v; }
+    static void setEcartR60_HO(uint8_t v) { ECART_R60_HO = v; }
+
+    static void setEcartAvert_N(uint8_t v) { ECART_AVERT_N = v; }
+    static void setEcartAvert_HO(uint8_t v) { ECART_AVERT_HO = v; }
+
+    static void setEcartMan_N(uint8_t v) { ECART_MAN_N = v; }
+    static void setEcartMan_HO(uint8_t v) { ECART_MAN_HO = v; }
+
+    static void setEcartCarre_N(uint8_t v) { ECART_CARRE_N = v; }
+    static void setEcartCarre_HO(uint8_t v) { ECART_CARRE_HO = v; }
+
+    static void setEcartDefault_N(uint8_t v) { ECART_DEFAULT_N = v; }
+    static void setEcartDefault_HO(uint8_t v) { ECART_DEFAULT_HO = v; }
+
+    static bool STANDALONE;
+    static bool standalone() { return STANDALONE; }
+
 private:
     static uint16_t s_boosterSeuilLibre;
     static uint16_t s_boosterSeuilOccupe;
+
+    // Pilotage Distribué — Longueur du canton et zone de ralentissement
+    static uint16_t LONGUEUR_CANTON_MM;
+    static uint16_t ZONE_RALENTISSEMENT_MM;
+
+    // Écarts Δ par aspect (N / HO)
+    static uint8_t ECART_R30_N;
+    static uint8_t ECART_R30_HO;
+
+    static uint8_t ECART_R60_N;
+    static uint8_t ECART_R60_HO;
+
+    static uint8_t ECART_AVERT_N;
+    static uint8_t ECART_AVERT_HO;
+
+    static uint8_t ECART_MAN_N;
+    static uint8_t ECART_MAN_HO;
+
+    static uint8_t ECART_CARRE_N;
+    static uint8_t ECART_CARRE_HO;
+
+    static uint8_t ECART_DEFAULT_N;
+    static uint8_t ECART_DEFAULT_HO;
 };

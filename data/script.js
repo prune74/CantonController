@@ -1,20 +1,5 @@
 /* ============================================================================
  * WebSocket Canton — Gestion Canton 2026
- * ----------------------------------------------------------------------------
- * Rôle :
- *   - établir la connexion WebSocket
- *   - recevoir l’état complet du canton
- *   - mettre à jour l’UI
- *   - envoyer les commandes utilisateur
- *
- * IMPORTANT :
- *   - aucune logique métier ici
- *   - aucune logique ferroviaire
- *   - ce module ne fait que relayer UI ↔ CC
- * ==========================================================================*/
-
-/* ============================================================================
- * Connexion WebSocket
  * ==========================================================================*/
 
 const gateway = "ws://" + window.location.hostname + "/ws";
@@ -24,25 +9,24 @@ function initWebSocket() {
   console.log("[WS] Tentative de connexion…");
   websocket = new WebSocket(gateway);
 
-  websocket.onopen    = onOpen;
-  websocket.onclose   = onClose;
+  websocket.onopen = onOpen;
+  websocket.onclose = onClose;
   websocket.onmessage = onMessage;
 }
 
 function onOpen() {
   console.log("[WS] Connecté");
-  document.getElementById("messages").innerHTML = "Connected";
+  safeSetHTML("messages", "Connected");
 }
 
 function onClose() {
   console.log("[WS] Déconnecté — nouvelle tentative dans 2s");
-  document.getElementById("messages").innerHTML = "Connection closed";
+  safeSetHTML("messages", "Connection closed");
   setTimeout(initWebSocket, 2000);
 }
 
 window.addEventListener("load", () => {
   initWebSocket();
-  // Désactivation du rôle (legacy)
   const typeCanton = document.getElementById("typeCanton");
   if (typeCanton) typeCanton.disabled = true;
 });
@@ -63,83 +47,104 @@ function onMessage(event) {
   }
 
   /* ------------------------------------------------------------------------
-   * Commande spécifique : mise à jour du rôle (désactivé)
-   * ------------------------------------------------------------------------ */
-  if (data.cmd === "roleUpdate") {
-    document.getElementById("typeCanton").value = 0;
-    return;
-  }
-
-  /* ------------------------------------------------------------------------
    * Champs généraux
    * ------------------------------------------------------------------------ */
-  setValue("idCanton", data.idCanton);
+  safeSetValue("idCanton", data.idCanton);
 
-  setValue("p00", data.p00);
-  setValue("p01", data.p01);
-  setValue("p10", data.p10);
-  setValue("p11", data.p11);
+  safeSetValue("p00", data.p00);
+  safeSetValue("p01", data.p01);
+  safeSetValue("p10", data.p10);
+  safeSetValue("p11", data.p11);
 
-  setValue("m00", data.m00);
-  setValue("m01", data.m01);
-  setValue("m10", data.m10);
-  setValue("m11", data.m11);
+  safeSetValue("m00", data.m00);
+  safeSetValue("m01", data.m01);
+  safeSetValue("m10", data.m10);
+  safeSetValue("m11", data.m11);
+
+  /* ------------------------------------------------------------------------
+   * Pilotage Distribué
+   * ------------------------------------------------------------------------ */
+  const pdFields = [
+    "longueur_canton_mm", "zone_ralentissement_mm",
+    "ecart_r30_n", "ecart_r30_ho",
+    "ecart_r60_n", "ecart_r60_ho",
+    "ecart_avert_n", "ecart_avert_ho",
+    "ecart_man_n", "ecart_man_ho",
+    "ecart_carre_n", "ecart_carre_ho",
+    "ecart_default_n", "ecart_default_ho"
+  ];
+
+  pdFields.forEach(f => safeSetValue(f, data[f]));
 
   /* ------------------------------------------------------------------------
    * Aiguilles
    * ------------------------------------------------------------------------ */
   for (let i = 0; i < 6; i++) {
-    setValue("s" + i, data["s" + i]);
-    setValue("s" + i + "0", data["s" + i + "0"]);
-    setValue("s" + i + "1", data["s" + i + "1"]);
-    setValue("s" + i + "2", data["s" + i + "2"]);
+    safeSetValue("s" + i, data["s" + i]);
+    safeSetValue("s" + i + "0", data["s" + i + "0"]);
+    safeSetValue("s" + i + "1", data["s" + i + "1"]);
+    safeSetValue("s" + i + "2", data["s" + i + "2"]);
   }
 
   /* ------------------------------------------------------------------------
    * Vitesse
    * ------------------------------------------------------------------------ */
-  setValue("maxSpeed", data.maxSpeed);
+  safeSetValue("maxSpeed", data.maxSpeed);
 
   /* ------------------------------------------------------------------------
    * Sens de marche
    * ------------------------------------------------------------------------ */
-  switch (data.sensMarche) {
-    case 0: document.getElementById("indifferent").checked = true; break;
-    case 1: document.getElementById("horaire").checked = true; break;
-    case 2: document.getElementById("antihoraire").checked = true; break;
-  }
+  const sens = data.sensMarche;
+  if (sens === 0) safeCheck("indifferent", true);
+  if (sens === 1) safeCheck("horaire", true);
+  if (sens === 2) safeCheck("antihoraire", true);
 
   /* ------------------------------------------------------------------------
    * Cibles
    * ------------------------------------------------------------------------ */
-  document.getElementById("imageHoraire").src  = "cible_" + data.cibleHoraire + ".jpg";
-  document.getElementById("imageAntiHor").src  = "cible_" + data.cibleAntiHor + ".jpg";
+  safeSetImage("imageHoraire", "cible_" + data.cibleHoraire + ".jpg");
+  safeSetImage("imageAntiHor", "cible_" + data.cibleAntiHor + ".jpg");
 
   /* ------------------------------------------------------------------------
    * Switchs
    * ------------------------------------------------------------------------ */
-  document.getElementById("exploration_on").checked = data.exploration_on;
-  document.getElementById("wifi_on").checked        = data.wifi_on;
-
-  /* ------------------------------------------------------------------------
-   * Type de canton (désactivé)
-   * ------------------------------------------------------------------------ */
-  document.getElementById("typeCanton").value = 0;
+  safeCheck("exploration_on", data.exploration_on);
+  safeCheck("wifi_on", data.wifi_on);
 
   /* ------------------------------------------------------------------------
    * Debug brut
    * ------------------------------------------------------------------------ */
-  document.getElementById("rawData").innerText = event.data;
+  safeSetHTML("rawData", event.data);
 }
 
 /* ============================================================================
- * Helpers UI
+ * Helpers UI — Version robuste Discovery 2026
  * ==========================================================================*/
 
-function setValue(id, value) {
+function safeSetValue(id, value) {
   const el = document.getElementById(id);
-  if (el !== null && value !== undefined)
-    el.value = value;
+  if (!el) return;
+  if (value === null || value === undefined) return;
+  el.value = value;
+}
+
+function safeSetHTML(id, html) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = html;
+}
+
+function safeCheck(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.checked = !!state;
+}
+
+function safeSetImage(id, src) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!src) return;
+  el.src = src;
 }
 
 /* ============================================================================
@@ -148,18 +153,23 @@ function setValue(id, value) {
 
 function sendJson() {
   const msg = {
-    idCanton: document.getElementById("idCanton").value,
-    comptAig: document.getElementById("comptAig").value,
-    p00: document.getElementById("p00").value,
-    p01: document.getElementById("p01").value,
-    p10: document.getElementById("p10").value,
-    p11: document.getElementById("p11").value,
-    m00: document.getElementById("m00").value,
-    m01: document.getElementById("m01").value,
-    m10: document.getElementById("m10").value,
-    m11: document.getElementById("m11").value
+    idCanton: safeGet("idCanton"),
+    comptAig: safeGet("comptAig"),
+    p00: safeGet("p00"),
+    p01: safeGet("p01"),
+    p10: safeGet("p10"),
+    p11: safeGet("p11"),
+    m00: safeGet("m00"),
+    m01: safeGet("m01"),
+    m10: safeGet("m10"),
+    m11: safeGet("m11")
   };
   websocket.send(JSON.stringify(msg));
+}
+
+function safeGet(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : null;
 }
 
 function servoSettings(obj) {
@@ -189,11 +199,12 @@ function save(obj) {
 /* ============================================================================
  * Booster
  * ==========================================================================*/
+
 function saveBooster() {
   const msg = {
     booster_seuils: [
-      parseInt(document.getElementById("booster_seuil_libre").value),
-      parseInt(document.getElementById("booster_seuil_occupe").value)
+      parseInt(safeGet("booster_seuil_libre")),
+      parseInt(safeGet("booster_seuil_occupe"))
     ]
   };
   websocket.send(JSON.stringify(msg));
@@ -201,4 +212,27 @@ function saveBooster() {
 
 function calibBooster() {
   websocket.send(JSON.stringify({ cmd: "calibBooster" }));
+}
+
+function savePilotageDistribue() {
+  const msg = {
+    pilotage_distribue: {
+      longueur_canton_mm: parseInt(safeGet("longueur_canton_mm")),
+      zone_ralentissement_mm: parseInt(safeGet("zone_ralentissement_mm")),
+      ecart_r30_n: parseInt(safeGet("ecart_r30_n")),
+      ecart_r30_ho: parseInt(safeGet("ecart_r30_ho")),
+      ecart_r60_n: parseInt(safeGet("ecart_r60_n")),
+      ecart_r60_ho: parseInt(safeGet("ecart_r60_ho")),
+      ecart_avert_n: parseInt(safeGet("ecart_avert_n")),
+      ecart_avert_ho: parseInt(safeGet("ecart_avert_ho")),
+      ecart_man_n: parseInt(safeGet("ecart_man_n")),
+      ecart_man_ho: parseInt(safeGet("ecart_man_ho")),
+      ecart_carre_n: parseInt(safeGet("ecart_carre_n")),
+      ecart_carre_ho: parseInt(safeGet("ecart_carre_ho")),
+      ecart_default_n: parseInt(safeGet("ecart_default_n")),
+      ecart_default_ho: parseInt(safeGet("ecart_default_ho"))
+    }
+  };
+
+  websocket.send(JSON.stringify(msg));
 }

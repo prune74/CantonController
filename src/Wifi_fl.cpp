@@ -1,65 +1,78 @@
 /*
-   Wifi_fl.cpp
-*/
+ * Wifi_fl.cpp — Version robuste (alignée sur ERM)
+ */
 
 #include "Wifi_fl.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include "Config.h"
 #include "Settings.h"
-
 #include <Arduino.h>
 
 void Fl_Wifi::start()
 {
-
 #ifdef WIFI_AP_MODE
 
+    // -----------------------------------------------------------------------
+    // MODE AP (Point d’accès)
+    // -----------------------------------------------------------------------
+    WiFi.mode(WIFI_AP);
     WiFi.softAP(WIFI_SSID, WIFI_PSW);
 
-    Serial.print("\n");
-    Serial.print("\n------------WIFI------------");
-    Serial.print("\nConnected to : ");
-    Serial.print(WIFI_SSID);
-    Serial.print("\nIP address :   ");
-    Serial.print(WiFi.softAPIP());
-    Serial.print("\n\n");
+    Serial.println();
+    Serial.println("------------ WIFI (AP MODE) ------------");
+    Serial.printf("SSID       : %s\n", WIFI_SSID);
+    Serial.printf("Password   : %s\n", WIFI_PSW);
+    Serial.printf("IP address : %s\n", WiFi.softAPIP().toString().c_str());
+    Serial.println("----------------------------------------\n");
 
 #else
-    // 🔥 Version corrigée : utilisation des String (comme la ERM)
-    Serial.print("Connecting to: ");
-    Serial.println(Settings::ssid_str);
 
-    WiFi.begin(Settings::ssid, Settings::password);
+    // -----------------------------------------------------------------------
+    // MODE STA (Client)
+    // -----------------------------------------------------------------------
+    const char *ssid = Settings::ssid;
+    const char *psw  = Settings::password;
 
-    while (WiFi.status() != WL_CONNECTED)
+    Serial.println();
+    Serial.println("------------ WIFI (STA MODE) ------------");
+    Serial.printf("Connexion à SSID=\"%s\"\n", ssid);
+
+    // Obligatoire : sinon l’ESP32 peut relancer un ancien WiFi
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_STA);
+
+    WiFi.begin(ssid, psw);
+
+    uint32_t timeout = millis() + 30000;   // 30 secondes
+    uint32_t lastLog = 0;
+
+    while (WiFi.status() != WL_CONNECTED && millis() < timeout)
     {
-        Serial.println(Settings::ssid_str);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        Serial.print(".");
+        if (millis() - lastLog > 500)
+        {
+            Serial.print(".");
+            lastLog = millis();
+        }
+        vTaskDelay(pdMS_TO_TICKS(50)); // Non bloquant
     }
 
-    Serial.print("\n");
-    Serial.print("\n------------WIFI------------");
-    Serial.print("\nConnected to : ");
-    Serial.print(Settings::ssid_str);
-    Serial.print("\nIP address :   ");
-    Serial.print(WiFi.localIP());
-    Serial.print("\n----------------------------\n\n");
+    Serial.println();
+
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        Serial.println("------------ WIFI CONNECTÉ ------------");
+        Serial.printf("SSID       : %s\n", ssid);
+        Serial.printf("IP address : %s\n", WiFi.localIP().toString().c_str());
+        Serial.println("----------------------------------------\n");
+    }
+    else
+    {
+        Serial.println("------------ WIFI ÉCHEC ---------------");
+        Serial.printf("Impossible de se connecter à \"%s\"\n", ssid);
+        Serial.println("Vérifier SSID / mot de passe");
+        Serial.println("----------------------------------------\n");
+    }
 
 #endif
-
-    //     if (!MDNS.begin(MDNS_NAME))
-    //     {
-    //         debug.print("Error setting up MDNS responder!\n");
-    //         while (1)
-    //             vTaskDelay(pdMS_TO_TICKS(1000));
-    //     }
-
-    // #ifdef DEBUG
-    //     debug.print("MDNS responder started @ http://");
-    //     debug.print(MDNS_NAME);
-    //     debug.print(".local");
-    //     debug.print("\n\n");
-    // #endif
 }

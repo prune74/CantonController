@@ -26,7 +26,7 @@
  *  Niveaux de logs
  * ============================================================================
  */
-#define CC_DEBUG 0 // 0 = aucun log, 1 = INFO/WARN/ERROR, 2 = + TRACE
+#define CC_DEBUG 1 // 0 = aucun log, 1 = INFO/WARN/ERROR, 2 = + TRACE
 
 /* ============================================================================
  *  MÉTADONNÉES PROJET
@@ -138,3 +138,8 @@ static constexpr uint8_t signalSize = 2;  // Signaux H / AH
 
 // LED Topologie
 #define MCP_PIN_LED_TOPOLOGIE 7 // GPA7
+
+/* ---------------------------------------------------------------------------
+ * WiFi : Mode Point d’Accès (optionnel)
+ * --------------------------------------------------------------------------- */
+// #define WIFI_AP_MODE   // Décommenter pour forcer le mode AP

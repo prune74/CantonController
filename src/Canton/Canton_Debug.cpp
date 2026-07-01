@@ -32,13 +32,10 @@ void Canton::debugTopologieEtAiguilles() // 🟣
     CC_LOG_INFO("SM1_idx = %u\n", m_SM1_idx);
 
     /* ------------------------------------------------------------------------
-     *  États SP2 / SM2 (accès secondaires)
+     *  Indices SP2 / SM2 (voisins secondaires)
      * ------------------------------------------------------------------------ */
-    CC_LOG_INFO("SP2 : acces=%d busy=%d\n",
-                m_SP2_acces, m_SP2_busy);
-
-    CC_LOG_INFO("SM2 : acces=%d busy=%d\n",
-                m_SM2_acces, m_SM2_busy);
+    CC_LOG_INFO("SP2_idx = %u\n", m_SP2_idx);
+    CC_LOG_INFO("SM2_idx = %u\n", m_SM2_idx);
 
     /* ------------------------------------------------------------------------
      *  Aiguilles
