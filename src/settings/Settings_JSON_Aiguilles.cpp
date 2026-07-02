@@ -34,8 +34,10 @@ void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc)
         // -------------------------------------------------------------------
         // Aiguille absente → nullptr
         // -------------------------------------------------------------------
-        if (!doc.containsKey(base) ||
-            (doc[base].is<const char *>() && strcmp(doc[base], "null") == 0))
+        JsonVariant v = doc[base];
+
+        if (v.isNull() ||
+            (v.is<const char *>() && strcmp(v.as<const char *>(), "null") == 0))
         {
             canton->setAig(i, nullptr);
             continue;

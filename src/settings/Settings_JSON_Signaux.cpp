@@ -26,15 +26,19 @@
 /* ============================================================================
  *  Chargement des signaux depuis settings.json
  * ==========================================================================*/
-void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc)
 {
     for (uint8_t i = 0; i < signalSize; i++)
     {
-        String baseType = "sign" + String(i) + "type";
+        String baseType     = "sign" + String(i) + "type";
         String basePosition = "sign" + String(i) + "position";
 
-        uint8_t type = doc[baseType] | 0;
-        uint8_t position = doc[basePosition] | 0;
+        // Lecture V7 : JsonVariant + isNull()
+        JsonVariant vType     = doc[baseType];
+        JsonVariant vPosition = doc[basePosition];
+
+        uint8_t type     = vType.isNull()     ? 0 : (vType     | 0);
+        uint8_t position = vPosition.isNull() ? 0 : (vPosition | 0);
 
         // -------------------------------------------------------------------
         // Aucun signal physiquement présent → suppression
@@ -62,17 +66,17 @@ void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc) // 🟢
         s->position(position); // orientation physique
     }
 
-    CC_LOG_INFO("[Settings][Signaux][CC] Signaux chargés \n");
+    CC_LOG_INFO("[Settings][Signaux][CC] Signaux chargés\n");
 }
 
 /* ============================================================================
  *  Sauvegarde des signaux vers settings.json
  * ==========================================================================*/
-void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc)
 {
     for (uint8_t i = 0; i < signalSize; i++)
     {
-        String baseType = "sign" + String(i) + "type";
+        String baseType     = "sign" + String(i) + "type";
         String basePosition = "sign" + String(i) + "position";
 
         Signal *s = canton->getSignal(i);
@@ -82,7 +86,7 @@ void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc) // 🟢
         // -------------------------------------------------------------------
         if (!s)
         {
-            doc[baseType] = 0;
+            doc[baseType]     = 0;
             doc[basePosition] = 0;
             continue;
         }
@@ -90,7 +94,7 @@ void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc) // 🟢
         // -------------------------------------------------------------------
         // Signal présent → sauvegarde du type réel + position
         // -------------------------------------------------------------------
-        doc[baseType] = s->type();         // TYPE_A / TYPE_C / TYPE_E / TYPE_G / TYPE_M
+        doc[baseType]     = s->type();     // TYPE_A / TYPE_C / TYPE_E / TYPE_G / TYPE_M
         doc[basePosition] = s->position(); // Position H ou AH
     }
 }

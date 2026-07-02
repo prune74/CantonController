@@ -98,8 +98,9 @@ void WebHandler::loop()
         }
     }
 
-    // Construction du JSON
-    StaticJsonDocument<256> doc;
+    // Construction du JSON — V7 : JsonDocument dynamique
+    JsonDocument doc;
+
     doc["booster_tension"]      = Booster::tension();
     doc["booster_courant"]      = Booster::courant();
     doc["booster_etat"]         = Booster::etat();
@@ -111,4 +112,6 @@ void WebHandler::loop()
 
     // Envoi sécurisé
     _ws->textAll(out);
+
+    CC_LOG_TRACE("[WebHandler][CC] Booster → état envoyé aux clients WebSocket\n");
 }

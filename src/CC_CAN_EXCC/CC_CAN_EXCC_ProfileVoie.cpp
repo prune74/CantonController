@@ -29,14 +29,18 @@ namespace CC_CAN_EXCC
             return;
         }
 
-        StaticJsonDocument<512> doc;
-        if (deserializeJson(doc, file))
+        JsonDocument doc;
+
+        DeserializationError err = deserializeJson(doc, file);
+        if (err)
         {
-            CC_LOG_ERROR("[TrackProfileCAN][CC] Erreur JSON\n");
+            CC_LOG_ERROR("[TrackProfileCAN][CC] Erreur JSON : %s\n", err.c_str());
             return;
         }
 
-        bool profile = doc["track_profile"] | false;
+        // Lecture V7 : JsonVariant + isNull() + v | fallback
+        JsonVariant v = doc["track_profile"];
+        bool profile = v.isNull() ? false : (v | false);
 
         CC_LOG_INFO("[TrackProfileCAN][CC] Profil lu : %s",
                     profile ? "15V (HO)" : "12V (N)");
@@ -52,7 +56,7 @@ namespace CC_CAN_EXCC
      * ==========================================================================*/
     void sendTrackProfile(Canton *canton, bool profile)
     {
-        uint8_t payload[1] = {uint8_t(profile ? 1 : 0)};
+        uint8_t payload[1] = { uint8_t(profile ? 1 : 0) };
 
         sendEXCC(
             1,

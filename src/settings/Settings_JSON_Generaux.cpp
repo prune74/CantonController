@@ -24,30 +24,57 @@
 /* ============================================================================
  *  Chargement des paramètres généraux
  * ==========================================================================*/
-void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc)
 {
     // ID du canton
-    canton->ID(doc["idCanton"] | UNUSED_ID);
+    {
+        JsonVariant v = doc["idCanton"];
+        canton->ID(v.isNull() ? UNUSED_ID : (v | UNUSED_ID));
+    }
 
     // Nombre d’aiguilles détectées (Exploration interne)
-    Exploration::comptAig(doc["comptAig"] | 0);
+    {
+        JsonVariant v = doc["comptAig"];
+        Exploration::comptAig(v.isNull() ? 0 : (v | 0));
+    }
 
     // Vitesse max
-    canton->maxSpeed(doc["maxSpeed"] | 128);
+    {
+        JsonVariant v = doc["maxSpeed"];
+        canton->maxSpeed(v.isNull() ? 128 : (v | 128));
+    }
 
     // Sens de marche
-    canton->sensMarche(static_cast<SensDeMarche>(doc["sensMarche"] | 0));
+    {
+        JsonVariant v = doc["sensMarche"];
+        canton->sensMarche(static_cast<SensDeMarche>(v.isNull() ? 0 : (v | 0)));
+    }
 
     // WiFi / Exploration
-    Settings::WIFI_ON        = doc["wifi_on"]        | true;
-    Settings::EXPLORATION_ON = doc["exploration_on"] | true;
+    {
+        JsonVariant v = doc["wifi_on"];
+        Settings::WIFI_ON = v.isNull() ? true : (v | true);
+    }
+    {
+        JsonVariant v = doc["exploration_on"];
+        Settings::EXPLORATION_ON = v.isNull() ? true : (v | true);
+    }
 
     // Mode autonome
-    Settings::STANDALONE     = doc["standalone"]     | false;
+    {
+        JsonVariant v = doc["standalone"];
+        Settings::STANDALONE = v.isNull() ? false : (v | false);
+    }
 
     // SSID / Password
-    Settings::ssid_str     = String((const char *)(doc["ssid"]     | ""));
-    Settings::password_str = String((const char *)(doc["password"] | ""));
+    {
+        JsonVariant v = doc["ssid"];
+        Settings::ssid_str = v.isNull() ? "" : String(v | "");
+    }
+    {
+        JsonVariant v = doc["password"];
+        Settings::password_str = v.isNull() ? "" : String(v | "");
+    }
 
     strncpy(Settings::ssid,     Settings::ssid_str.c_str(),     sizeof(Settings::ssid) - 1);
     strncpy(Settings::password, Settings::password_str.c_str(), sizeof(Settings::password) - 1);
@@ -71,6 +98,6 @@ void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc)
 
     doc["ssid"]           = Settings::ssid;
     doc["password"]       = Settings::password;
-    
+
     doc["standalone"]     = Settings::STANDALONE;
 }

@@ -19,9 +19,10 @@
 // ---------------------------------------------------------------------------
 // handleWifi()
 // ---------------------------------------------------------------------------
-void WebHandler::handleWifi(JsonDocument &doc) // 🟢
+void WebHandler::handleWifi(JsonDocument &doc)
 {
-    bool wifi_on = doc["wifi_on"];
+    JsonVariant v = doc["wifi_on"];
+    bool wifi_on = v.isNull() ? Settings::wifiOn() : (v | false);
 
     CC_LOG_INFO("[Settings][CC] wifi_on = %d\n", wifi_on);
 
@@ -34,9 +35,10 @@ void WebHandler::handleWifi(JsonDocument &doc) // 🟢
 // ---------------------------------------------------------------------------
 // handleExploration()
 // ---------------------------------------------------------------------------
-void WebHandler::handleExploration(JsonDocument &doc) // 🟢
+void WebHandler::handleExploration(JsonDocument &doc)
 {
-    bool exploration_on = doc["exploration_on"];
+    JsonVariant v = doc["exploration_on"];
+    bool exploration_on = v.isNull() ? Settings::explorationOn() : (v | false);
 
     CC_LOG_INFO("[Settings][CC] exploration_on = %d\n", exploration_on);
 
@@ -57,7 +59,7 @@ void WebHandler::handleExploration(JsonDocument &doc) // 🟢
 // ---------------------------------------------------------------------------
 // Sauvegarde complète de settings.json via Settings::writeFile()
 // ---------------------------------------------------------------------------
-void WebHandler::handleSave() // 🟢
+void WebHandler::handleSave()
 {
     CC_LOG_INFO("[Settings][CC] Sauvegarde settings.json (servos + booster + params)\n");
 
@@ -70,7 +72,7 @@ void WebHandler::handleSave() // 🟢
 // ---------------------------------------------------------------------------
 // handleRestart()
 // ---------------------------------------------------------------------------
-void WebHandler::handleRestart() // 🟢
+void WebHandler::handleRestart()
 {
     CC_LOG_WARN("[Settings][CC] Redémarrage demandé\n");
     ESP.restart();

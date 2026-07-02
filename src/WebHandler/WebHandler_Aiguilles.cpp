@@ -22,69 +22,68 @@
 // ---------------------------------------------------------------------------
 // handleServoSettings()
 // ---------------------------------------------------------------------------
-void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
+void WebHandler::handleServoSettings(JsonDocument &doc)
 {
-    const char *servoId = doc["servoSettings"][0];
-    const uint16_t value = doc["servoSettings"][1];
-    const uint8_t servoName = doc["servoSettings"][2];
+    // Lecture V7 : JsonVariant + isNull() + v | fallback
+    JsonVariant v = doc["servoSettings"];
+    if (v.isNull())
+    {
+        CC_LOG_WARN("[Aiguilles][CC] servoSettings absent\n");
+        return;
+    }
+
+    JsonArray arr = v.as<JsonArray>();
+    if (arr.size() < 3)
+    {
+        CC_LOG_WARN("[Aiguilles][CC] servoSettings incomplet\n");
+        return;
+    }
+
+    const char *servoId   = arr[0].as<const char*>();
+    uint16_t value        = arr[1] | 0;
+    uint8_t servoName     = arr[2] | 0;
 
     Aig *aig = canton->getAig(servoName);
-
     if (!aig)
     {
         CC_LOG_ERROR("[Aiguilles][CC] servoSettings: aig[%u] inexistant\n", servoName);
         return;
     }
 
-    // Récupération de la config servo dans le Canton
     auto &cfg = canton->getServoCfg(servoName);
 
-    // -----------------------------------------------------------------------
-    // 1) Mise à jour logique interne + servoCfg (version propre)
-    // -----------------------------------------------------------------------
     switch (servoId[2])
     {
-    case '0': // posDroit
-        aig->posDroit(value);
-        cfg.posDroit = value;
-        CC_LOG_INFO("[Aiguilles][CC] posDroit aiguille %u = %u\n", servoName, value);
-        break;
+        case '0': // posDroit
+            aig->posDroit(value);
+            cfg.posDroit = value;
+            CC_LOG_INFO("[Aiguilles][CC] posDroit aiguille %u = %u\n", servoName, value);
+            break;
 
-    case '1': // posDevie
-        aig->posDevie(value);
-        cfg.posDevie = value;
-        CC_LOG_INFO("[Aiguilles][CC] posDevie aiguille %u = %u\n", servoName, value);
-        break;
+        case '1': // posDevie
+            aig->posDevie(value);
+            cfg.posDevie = value;
+            CC_LOG_INFO("[Aiguilles][CC] posDevie aiguille %u = %u\n", servoName, value);
+            break;
 
-    case '2': // speed
-        cfg.speed = value;
-        CC_LOG_INFO("[Aiguilles][CC] speed slider aiguille %u = %u\n",
-                    servoName, value);
-        break;
+        case '2': // speed
+            cfg.speed = value;
+            CC_LOG_INFO("[Aiguilles][CC] speed slider aiguille %u = %u\n", servoName, value);
+            break;
 
-    default:
-        CC_LOG_WARN("[Aiguilles][CC] servoId inconnu : %c\n", servoId[2]);
-        break;
+        default:
+            CC_LOG_WARN("[Aiguilles][CC] servoId inconnu : %c\n", servoId[2]);
+            break;
     }
 
-    // -----------------------------------------------------------------------
-    // 2) Lecture interne (source de vérité JSON 2026)
-    // -----------------------------------------------------------------------
-    uint16_t posDroit = aig->posDroit();
-    uint16_t posDevie = aig->posDevie();
+    uint16_t posDroit    = aig->posDroit();
+    uint16_t posDevie    = aig->posDevie();
     uint16_t speedSlider = cfg.speed;
 
-    // Conversion slider → vitesse EXCC
     uint16_t speed = 11000 - (speedSlider * 1000);
 
-    // -----------------------------------------------------------------------
-    // 3) EXCC unique : plus d’adresse 0/1, plus de logique H/AH
-    // -----------------------------------------------------------------------
     CC_LOG_TRACE("[Aiguilles][CC] EXCC unique pour aiguille %u\n", servoName);
 
-    // -----------------------------------------------------------------------
-    // 4) Envoi RS485 F1 : servoConfig
-    // -----------------------------------------------------------------------
     CC_CAN_EXCC::sendServoConfig(
         canton,
         servoName,
@@ -96,20 +95,32 @@ void WebHandler::handleServoSettings(JsonDocument &doc) // 🟢
 // ---------------------------------------------------------------------------
 // handleServoTest()
 // ---------------------------------------------------------------------------
-void WebHandler::handleServoTest(JsonDocument &doc) // 🟢
+void WebHandler::handleServoTest(JsonDocument &doc)
 {
-    const uint8_t servoName = doc["servoTest"][0];
+    JsonVariant v = doc["servoTest"];
+    if (v.isNull())
+    {
+        CC_LOG_WARN("[Aiguilles][CC] servoTest absent\n");
+        return;
+    }
+
+    JsonArray arr = v.as<JsonArray>();
+    if (arr.size() < 1)
+    {
+        CC_LOG_WARN("[Aiguilles][CC] servoTest incomplet\n");
+        return;
+    }
+
+    uint8_t servoName = arr[0] | 0;
 
     Aig *aig = canton->getAig(servoName);
-
     if (!aig)
     {
         CC_LOG_ERROR("[Aiguilles][CC] servoTest: aig[%u] inexistant\n", servoName);
         return;
     }
 
-    CC_LOG_INFO("[Aiguilles][CC] Test aiguille %u via EXCC unique\n",
-                servoName);
+    CC_LOG_INFO("[Aiguilles][CC] Test aiguille %u via EXCC unique\n", servoName);
 
     CC_CAN_EXCC::sendServoTest(canton, servoName);
 }

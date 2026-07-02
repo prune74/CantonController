@@ -14,22 +14,24 @@ void WebHandler::handlePilotageDistribue(JsonDocument &doc)
 {
     bool updated = false;
 
-    // Helper générique pour uint16_t
+    // Helper générique pour uint16_t (V7)
     auto setU16 = [&](const char *key, void (*setter)(uint16_t)) {
-        if (doc.containsKey(key)) {
-            uint16_t v = doc[key];
-            setter(v);
-            CC_LOG_INFO("[PilotageDistribue][CC] %s = %u\n", key, v);
+        JsonVariant v = doc[key];
+        if (!v.isNull()) {
+            uint16_t val = v | 0;
+            setter(val);
+            CC_LOG_INFO("[PilotageDistribue][CC] %s = %u\n", key, val);
             updated = true;
         }
     };
 
-    // Helper générique pour uint8_t
+    // Helper générique pour uint8_t (V7)
     auto setU8 = [&](const char *key, void (*setter)(uint8_t)) {
-        if (doc.containsKey(key)) {
-            uint8_t v = doc[key];
-            setter(v);
-            CC_LOG_INFO("[PilotageDistribue][CC] %s = %u\n", key, v);
+        JsonVariant v = doc[key];
+        if (!v.isNull()) {
+            uint8_t val = v | 0;
+            setter(val);
+            CC_LOG_INFO("[PilotageDistribue][CC] %s = %u\n", key, val);
             updated = true;
         }
     };
@@ -79,23 +81,32 @@ void WebHandler::handlePilotageDistribue(JsonDocument &doc)
 }
 
 // ---------------------------------------------------------------------------
-// isPilotageDistribue()
+// isPilotageDistribue() — version V7
 // ---------------------------------------------------------------------------
 bool WebHandler::isPilotageDistribue(JsonDocument &doc)
 {
-    return doc.containsKey("longueur_canton_mm") ||
-           doc.containsKey("zone_ralentissement_mm") ||
-           doc.containsKey("ecart_r30_n") ||
-           doc.containsKey("ecart_r30_ho") ||
-           doc.containsKey("ecart_r60_n") ||
-           doc.containsKey("ecart_r60_ho") ||
-           doc.containsKey("ecart_avert_n") ||
-           doc.containsKey("ecart_avert_ho") ||
-           doc.containsKey("ecart_man_n") ||
-           doc.containsKey("ecart_man_ho") ||
-           doc.containsKey("ecart_carre_n") ||
-           doc.containsKey("ecart_carre_ho") ||
-           doc.containsKey("ecart_default_n") ||
-           doc.containsKey("ecart_default_ho");
-}
+    const char *keys[] = {
+        "longueur_canton_mm",
+        "zone_ralentissement_mm",
+        "ecart_r30_n",
+        "ecart_r30_ho",
+        "ecart_r60_n",
+        "ecart_r60_ho",
+        "ecart_avert_n",
+        "ecart_avert_ho",
+        "ecart_man_n",
+        "ecart_man_ho",
+        "ecart_carre_n",
+        "ecart_carre_ho",
+        "ecart_default_n",
+        "ecart_default_ho"
+    };
 
+    for (const char *k : keys) {
+        JsonVariant v = doc[k];
+        if (!v.isNull())
+            return true;
+    }
+
+    return false;
+}

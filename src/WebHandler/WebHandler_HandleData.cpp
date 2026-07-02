@@ -27,9 +27,9 @@
 // ---------------------------------------------------------------------------
 // handleWebSocketData()
 // ---------------------------------------------------------------------------
-void WebHandler::handleWebSocketData(AsyncWebSocketClient *client, uint8_t *data, size_t len) // 🟢
+void WebHandler::handleWebSocketData(AsyncWebSocketClient *client, uint8_t *data, size_t len)
 {
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     DeserializationError err = deserializeJson(doc, data, len);
 
     if (err)
@@ -41,109 +41,136 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client, uint8_t *data
     // -----------------------------------------------------------------------
     // AIGUILLES — CONFIGURATION
     // -----------------------------------------------------------------------
-    if (doc.containsKey("servoSettings"))
     {
-        handleServoSettings(doc);
-        notifyClients();
-        return;
+        JsonVariant v = doc["servoSettings"];
+        if (!v.isNull())
+        {
+            handleServoSettings(doc);
+            notifyClients();
+            return;
+        }
     }
 
     // -----------------------------------------------------------------------
     // AIGUILLES — TEST
     // -----------------------------------------------------------------------
-    if (doc.containsKey("servoTest"))
     {
-        handleServoTest(doc);
-        return;
+        JsonVariant v = doc["servoTest"];
+        if (!v.isNull())
+        {
+            handleServoTest(doc);
+            return;
+        }
     }
 
     // -----------------------------------------------------------------------
     // WIFI
     // -----------------------------------------------------------------------
-    if (doc.containsKey("wifi_on"))
     {
-        handleWifi(doc);
-        notifyClients();
-        return;
+        JsonVariant v = doc["wifi_on"];
+        if (!v.isNull())
+        {
+            handleWifi(doc);
+            notifyClients();
+            return;
+        }
     }
 
     // -----------------------------------------------------------------------
     // EXPLORATION
     // -----------------------------------------------------------------------
-    if (doc.containsKey("exploration_on"))
     {
-        handleExploration(doc);
-        notifyClients();
-        return;
+        JsonVariant v = doc["exploration_on"];
+        if (!v.isNull())
+        {
+            handleExploration(doc);
+            notifyClients();
+            return;
+        }
     }
 
     // -----------------------------------------------------------------------
     // MAX SPEED
     // -----------------------------------------------------------------------
-    if (doc.containsKey("maxSpeed"))
     {
-        uint8_t v = doc["maxSpeed"];
-        canton->maxSpeed(v);
+        JsonVariant v = doc["maxSpeed"];
+        if (!v.isNull())
+        {
+            uint8_t val = v | 0;
+            canton->maxSpeed(val);
 
-        CC_LOG_INFO("[WebHandler][CC] maxSpeed = %u\n", v);
-        notifyClients();
-        return;
+            CC_LOG_INFO("[WebHandler][CC] maxSpeed = %u\n", val);
+            notifyClients();
+            return;
+        }
     }
 
     // -----------------------------------------------------------------------
     // SAVE
     // -----------------------------------------------------------------------
-    if (doc.containsKey("save"))
     {
-        handleSave();
-        return;
+        JsonVariant v = doc["save"];
+        if (!v.isNull())
+        {
+            handleSave();
+            return;
+        }
     }
 
     // -----------------------------------------------------------------------
     // RESTART
     // -----------------------------------------------------------------------
-    if (doc.containsKey("restartEsp"))
     {
-        handleRestart();
-        return;
+        JsonVariant v = doc["restartEsp"];
+        if (!v.isNull())
+        {
+            handleRestart();
+            return;
+        }
     }
 
     // -----------------------------------------------------------------------
     // BOOSTER — seuils manuels
     // -----------------------------------------------------------------------
-    if (doc.containsKey("booster_seuils"))
     {
-        JsonArray arr = doc["booster_seuils"];
-        if (arr.size() >= 2)
+        JsonVariant v = doc["booster_seuils"];
+        if (!v.isNull())
         {
-            uint16_t libre = arr[0];
-            uint16_t occupe = arr[1];
+            JsonArray arr = v.as<JsonArray>();
+            if (arr.size() >= 2)
+            {
+                uint16_t libre  = arr[0] | 0;
+                uint16_t occupe = arr[1] | 0;
 
-            // Mise à jour Settings
-            Settings::setBoosterSeuilLibre(libre);
-            Settings::setBoosterSeuilOccupe(occupe);
+                Settings::setBoosterSeuilLibre(libre);
+                Settings::setBoosterSeuilOccupe(occupe);
 
-            // Sauvegarde JSON
-            Settings::writeFile(canton);
+                Settings::writeFile(canton);
+                Booster::setSeuils(libre, occupe);
 
-            // Mise à jour interne
-            Booster::setSeuils(libre, occupe);
+                CC_LOG_INFO("[WebHandler][CC] Booster seuils mis à jour : libre=%u occupe=%u\n",
+                            libre, occupe);
+            }
 
-            CC_LOG_INFO("[WebHandler][CC] Booster seuils mis à jour : libre=%u occupe=%u\n",
-                        libre, occupe);
+            notifyClients();
+            return;
         }
-
-        notifyClients();
-        return;
     }
 
     // -----------------------------------------------------------------------
     // BOOSTER — calibration auto
     // -----------------------------------------------------------------------
-    if (doc.containsKey("cmd") && strcmp(doc["cmd"], "calibBooster") == 0)
     {
-        EXCC_Link::demanderRecalibration();
-        return;
+        JsonVariant v = doc["cmd"];
+        if (!v.isNull())
+        {
+            const char *cmd = v.as<const char*>();
+            if (cmd && strcmp(cmd, "calibBooster") == 0)
+            {
+                EXCC_Link::demanderRecalibration();
+                return;
+            }
+        }
     }
 
     // -----------------------------------------------------------------------

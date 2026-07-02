@@ -22,12 +22,24 @@
 void Settings_JSON_loadTopologie(Canton *canton, JsonDocument &doc)
 {
     // SP1 / SM1 : indices des voisins principaux
-    canton->SP1_idx(doc["SP1_idx"] | 0);
-    canton->SM1_idx(doc["SM1_idx"] | 0);
+    {
+        JsonVariant v = doc["SP1_idx"];
+        canton->SP1_idx(v.isNull() ? 0 : (v | 0));
+    }
+    {
+        JsonVariant v = doc["SM1_idx"];
+        canton->SM1_idx(v.isNull() ? 0 : (v | 0));
+    }
 
     // SP2 / SM2 : indices des voies secondaires
-    canton->SP2_idx(doc["SP2_idx"] | 0);
-    canton->SM2_idx(doc["SM2_idx"] | 0);
+    {
+        JsonVariant v = doc["SP2_idx"];
+        canton->SP2_idx(v.isNull() ? 0 : (v | 0));
+    }
+    {
+        JsonVariant v = doc["SM2_idx"];
+        canton->SM2_idx(v.isNull() ? 0 : (v | 0));
+    }
 
     CC_LOG_INFO("[Settings][Topo][CC] SP1=%d SM1=%d | SP2=%d SM2=%d\n",
                 canton->SP1_idx(),

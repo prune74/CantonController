@@ -21,7 +21,12 @@
  * ==========================================================================*/
 void Settings_JSON_loadProfileVoie(Canton *canton, JsonDocument &doc)
 {
-    Settings::TRACK_PROFILE = doc["track_profile"] | false;
+    JsonVariant v = doc["track_profile"];
+
+    if (!v.isNull())
+        Settings::TRACK_PROFILE = v | false;
+    else
+        Settings::TRACK_PROFILE = false;
 
     CC_LOG_INFO("[Settings][ProfileVoie][CC] Profil de voie chargé : %s\n",
                 Settings::TRACK_PROFILE ? "15V (HO)" : "12V (N)");

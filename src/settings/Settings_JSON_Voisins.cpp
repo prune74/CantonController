@@ -20,32 +20,33 @@
  *  Table de correspondance index → clé JSON
  * ==========================================================================*/
 static const char *VOISIN_KEY[cantonPsize] =
-    {
-        "p00", "p01", "p10", "p11",
-        "m00", "m01", "m10", "m11"};
+{
+    "p00", "p01", "p10", "p11",
+    "m00", "m01", "m10", "m11"
+};
 
 /* ============================================================================
  *  Chargement des voisins
  * ==========================================================================*/
-void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc)
 {
     for (uint8_t i = 0; i < cantonPsize; i++)
     {
         const char *key = VOISIN_KEY[i];
 
+        JsonVariant v = doc[key];
+
         // -------------------------------------------------------------------
-        // Clé absente → aucun voisin
+        // Clé absente ou valeur null → aucun voisin
         // -------------------------------------------------------------------
-        if (!doc.containsKey(key))
+        if (v.isNull())
         {
             canton->setCantonP(i, nullptr);
             continue;
         }
 
-        // -------------------------------------------------------------------
-        // Valeur "null" → aucun voisin
-        // -------------------------------------------------------------------
-        if (doc[key].is<const char *>() && strcmp(doc[key], "null") == 0)
+        // Valeur "null" (stockée comme string)
+        if (v.is<const char*>() && strcmp(v.as<const char*>(), "null") == 0)
         {
             canton->setCantonP(i, nullptr);
             continue;
@@ -54,7 +55,7 @@ void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc) // 🟢
         // -------------------------------------------------------------------
         // ID du voisin
         // -------------------------------------------------------------------
-        uint8_t id = doc[key] | UNUSED_ID;
+        uint8_t id = v | UNUSED_ID;
 
         if (id == UNUSED_ID)
         {
@@ -81,7 +82,7 @@ void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc) // 🟢
 /* ============================================================================
  *  Sauvegarde des voisins
  * ==========================================================================*/
-void Settings_JSON_saveVoisins(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_saveVoisins(Canton *canton, JsonDocument &doc)
 {
     for (uint8_t i = 0; i < cantonPsize; i++)
     {

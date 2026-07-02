@@ -18,7 +18,7 @@
 /* ============================================================================
  *  Chargement des seuils Booster
  * ==========================================================================*/
-void Settings_JSON_loadBooster(JsonDocument &doc) // 🟢
+void Settings_JSON_loadBooster(JsonDocument &doc)
 {
     Settings::setBoosterSeuilLibre(doc["booster_seuil_libre"] | 0);
     Settings::setBoosterSeuilOccupe(doc["booster_seuil_occupe"] | 0);
@@ -31,8 +31,8 @@ void Settings_JSON_loadBooster(JsonDocument &doc) // 🟢
 /* ============================================================================
  *  Sauvegarde des seuils Booster
  * ==========================================================================*/
-void Settings_JSON_saveBooster(JsonDocument &doc) // 🟢
+void Settings_JSON_saveBooster(JsonDocument &doc)
 {
-    doc["booster_seuil_libre"] = Settings::boosterSeuilLibre();
+    doc["booster_seuil_libre"]  = Settings::boosterSeuilLibre();
     doc["booster_seuil_occupe"] = Settings::boosterSeuilOccupe();
 }

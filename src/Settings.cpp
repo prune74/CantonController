@@ -142,8 +142,8 @@ void Settings::loadFile(Canton *canton) // 🟢
         return;
     }
 
-    // StaticJsonDocument<8192> doc;
-    DynamicJsonDocument doc(8192);
+    JsonDocument doc;
+
     DeserializationError err = deserializeJson(doc, file);
     file.close();
 
@@ -177,7 +177,7 @@ void Settings::loadFile(Canton *canton) // 🟢
 void Settings::writeFile(Canton *canton) // 🟢
 {
     // Créer un document JSON
-    DynamicJsonDocument doc(8192);
+    JsonDocument doc;
 
     // ------------------------------------------------------------------------
     // Sauvegarde des sections JSON 2026

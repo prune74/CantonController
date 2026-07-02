@@ -30,32 +30,36 @@
 /* ============================================================================
  *  Chargement des feux directionnels
  * ==========================================================================*/
-void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc)
 {
-    if (!doc.containsKey("direction"))
+    JsonVariant vDir = doc["direction"];
+    if (vDir.isNull())
         return;
 
-    JsonObject dir = doc["direction"];
+    JsonObject dir = vDir.as<JsonObject>();
 
     // -----------------------------------------------------------------------
     // Direction H
     // -----------------------------------------------------------------------
-    if (dir.containsKey("H"))
     {
-        JsonObject h = dir["H"];
-
-        canton->directionH().active    = h["active"]    | false;
-        canton->directionH().codeBarre = h["codeBarre"] | "";
-
-        // Table dynamique voieDuVoisin
-        if (h.containsKey("voieDuVoisin"))
+        JsonVariant vH = dir["H"];
+        if (!vH.isNull())
         {
-            JsonObject map = h["voieDuVoisin"];
-            for (JsonPair kv : map)
+            JsonObject h = vH.as<JsonObject>();
+
+            canton->directionH().active    = h["active"]    | false;
+            canton->directionH().codeBarre = h["codeBarre"] | "";
+
+            JsonVariant vMap = h["voieDuVoisin"];
+            if (!vMap.isNull())
             {
-                uint16_t id  = atoi(kv.key().c_str());
-                uint8_t voie = kv.value() | 0;
-                canton->directionH().voieDuVoisin[id] = voie;
+                JsonObject map = vMap.as<JsonObject>();
+                for (JsonPair kv : map)
+                {
+                    uint16_t id  = atoi(kv.key().c_str());
+                    uint8_t voie = kv.value() | 0;
+                    canton->directionH().voieDuVoisin[id] = voie;
+                }
             }
         }
     }
@@ -63,21 +67,25 @@ void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc) // 🟢
     // -----------------------------------------------------------------------
     // Direction AH
     // -----------------------------------------------------------------------
-    if (dir.containsKey("AH"))
     {
-        JsonObject ah = dir["AH"];
-
-        canton->directionAH().active    = ah["active"]    | false;
-        canton->directionAH().codeBarre = ah["codeBarre"] | "";
-
-        if (ah.containsKey("voieDuVoisin"))
+        JsonVariant vAH = dir["AH"];
+        if (!vAH.isNull())
         {
-            JsonObject map = ah["voieDuVoisin"];
-            for (JsonPair kv : map)
+            JsonObject ah = vAH.as<JsonObject>();
+
+            canton->directionAH().active    = ah["active"]    | false;
+            canton->directionAH().codeBarre = ah["codeBarre"] | "";
+
+            JsonVariant vMap = ah["voieDuVoisin"];
+            if (!vMap.isNull())
             {
-                uint16_t id  = atoi(kv.key().c_str());
-                uint8_t voie = kv.value() | 0;
-                canton->directionAH().voieDuVoisin[id] = voie;
+                JsonObject map = vMap.as<JsonObject>();
+                for (JsonPair kv : map)
+                {
+                    uint16_t id  = atoi(kv.key().c_str());
+                    uint8_t voie = kv.value() | 0;
+                    canton->directionAH().voieDuVoisin[id] = voie;
+                }
             }
         }
     }
@@ -88,7 +96,7 @@ void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc) // 🟢
 /* ============================================================================
  *  Sauvegarde des feux directionnels
  * ==========================================================================*/
-void Settings_JSON_saveDirection(Canton *canton, JsonDocument &doc) // 🟢
+void Settings_JSON_saveDirection(Canton *canton, JsonDocument &doc)
 {
     JsonObject dir = doc.createNestedObject("direction");
 

@@ -18,12 +18,12 @@
 #include "Signal.h"
 #include "Booster.h"
 
-void WebHandler::notifyClients() // 🟢
+void WebHandler::notifyClients()
 {
     if (!_ws || _ws->count() == 0)
         return;
 
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
 
     // -----------------------------------------------------------------------
     // ID du canton
@@ -46,37 +46,37 @@ void WebHandler::notifyClients() // 🟢
     }
 
     // -----------------------------------------------------------------------
-// Aiguilles (positions + vitesse slider)
-// -----------------------------------------------------------------------
-for (uint8_t i = 0; i < aigSize; i++)
-{
-    Aig *a = canton->getAig(i);
-
-    char keyEtat[4];
-    char keyD[4];
-    char keyV[4];
-    char keyS[4];
-
-    snprintf(keyEtat, sizeof(keyEtat), "s%u", i);
-    snprintf(keyD,    sizeof(keyD),    "s%u0", i);
-    snprintf(keyV,    sizeof(keyV),    "s%u1", i);
-    snprintf(keyS,    sizeof(keyS),    "s%u2", i);
-
-    if (!a)
+    // Aiguilles (positions + vitesse slider)
+    // -----------------------------------------------------------------------
+    for (uint8_t i = 0; i < aigSize; i++)
     {
-        doc[keyEtat] = "null";
-        doc[keyD]    = "";
-        doc[keyV]    = "";
-        doc[keyS]    = "";
+        Aig *a = canton->getAig(i);
+
+        char keyEtat[4];
+        char keyD[4];
+        char keyV[4];
+        char keyS[4];
+
+        snprintf(keyEtat, sizeof(keyEtat), "s%u", i);
+        snprintf(keyD,    sizeof(keyD),    "s%u0", i);
+        snprintf(keyV,    sizeof(keyV),    "s%u1", i);
+        snprintf(keyS,    sizeof(keyS),    "s%u2", i);
+
+        if (!a)
+        {
+            doc[keyEtat] = "null";
+            doc[keyD]    = "";
+            doc[keyV]    = "";
+            doc[keyS]    = "";
+        }
+        else
+        {
+            doc[keyEtat] = "Actif";
+            doc[keyD]    = a->posDroit();
+            doc[keyV]    = a->posDevie();
+            doc[keyS]    = canton->getServoCfg(i).speed;
+        }
     }
-    else
-    {
-        doc[keyEtat] = "Actif";
-        doc[keyD]    = a->posDroit();
-        doc[keyV]    = a->posDevie();
-        doc[keyS]    = canton->getServoCfg(i).speed;
-    }
-}
 
     // -----------------------------------------------------------------------
     // Paramètres système
@@ -87,7 +87,7 @@ for (uint8_t i = 0; i < aigSize; i++)
     doc["sensMarche"]     = canton->sensMarche();
 
     // -----------------------------------------------------------------------
-    // Signaux (cible horaire / antihoraire)
+    // Signaux
     // -----------------------------------------------------------------------
     Signal *sigAH = canton->getSignal(0);
     Signal *sigH  = canton->getSignal(1);
@@ -96,7 +96,7 @@ for (uint8_t i = 0; i < aigSize; i++)
     doc["cibleAntiHor"] = sigAH ? sigAH->type() : 0;
 
     // -----------------------------------------------------------------------
-    // BOOSTER — mesures + seuils
+    // BOOSTER
     // -----------------------------------------------------------------------
     doc["booster_tension"]      = Booster::tension();
     doc["booster_courant"]      = Booster::courant();
