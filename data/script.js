@@ -102,8 +102,8 @@ function onMessage(event) {
   /* ------------------------------------------------------------------------
    * Cibles
    * ------------------------------------------------------------------------ */
-  safeSetImage("imageHoraire", "cible_" + data.cibleHoraire + ".jpg");
-  safeSetImage("imageAntiHor", "cible_" + data.cibleAntiHor + ".jpg");
+  safeSetImage("imageHoraire", "cible_" + data.cibleHoraire + ".png");
+  safeSetImage("imageAntiHor", "cible_" + data.cibleAntiHor + ".png");
 
   /* ------------------------------------------------------------------------
    * Switchs
@@ -214,24 +214,31 @@ function calibBooster() {
   websocket.send(JSON.stringify({ cmd: "calibBooster" }));
 }
 
+/* ============================================================================
+ * Pilotage Distribué
+ * ==========================================================================*/
 function savePilotageDistribue() {
   const msg = {
-    pilotage_distribue: {
-      longueur_canton_mm: parseInt(safeGet("longueur_canton_mm")),
-      zone_ralentissement_mm: parseInt(safeGet("zone_ralentissement_mm")),
-      ecart_r30_n: parseInt(safeGet("ecart_r30_n")),
-      ecart_r30_ho: parseInt(safeGet("ecart_r30_ho")),
-      ecart_r60_n: parseInt(safeGet("ecart_r60_n")),
-      ecart_r60_ho: parseInt(safeGet("ecart_r60_ho")),
-      ecart_avert_n: parseInt(safeGet("ecart_avert_n")),
-      ecart_avert_ho: parseInt(safeGet("ecart_avert_ho")),
-      ecart_man_n: parseInt(safeGet("ecart_man_n")),
-      ecart_man_ho: parseInt(safeGet("ecart_man_ho")),
-      ecart_carre_n: parseInt(safeGet("ecart_carre_n")),
-      ecart_carre_ho: parseInt(safeGet("ecart_carre_ho")),
-      ecart_default_n: parseInt(safeGet("ecart_default_n")),
-      ecart_default_ho: parseInt(safeGet("ecart_default_ho"))
-    }
+    longueur_canton_mm: parseInt(safeGet("longueur_canton_mm")),
+    zone_ralentissement_mm: parseInt(safeGet("zone_ralentissement_mm")),
+
+    ecart_r30_n: parseInt(safeGet("ecart_r30_n")),
+    ecart_r30_ho: parseInt(safeGet("ecart_r30_ho")),
+
+    ecart_r60_n: parseInt(safeGet("ecart_r60_n")),
+    ecart_r60_ho: parseInt(safeGet("ecart_r60_ho")),
+
+    ecart_avert_n: parseInt(safeGet("ecart_avert_n")),
+    ecart_avert_ho: parseInt(safeGet("ecart_avert_ho")),
+
+    ecart_man_n: parseInt(safeGet("ecart_man_n")),
+    ecart_man_ho: parseInt(safeGet("ecart_man_ho")),
+
+    ecart_carre_n: parseInt(safeGet("ecart_carre_n")),
+    ecart_carre_ho: parseInt(safeGet("ecart_carre_ho")),
+
+    ecart_default_n: parseInt(safeGet("ecart_default_n")),
+    ecart_default_ho: parseInt(safeGet("ecart_default_ho"))
   };
 
   websocket.send(JSON.stringify(msg));

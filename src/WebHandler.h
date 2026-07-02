@@ -91,4 +91,8 @@ private:
     void handleSave();
     void handleRestart();
 
+    // Pilotage Distribué
+    bool isPilotageDistribue(JsonDocument &doc);
+    void handlePilotageDistribue(JsonDocument &doc);
+
 };

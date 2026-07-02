@@ -12,6 +12,7 @@
  *        • maxSpeed
  *        • save / restart
  *        • Booster (seuils / calibration)
+ *        • Pilotage Distribué (longueur / zones / écarts)
  *
  * Ce module ne contient aucune logique métier :
  *   → il distribue simplement les commandes WebSocket.
@@ -141,8 +142,16 @@ void WebHandler::handleWebSocketData(AsyncWebSocketClient *client, uint8_t *data
     // -----------------------------------------------------------------------
     if (doc.containsKey("cmd") && strcmp(doc["cmd"], "calibBooster") == 0)
     {
-        // Plus d’index → un seul EXCC
         EXCC_Link::demanderRecalibration();
+        return;
+    }
+
+    // -----------------------------------------------------------------------
+    // PILOTAGE DISTRIBUE — longueur / zones / écarts
+    // -----------------------------------------------------------------------
+    if (isPilotageDistribue(doc))
+    {
+        handlePilotageDistribue(doc);
         return;
     }
 
