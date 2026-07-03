@@ -74,9 +74,6 @@ private:
     // Envoi de l’état complet du canton (CC) aux clients WebSocket
     void notifyClients();
 
-    // Envoi de l’état du Booster à un client lors de la connexion
-    void sendBoosterState(AsyncWebSocketClient *client);
-
     // -----------------------------------------------------------------------
     // HANDLERS SPÉCIALISÉS
     // -----------------------------------------------------------------------
