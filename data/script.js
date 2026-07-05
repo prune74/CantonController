@@ -112,9 +112,33 @@ function onMessage(event) {
   safeCheck("wifi_on", data.wifi_on);
 
   /* ------------------------------------------------------------------------
+   * Booster
+   * ------------------------------------------------------------------------ */
+  if (data.booster_etat !== undefined) {
+    updateBoosterEtat(data.booster_etat);
+  }
+
+  if (data.booster_courant !== undefined) {
+    safeSetValue("booster_courant", data.booster_courant);
+  }
+
+  if (data.booster_tension !== undefined) {
+    safeSetValue("booster_tension", data.booster_tension);
+  }
+
+  if (data.booster_seuil_libre !== undefined) {
+    safeSetValue("booster_seuil_libre", data.booster_seuil_libre);
+  }
+
+  if (data.booster_seuil_occupe !== undefined) {
+    safeSetValue("booster_seuil_occupe", data.booster_seuil_occupe);
+  }
+
+  /* ------------------------------------------------------------------------
    * Debug brut
    * ------------------------------------------------------------------------ */
   safeSetHTML("rawData", event.data);
+  formatRawData();
 }
 
 /* ============================================================================
@@ -214,6 +238,47 @@ function calibBooster() {
   websocket.send(JSON.stringify({ cmd: "calibBooster" }));
 }
 
+function updateBoosterEtat(etatCode) {
+  const etatField = document.getElementById("booster_etat");
+  etatField.className = "etat"; // reset classes
+
+  switch (etatCode) {
+    case 0: // BOOSTER_OFF
+      etatField.classList.add("off");
+      etatField.value = "OFF";
+      break;
+
+    case 1: // BOOSTER_OK
+      etatField.classList.add("ok");
+      etatField.value = "OK";
+      break;
+
+    case 2: // BOOSTER_COURT_CIRCUIT
+      etatField.classList.add("court-circuit");
+      etatField.value = "Court-circuit";
+      break;
+
+    case 3: // BOOSTER_SOUS_TENSION
+      etatField.classList.add("sous-tension");
+      etatField.value = "Sous tension";
+      break;
+
+    case 4: // BOOSTER_SURCHAUFFE
+      etatField.classList.add("surchauffe");
+      etatField.value = "Surchauffe";
+      break;
+
+    case 5: // BOOSTER_ERREUR
+      etatField.classList.add("erreur");
+      etatField.value = "Erreur";
+      break;
+
+    default:
+      etatField.classList.add("off");
+      etatField.value = "Inconnu";
+  }
+}
+
 /* ============================================================================
  * Pilotage Distribué
  * ==========================================================================*/
@@ -242,4 +307,27 @@ function savePilotageDistribue() {
   };
 
   websocket.send(JSON.stringify(msg));
+}
+
+/* ============================================================================
+ * Formatage visuel du Raw Data avec coloration JSON
+ * ==========================================================================*/
+function formatRawData() {
+  const raw = document.getElementById("rawData");
+  if (!raw) return;
+
+  let text = raw.textContent.trim();
+  if (!text) return;
+
+  // Coupe à chaque virgule et ajoute un retour à la ligne
+  text = text.replace(/,/g, ",\n");
+
+  // Coloration syntaxique JSON
+  text = text
+    .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')       // clés
+    .replace(/"([^"]+)"/g, '<span class="json-string">"$1"</span>')     // chaînes
+    .replace(/\b(true|false|null)\b/g, '<span class="json-boolean">$1</span>') // booléens
+    .replace(/\b(\d+)\b/g, '<span class="json-number">$1</span>');      // nombres
+
+  raw.innerHTML = text;
 }

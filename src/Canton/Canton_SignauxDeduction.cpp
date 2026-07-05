@@ -31,7 +31,7 @@ bool Canton::prochainCantonEstDangereux(SensDeMarche sens) const
                           ? getCantonP(m_SP1_idx)
                           : getCantonP(m_SM1_idx);
 
-    return v && (v->masqueAig() != 0);
+    return v && (v->masqueAigTopo() != 0);
 }
 
 bool Canton::aBifurcation(SensDeMarche sens) const

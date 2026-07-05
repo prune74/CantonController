@@ -40,8 +40,8 @@ private:
     // Compteur d’aiguilles logiques
     static uint8_t m_comptAig;
 
-    // ID du satellite voisin détecté via CAN
-    static uint8_t m_ID_satPeriph;
+    // ID du CantonController voisin détecté via CAN
+    static uint8_t m_ID_CCPeriph;
 
     // État des boutons (4 bits)
     static uint8_t m_btnState;
@@ -50,7 +50,7 @@ private:
     static bool m_stopProcess;
 
 public:
-    Exploration() = delete; // Classe statique
+    Exploration() = delete;
 
     // Initialisation
     static void begin(Canton *);
@@ -59,14 +59,14 @@ public:
     static void process(void *);
 
     // 1ère passe au boot
-    static void createAigEtCibles(void *);
+    static void CreationAiguilles(void *);
 
     // Accesseurs internes
     static void comptAig(uint8_t);
     static uint8_t comptAig();
 
-    static void ID_satPeriph(uint8_t);
-    static uint8_t ID_satPeriph();
+    static void ID_CCPeriph(uint8_t);
+    static uint8_t ID_CCPeriph();
 
     static void btnState(uint8_t);
     static uint8_t btnState();

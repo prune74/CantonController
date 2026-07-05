@@ -24,7 +24,7 @@
 // ---------------------------------------------------------------------------
 void WebHandler::handleServoSettings(JsonDocument &doc)
 {
-    // Lecture V7 : JsonVariant + isNull() + v | fallback
+    
     JsonVariant v = doc["servoSettings"];
     if (v.isNull())
     {

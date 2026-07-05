@@ -11,7 +11,7 @@
  *   - autorisation d’accès (acces)
  *   - réservation (reserved)
  *   - adresse RailCom de la loco présente (locoAddr)
- *   - masque d’aiguilles dangereuses (masqueAig)
+ *   - masque d’aiguilles dangereuses (masqueAigTopo)
  *   - aspects reçus depuis EXCC (aspectRecu[H/AH])
  *
  * IMPORTANT 2026 :
@@ -37,7 +37,7 @@ CantonPeriph::CantonPeriph()
       m_reserved(0),
       m_acces(true),
       m_locoAddr(0),
-      m_masqueAig(0x00),
+      m_masqueAigTopo(0x00),
       m_signal(0)
 {
     aspectRecu[0] = 0; // AH
@@ -111,14 +111,14 @@ uint16_t CantonPeriph::locoAddr()
     return m_locoAddr;
 }
 
-void CantonPeriph::masqueAig(uint8_t masqueAig)
+void CantonPeriph::masqueAigTopo(uint8_t masqueAigTopo)
 {
-    m_masqueAig = masqueAig;
+    m_masqueAigTopo = masqueAigTopo;
 }
 
-uint8_t CantonPeriph::masqueAig()
+uint8_t CantonPeriph::masqueAigTopo()
 {
-    return m_masqueAig;
+    return m_masqueAigTopo;
 }
 
 /* ============================================================================

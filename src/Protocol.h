@@ -161,3 +161,15 @@ enum class Cmd_Global11 : uint16_t
     EMERGENCY_STOP = 0x201,
     CLEAR_STOP = 0x202,
 };
+
+/* ============================================================================
+ *  COMMANDES CAN LaBox (traction DCC NMRA)
+ * ==========================================================================*/
+enum class Cmd_CAN_LaBox : uint16_t
+{
+    SYSTEM_CONTROL     = 0x00,  // Power ON/OFF, emergency stop global
+    LOCO_SPEED         = 0x04,  // Vitesse loco
+    LOCO_DIRECTION     = 0x05,  // Sens de marche
+    LOCO_FUNCTION      = 0x06,  // Fonctions F0..F28
+    LOCO_WRITECV_MAIN  = 0x08,  // Écriture CV sur voie principale
+};

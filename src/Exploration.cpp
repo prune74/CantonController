@@ -30,7 +30,7 @@
 // Variables statiques
 // ---------------------------------------------------------------------------
 uint8_t Exploration::m_btnState{0};
-uint8_t Exploration::m_ID_satPeriph{UNUSED_ID};
+uint8_t Exploration::m_ID_CCPeriph{UNUSED_ID};
 uint8_t Exploration::m_comptAig{0};
 bool Exploration::m_stopProcess{false};
 Canton *Exploration::canton = nullptr;
@@ -41,52 +41,13 @@ Canton *Exploration::canton = nullptr;
 void Exploration::comptAig(uint8_t v) { m_comptAig = v; } // 🟢
 uint8_t Exploration::comptAig() { return m_comptAig; }    // 🟢
 
-void Exploration::ID_satPeriph(uint8_t v) { m_ID_satPeriph = v; } // 🟢
-uint8_t Exploration::ID_satPeriph() { return m_ID_satPeriph; }    // 🟢
+void Exploration::ID_CCPeriph(uint8_t v) { m_ID_CCPeriph = v; } // 🟢
+uint8_t Exploration::ID_CCPeriph() { return m_ID_CCPeriph; }    // 🟢
 
 void Exploration::btnState(uint8_t v) { m_btnState = v; } // 🟢
 uint8_t Exploration::btnState() { return m_btnState; }    // 🟢
 
 void Exploration::stopProcess(bool v) { m_stopProcess = v; } // 🟢
-
-// ---------------------------------------------------------------------------
-// Fonction interne : une PASSE de découverte
-// ---------------------------------------------------------------------------
-static void runExplorationPass(Canton *canton) // 🟢
-{
-    // Remise à zéro du compteur d’aiguilles
-    Exploration::comptAig(0);
-
-    // --------------------------------------------------------
-    // Création logique des aiguilles
-    // --------------------------------------------------------
-    auto createAig = [&](uint8_t index, uint8_t nodP0, uint8_t nodP1)
-    {
-        Aig *a = canton->getAig(index);
-        if (!a)
-        {
-            a = new Aig;
-            canton->setAig(index, a);
-        }
-
-        a->ID(index);
-        a->cantonPdroitIdx(nodP0);
-        a->cantonPdevieIdx(nodP1);
-
-        Exploration::comptAig(Exploration::comptAig() + 1);
-    };
-
-    // Conditions de création des aiguilles
-    const uint8_t aigConditions[aigSize][2] = {
-        {p00, p01}, {p00, p10}, {p01, p11}, {m00, m01}, {m00, m10}, {m01, m11}};
-
-    for (uint8_t i = 0; i < aigSize; i++)
-    {
-        auto c = aigConditions[i];
-        if (canton->getCantonP(c[0]) && canton->getCantonP(c[1]))
-            createAig(i, c[0], c[1]);
-    }
-}
 
 // ---------------------------------------------------------------------------
 // begin() — initialisation du mode Exploration
@@ -123,7 +84,7 @@ void Exploration::begin(Canton *nd) // 🟢
                             NULL,
                             1);
 
-    xTaskCreatePinnedToCore(createAigEtCibles,
+    xTaskCreatePinnedToCore(CreationAiguilles,
                             "CreateAiguilles",
                             8192,
                             (void *)canton,
@@ -169,7 +130,7 @@ void Exploration::process(void *p) // 🟢
 
     auto btnPush = [&](uint8_t btnNum)
     {
-        // Notification CAN vers la carte ERM : demande d’attribution d’ID
+        // Demande d’attribution d’ID à ERM
         CC_CAN::sendMsg(
             0,
             (uint16_t)Cmd_Exploration_CC::DEMANDE_ID,
@@ -178,7 +139,8 @@ void Exploration::process(void *p) // 🟢
             UNUSED_ID,
             0);
 
-        if (m_ID_satPeriph < 253)
+        // Si l’ERM a répondu et a fourni un ID valide
+        if (m_ID_CCPeriph < 253)
         {
             CantonPeriph *np = canton->getCantonP(btnNum);
             if (!np)
@@ -187,14 +149,18 @@ void Exploration::process(void *p) // 🟢
                 canton->setCantonP(btnNum, np);
             }
 
-            // ID temporaire en attendant la réponse de l’ERM
-            np->ID(15);
+            // 👉 ID réel attribué par l’ERM
+            np->ID(m_ID_CCPeriph);
 
+            // LED Exploration = confirmation de découverte
             clignoterLEDexploration();
-            m_ID_satPeriph = UNUSED_ID;
+
+            // On remet le buffer d’ID en attente
+            m_ID_CCPeriph = UNUSED_ID;
         }
         else
         {
+            // Pas encore de réponse ERM → simple clignotement
             clignoterLEDexploration();
         }
     };
@@ -202,8 +168,8 @@ void Exploration::process(void *p) // 🟢
     for (;;)
     {
         // Lecture boutons
-        bool satMoins = !canton->mcp.digitalRead(MCP_PIN_BTN_CC_MOINS);
-        bool satPlus = !canton->mcp.digitalRead(MCP_PIN_BTN_CC_PLUS);
+        bool CCMoins = !canton->mcp.digitalRead(MCP_PIN_BTN_CC_MOINS);
+        bool CCPlus = !canton->mcp.digitalRead(MCP_PIN_BTN_CC_PLUS);
         bool dev2 = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_2);
         bool dev1 = !canton->mcp.digitalRead(MCP_PIN_INTER_DEV_1);
 
@@ -214,8 +180,6 @@ void Exploration::process(void *p) // 🟢
         {
             bool newState = !canton->modeManoeuvre();
             canton->setModeManoeuvre(newState);
-
-            Settings::writeFile(canton);
 
             // Mise à jour LED MANOEUVRE (exploration uniquement)
             majLEDmanoeuvre();
@@ -230,8 +194,8 @@ void Exploration::process(void *p) // 🟢
 
         // Gestion découverte
         m_btnState =
-            (satMoins ? 0x01 : 0) |
-            (satPlus ? 0x02 : 0) |
+            (CCMoins ? 0x01 : 0) |
+            (CCPlus ? 0x02 : 0) |
             (dev2 ? 0x04 : 0) |
             (dev1 ? 0x08 : 0);
 
@@ -246,53 +210,55 @@ void Exploration::process(void *p) // 🟢
             break;
 
         case 0x03:
-            // RESET LOGIQUE + nouvelle découverte
+            // RESET LOGIQUE : effacer les cantonP, aiguilles, signaux
+
+            // Suppression des cantons périphériques
             for (uint8_t i = 0; i < cantonPsize; i++)
             {
                 CantonPeriph *np = canton->getCantonP(i);
                 if (np)
                 {
-                    np->ID(UNUSED_ID);
-                    np->busy(false);
-                    np->reserved(0);
-                    np->masqueAig(0);
+                    delete np;
+                    canton->setCantonP(i, nullptr);
                 }
             }
 
-            // Réinitialisation des aiguilles
+            // Suppression des aiguilles
             for (uint8_t i = 0; i < aigSize; i++)
             {
                 Aig *a = canton->getAig(i);
                 if (a)
                 {
-                    a->ID(i);
-                    a->cantonPdroitIdx(0);
-                    a->cantonPdevieIdx(0);
+                    delete a;
+                    canton->setAig(i, nullptr);
                 }
             }
 
-            // Réinitialisation des signaux (aucun type imposé)
+            // Suppression des signaux
             for (uint8_t i = 0; i < signalSize; i++)
             {
                 Signal *s = canton->getSignal(i);
                 if (s)
                 {
-                    s->type(0);
-                    s->position(i);
-                    s->setup();
+                    delete s;
+                    canton->setSignal(i, nullptr);
                 }
             }
 
             m_comptAig = 0;
             clignoterLEDexploration();
-
-            runExplorationPass(canton);
-            break;
-
-        default:
-            eteindreLEDexploration();
             break;
         }
+
+        //// Envoi du masqueAigInterne sur le bus CAN
+        CC_CAN::sendMsg(
+            0,
+            (uint16_t)Cmd_Exploration_CC::UPDATE_MASQUE_AIG,
+            0,
+            canton->ID(),
+            UNUSED_ID,
+            0,
+            canton->masqueAigInterne());
 
         // Passage en exploitation ?
         if (m_stopProcess)
@@ -307,13 +273,55 @@ void Exploration::process(void *p) // 🟢
 }
 
 // ---------------------------------------------------------------------------
-// createAigEtCibles() — 1ère passe au boot
+// CreationAiguilles() - création des aiguilles
 // ---------------------------------------------------------------------------
-void Exploration::createAigEtCibles(void *p) // 🟢
+void Exploration::CreationAiguilles(void *p)
 {
     Canton *canton = (Canton *)p;
 
-    runExplorationPass(canton);
+    // Remise à zéro du masque des aiguilles
+    canton->masqueAigInterne(0);
+    Exploration::comptAig(0);
 
+    // Réinitialisation des aiguilles
+    for (uint8_t i = 0; i < aigSize; i++)
+        canton->setAig(i, nullptr);
+
+    // Fonction interne de création
+    auto createAig = [&](uint8_t index, uint8_t nodP0, uint8_t nodP1)
+    {
+        if (Exploration::comptAig() < 4)
+        {
+            Aig *a = canton->getAig(index);
+            if (!a)
+            {
+                a = new Aig;
+                canton->setAig(index, a);
+            }
+
+            a->ID(index);
+            a->cantonPdroitIdx(nodP0);
+            a->cantonPdevieIdx(nodP1);
+
+            // Mise à jour du masque des aiguilles du canton
+            canton->masqueAigInterne(canton->masqueAigInterne() | (1 << index));
+
+            Exploration::comptAig(Exploration::comptAig() + 1);
+        }
+    };
+
+    // Conditions de création des aiguilles (identique Discovery)
+    const uint8_t aigConditions[aigSize][2] = {
+        {p00, p01}, {p00, p10}, {p01, p11}, {m00, m01}, {m00, m10}, {m01, m11}};
+
+    // Création des aiguilles
+    for (uint8_t i = 0; i < aigSize; i++)
+    {
+        auto c = aigConditions[i];
+        if (canton->getCantonP(c[0]) && canton->getCantonP(c[1]))
+            createAig(i, c[0], c[1]);
+    }
+
+    // Fin de tâche
     vTaskDelete(NULL);
 }

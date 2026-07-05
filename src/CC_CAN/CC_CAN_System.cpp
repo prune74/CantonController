@@ -19,9 +19,9 @@
 void handleSystemCommand(uint8_t commande,
                          const CanMsg &msg,
                          Canton *canton,
-                         uint16_t idSatExpediteur)
+                         uint16_t idCCExpediteur)
 {
-    (void)idSatExpediteur; // non utilisé
+    (void)idCCExpediteur; // non utilisé
 
     switch ((Cmd_ERM_to_CC)commande)
     {

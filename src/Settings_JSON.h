@@ -18,7 +18,7 @@
  *       → topologie ferroviaire locale (SP1 / SM1)
  *
  *   - Settings_JSON_Voisins.cpp
- *       → cantons voisins SP2 / SM2 (satellites périphériques)
+ *       → cantons voisins SP2 / SM2 (CantonController périphériques)
  *
  *   - Settings_JSON_Aiguilles.cpp
  *       → aiguilles LOGIQUES (indices, positions, liens topologiques)
@@ -42,27 +42,25 @@ class Canton;
 /* ============================================================================
    Modules JSON — Chargement (settings.json → objets Canton)
    ==========================================================================*/
-void Settings_JSON_loadGeneraux              (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadProfileVoie           (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadModeManoeuvre         (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadTopologie             (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadVoisins               (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadAiguilles             (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadSignaux               (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadDirection             (Canton *canton, JsonDocument &doc);
-void Settings_JSON_loadBooster               (JsonDocument &doc);
-void Settings_JSON_loadPilotageDistribue     (JsonDocument &doc);
+void Settings_JSON_loadGeneraux(Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadProfileVoie(Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadModeManoeuvre(Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadVoisins(Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadSignaux(Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc);
+void Settings_JSON_loadBooster(JsonDocument &doc);
+void Settings_JSON_loadPilotageDistribue(JsonDocument &doc);
 
 /* ============================================================================
    Modules JSON — Sauvegarde (objets Canton → settings.json)
    ==========================================================================*/
-void Settings_JSON_saveGeneraux              (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveProfileVoie           (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveModeManoeuvre         (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveTopologie             (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveVoisins               (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveAiguilles             (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveSignaux               (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveDirection             (Canton *canton, JsonDocument &doc);
-void Settings_JSON_saveBooster               (JsonDocument &doc);
-void Settings_JSON_savePilotageDistribue     (JsonDocument &doc);
+void Settings_JSON_saveGeneraux(Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveProfileVoie(Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveModeManoeuvre(Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveVoisins(Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveAiguilles(Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveSignaux(Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveDirection(Canton *canton, JsonDocument &doc);
+void Settings_JSON_saveBooster(JsonDocument &doc);
+void Settings_JSON_savePilotageDistribue(JsonDocument &doc);

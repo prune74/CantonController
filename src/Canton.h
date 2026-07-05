@@ -259,6 +259,12 @@ public:
     }
 
     // -----------------------------------------------------------------------
+    // Masque d'aiguillages du canton
+    // -----------------------------------------------------------------------
+    uint8_t masqueAigInterne() const { return m_masqueAigInterne; }
+    void masqueAigInterne(uint8_t v) { m_masqueAigInterne = v; }
+
+    // -----------------------------------------------------------------------
     // Pilotage distribué (wrapper Canton)
     // -----------------------------------------------------------------------
     void pilotageDistribue();
@@ -306,4 +312,9 @@ private:
     // -----------------------------------------------------------------------
     uint8_t m_aspectLocalH = static_cast<uint8_t>(ExccAspect::ASPECT_CARRE);
     uint8_t m_aspectLocalAH = static_cast<uint8_t>(ExccAspect::ASPECT_CARRE);
+
+    // -----------------------------------------------------------------------
+    // Masque d'aiguillages du canton
+    // -----------------------------------------------------------------------
+    uint8_t m_masqueAigInterne = 0;
 };

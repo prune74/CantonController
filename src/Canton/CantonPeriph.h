@@ -11,7 +11,7 @@
  *   - réservation (reserved)
  *   - autorisation d’accès (acces)
  *   - adresse RailCom de la loco présente (locoAddr)
- *   - masque d’aiguilles bloquantes (masqueAig)
+ *   - masque d’aiguilles bloquantes (masqueAigTopo)
  *   - aspects reçus depuis EXCC (aspectRecu[H/AH])
  *
  * IMPORTANT :
@@ -63,8 +63,8 @@ public:
     /* ------------------------------------------------------------------------
      * Masque d’aiguilles bloquantes
      * ------------------------------------------------------------------------ */
-    void masqueAig(uint8_t masqueAig);
-    uint8_t masqueAig();
+    void masqueAigTopo(uint8_t masqueAigTopo);
+    uint8_t masqueAigTopo();
 
     /* ------------------------------------------------------------------------
      * Aspects reçus depuis EXCC (H / AH)
@@ -86,6 +86,6 @@ private:
     uint16_t m_reserved;
     bool m_acces;
     uint16_t m_locoAddr;
-    uint8_t m_masqueAig;
+    uint8_t m_masqueAigTopo;
     uint8_t m_signal; // réservé pour extensions futures
 };

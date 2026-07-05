@@ -27,6 +27,14 @@
  * ==========================================================================*/
 void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc)
 {
+    // -------------------------------------------------------------------
+    // Chargement du masque interne des aiguilles
+    // -------------------------------------------------------------------
+    canton->masqueAigInterne(doc["masqueAigInterne"] | 0);
+
+    // -------------------------------------------------------------------
+    // Chargement des aiguilles logiques
+    // -------------------------------------------------------------------
     for (uint8_t i = 0; i < aigSize; i++)
     {
         String base = "aig" + String(i);
@@ -56,21 +64,18 @@ void Settings_JSON_loadAiguilles(Canton *canton, JsonDocument &doc)
         // -------------------------------------------------------------------
         // Chargement des champs logiques
         // -------------------------------------------------------------------
-        a->ID(doc[base + "id"] | 0);
-        a->posDroit(doc[base + "posDroit"] | 1500);
-        a->posDevie(doc[base + "posDevie"] | 1500);
+        JsonObject obj = doc[base].as<JsonObject>();
 
-        // -------------------------------------------------------------------
-        // Vitesse (stockée dans servoCfg, plus dans Aig)
-        // -------------------------------------------------------------------
-        canton->getServoCfg(i).speed = doc[base + "speed"] | 0;
-
-        // -------------------------------------------------------------------
-        // Index EXCC côté H / AH
-        // -------------------------------------------------------------------
-        a->cantonPdroitIdx(doc[base + "cantonPdroitIdx"] | 0);
-        a->cantonPdevieIdx(doc[base + "cantonPdevieIdx"] | 0);
+        a->ID(obj["id"] | 0);
+        a->posDroit(obj["posDroit"] | 1500);
+        a->posDevie(obj["posDevie"] | 1500);
+        canton->getServoCfg(i).speed = obj["speed"] | 0;
     }
+
+    // -------------------------------------------------------------------
+    // Sauvegarde du masque interne des aiguilles
+    // -------------------------------------------------------------------
+    doc["masqueAigInterne"] = canton->masqueAigInterne();
 
     CC_LOG_INFO("[Settings][Aiguilles][CC] Aiguilles logiques chargées (speed via servoCfg)\n");
 }
@@ -97,20 +102,12 @@ void Settings_JSON_saveAiguilles(Canton *canton, JsonDocument &doc)
         // -------------------------------------------------------------------
         // Aiguille active
         // -------------------------------------------------------------------
-        doc[base] = "Actif";
-        doc[base + "id"] = a->ID();
-        doc[base + "posDroit"] = a->posDroit();
-        doc[base + "posDevie"] = a->posDevie();
+        JsonObject obj = doc[base].to<JsonObject>();
 
-        // -------------------------------------------------------------------
-        // Vitesse logique (désormais dans servoCfg)
-        // -------------------------------------------------------------------
-        doc[base + "speed"] = canton->getServoCfg(i).speed;
-
-        // -------------------------------------------------------------------
-        // Index EXCC côté H / AH
-        // -------------------------------------------------------------------
-        doc[base + "cantonPdroitIdx"] = a->cantonPdroitIdx();
-        doc[base + "cantonPdevieIdx"] = a->cantonPdevieIdx();
+        obj["state"] = "Actif";
+        obj["id"] = a->ID();
+        obj["posDroit"] = a->posDroit();
+        obj["posDevie"] = a->posDevie();
+        obj["speed"] = canton->getServoCfg(i).speed;
     }
 }

@@ -6,408 +6,380 @@
   <title>Gestion Canton</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png" />
-
-  <!-- W3CSS + styles -->
-  <link rel="stylesheet" type="text/css" href="w3.css" />
-  <link rel="stylesheet" type="text/css" href="style.css" />
-
-  <!-- Script WebSocket / UI -->
-  <script src="script.js" type="text/javascript" defer></script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
 </head>
 
-<body class="w3-light-grey">
+<body>
 
-  <!-- Header -->
-  <header class="w3-card w3-blue w3-padding-small w3-center">
-    <h3 class="w3-margin-0">Canton Controller — Gestion Canton</h3>
+  <header>
+    <h3>Gestion Canton — Interface</h3>
   </header>
 
-  <!-- État WebSocket -->
-  <section class="w3-margin w3-center w3-padding-12">
-    <span id="messages" class="w3-wide w3-text-red"></span>
-  </section>
+  <main class="dashboard">
 
-  <!-- Bloc principal : paramètres canton -->
-  <section class="w3-margin w3-card w3-white w3-padding-24">
-    <h4 class="w3-border-bottom w3-padding-small">Paramètres du canton</h4>
+    <!-- ========================= COLONNE 1 ========================= -->
 
-    <table class="w3-table" style="max-width:900px;margin:auto;">
-      <tr>
-        <td style="width:30%;">Canton ID :</td>
-        <td style="width:20%;"><input id="idCanton" name="idCanton" size="10" type="text" value="10" /></td>
-        <td style="width:20%;"></td>
-        <td style="width:30%;"></td>
-      </tr>
+    <!-- Paramètres du canton -->
+    <section class="card">
+      <h4>Paramètres du canton</h4>
 
-      <tr>
-        <td>WiFi :</td>
-        <td>
-          <input name="wifi_on" type="checkbox" id="wifi_on" onclick="wifi_on(this)" checked />
-        </td>
-        <td>Exploration :</td>
-        <td>
-          <input name="exploration_on" type="checkbox" id="exploration_on" onclick="exploration_on(this)" checked />
-        </td>
-      </tr>
+      <div class="form-row">
+        <label>Canton ID</label>
+        <input id="idCanton" type="number" value="10">
+        <span class="ref"></span>
+      </div>
 
-      <tr>
-        <td>Sens de la marche :</td>
-        <td>
-          <input type="radio" id="horaire" name="sensMarche" value="horaire" />
-          <label for="horaire">Horaire</label>
-        </td>
-        <td>
-          <input type="radio" id="antihoraire" name="sensMarche" value="antihoraire" />
-          <label for="antihoraire">Anti horaire</label>
-        </td>
-        <td>
-          <input type="radio" id="indifferent" name="sensMarche" value="indifferent" checked />
-          <label for="indifferent">Indifférent</label>
-        </td>
-      </tr>
+      <div class="form-row">
+        <label>WiFi</label>
+        <input id="wifi_on" type="checkbox" onclick="wifi_on(this)">
+        <span class="ref"></span>
+      </div>
 
-      <tr>
-        <td>Vitesse maxi :</td>
-        <td>
-          <input name="maxSpeed" type="number" id="maxSpeed" value="128" size="5" />
-        </td>
-        <td></td>
-        <td></td>
-      </tr>
+      <div class="form-row">
+        <label>Exploration</label>
+        <input id="exploration_on" type="checkbox" onclick="exploration_on(this)">
+        <span class="ref"></span>
+      </div>
 
-      <!-- Booster -->
-      <tr>
-        <td colspan="4">
-          <div class="w3-margin-top w3-card w3-padding-16">
-            <h4 class="w3-border-bottom w3-padding-small">Booster</h4>
+      <div class="form-row">
+        <label>Vitesse maxi</label>
+        <input id="maxSpeed" type="number" value="128">
+        <span class="ref"></span>
+      </div>
 
-            <table class="w3-table" style="max-width:700px;margin:auto;">
-              <tr>
-                <td>Seuil libre (mA) :</td>
-                <td><input id="booster_seuil_libre" type="number" min="0" max="2000" /></td>
-              </tr>
-              <tr>
-                <td>Seuil occupé (mA) :</td>
-                <td><input id="booster_seuil_occupe" type="number" min="0" max="2000" /></td>
-              </tr>
+      <div class="form-row">
+        <label>Sens de marche</label>
+        <select id="sensMarche">
+          <option value="horaire">Horaire</option>
+          <option value="antihoraire">Anti horaire</option>
+          <option value="indifferent" selected>Indifférent</option>
+        </select>
+        <span class="ref"></span>
+      </div>
+    </section>
 
-              <tr>
-                <td colspan="2">
-                  <hr />
-                </td>
-              </tr>
+    <!-- Booster -->
+    <section class="card">
+      <h4>Booster</h4>
 
-              <tr>
-                <td>Courant (mA) :</td>
-                <td><input id="booster_courant" type="text" readonly /></td>
-              </tr>
-              <tr>
-                <td>Tension (mV) :</td>
-                <td><input id="booster_tension" type="text" readonly /></td>
-              </tr>
-              <tr>
-                <td>État :</td>
-                <td><input id="booster_etat" type="text" readonly /></td>
-              </tr>
-              <tr>
-                <td>Occupation :</td>
-                <td><input id="booster_occupation" type="text" readonly /></td>
-              </tr>
-              <tr>
-                <td>Présence booster :</td>
-                <td><input id="booster_present" type="text" readonly /></td>
-              </tr>
+      <div class="booster-grid">
 
-              <tr>
-                <td colspan="2">
-                  <hr />
-                </td>
-              </tr>
-
-              <tr>
-                <td colspan="2" class="w3-center">
-                  <button class="w3-button w3-green w3-margin-right" onclick="saveBooster()">Sauver seuils</button>
-                  <button class="w3-button w3-blue" onclick="calibBooster()">Calibration auto</button>
-                </td>
-              </tr>
-            </table>
+        <!-- Colonne gauche -->
+        <div class="booster-col">
+          <div class="booster-row">
+            <label for="booster_seuil_libre">Seuil libre (mA)</label>
+            <input id="booster_seuil_libre" type="number" value="50">
+            <span class="ref">Réf : 50</span>
           </div>
-        </td>
-      </tr>
 
-      <!-- Pilotage distribué -->
-      <tr>
-        <td colspan="4">
-          <div class="w3-margin-top w3-card w3-padding-16">
-            <h4 class="w3-border-bottom w3-padding-small">Pilotage distribué</h4>
-
-            <table class="w3-table" style="max-width:700px;margin:auto;">
-
-              <tr>
-                <td>Longueur du canton (mm) :</td>
-                <td><input id="longueur_canton_mm" type="number" min="0" max="10000" /></td>
-                <td class="w3-small w3-text-grey">Réf : 3000</td>
-              </tr>
-
-              <tr>
-                <td>Zone de ralentissement (mm) :</td>
-                <td><input id="zone_ralentissement_mm" type="number" min="0" max="5000" /></td>
-                <td class="w3-small w3-text-grey">Réf : 600</td>
-              </tr>
-
-              <tr>
-                <td colspan="3">
-                  <hr />
-                </td>
-              </tr>
-
-              <tr>
-                <td>Écart R30 N :</td>
-                <td><input id="ecart_r30_n" type="number" min="0" max="50" value="7" /></td>
-                <td class="w3-small w3-text-grey">Réf : 7</td>
-              </tr>
-
-              <tr>
-                <td>Écart R30 HO :</td>
-                <td><input id="ecart_r30_ho" type="number" min="0" max="50" value="15" /></td>
-                <td class="w3-small w3-text-grey">Réf : 15</td>
-              </tr>
-
-              <tr>
-                <td>Écart R60 N :</td>
-                <td><input id="ecart_r60_n" type="number" min="0" max="50" value="6" /></td>
-                <td class="w3-small w3-text-grey">Réf : 6</td>
-              </tr>
-
-              <tr>
-                <td>Écart R60 HO :</td>
-                <td><input id="ecart_r60_ho" type="number" min="0" max="50" value="12" /></td>
-                <td class="w3-small w3-text-grey">Réf : 12</td>
-              </tr>
-
-              <tr>
-                <td>Écart avert N :</td>
-                <td><input id="ecart_avert_n" type="number" min="0" max="50" value="5" /></td>
-                <td class="w3-small w3-text-grey">Réf : 5</td>
-              </tr>
-
-              <tr>
-                <td>Écart avert HO :</td>
-                <td><input id="ecart_avert_ho" type="number" min="0" max="50" value="10" /></td>
-                <td class="w3-small w3-text-grey">Réf : 10</td>
-              </tr>
-
-              <tr>
-                <td>Écart manœuvre N :</td>
-                <td><input id="ecart_man_n" type="number" min="0" max="50" value="4" /></td>
-                <td class="w3-small w3-text-grey">Réf : 4</td>
-              </tr>
-
-              <tr>
-                <td>Écart manœuvre HO :</td>
-                <td><input id="ecart_man_ho" type="number" min="0" max="50" value="8" /></td>
-                <td class="w3-small w3-text-grey">Réf : 8</td>
-              </tr>
-
-              <tr>
-                <td>Écart carré N :</td>
-                <td><input id="ecart_carre_n" type="number" min="0" max="50" value="3" /></td>
-                <td class="w3-small w3-text-grey">Réf : 3</td>
-              </tr>
-
-              <tr>
-                <td>Écart carré HO :</td>
-                <td><input id="ecart_carre_ho" type="number" min="0" max="50" value="7" /></td>
-                <td class="w3-small w3-text-grey">Réf : 7</td>
-              </tr>
-
-              <tr>
-                <td>Écart défaut N :</td>
-                <td><input id="ecart_default_n" type="number" min="0" max="50" value="5" /></td>
-                <td class="w3-small w3-text-grey">Réf : 5</td>
-              </tr>
-
-              <tr>
-                <td>Écart défaut HO :</td>
-                <td><input id="ecart_default_ho" type="number" min="0" max="50" value="10" /></td>
-                <td class="w3-small w3-text-grey">Réf : 10</td>
-              </tr>
-
-              <tr>
-                <td colspan="3">
-                  <hr />
-                </td>
-              </tr>
-
-              <tr>
-                <td colspan="3" class="w3-center">
-                  <button class="w3-button w3-green" onclick="savePilotageDistribue()">Sauver pilotage
-                    distribué</button>
-                </td>
-              </tr>
-
-            </table>
+          <div class="booster-row">
+            <label for="booster_seuil_occupe">Seuil occupé (mA)</label>
+            <input id="booster_seuil_occupe" type="number" value="200">
+            <span class="ref">Réf : 200</span>
           </div>
-        </td>
-      </tr>
+        </div>
 
-      <!-- Topologie SP/SM -->
-      <tr>
-        <td>p00 :</td>
-        <td><input name="p00" type="text" id="p00" value="null" size="10" readonly /></td>
-        <td>m00 :</td>
-        <td><input name="m00" type="text" id="m00" value="null" size="10" readonly /></td>
-      </tr>
-      <tr>
-        <td>p01 :</td>
-        <td><input name="p01" type="text" id="p01" value="null" size="10" readonly /></td>
-        <td>m01 :</td>
-        <td><input name="m01" type="text" id="m01" value="null" size="10" readonly /></td>
-      </tr>
-      <tr>
-        <td>p10 :</td>
-        <td><input name="p10" type="text" id="p10" value="null" size="10" readonly /></td>
-        <td>m10 :</td>
-        <td><input name="m10" type="text" id="m10" value="null" size="10" readonly /></td>
-      </tr>
-      <tr>
-        <td>p11 :</td>
-        <td><input name="p11" type="text" id="p11" value="null" size="10" readonly /></td>
-        <td>m11 :</td>
-        <td><input name="m11" type="text" id="m11" value="null" size="10" readonly /></td>
-      </tr>
-    </table>
-  </section>
+        <!-- Colonne droite -->
+        <div class="booster-col">
+          <div class="booster-row">
+            <label for="booster_courant">Courant (mA)</label>
+            <input id="booster_courant" type="text" readonly>
+          </div>
 
-  <!-- Cibles signaux -->
-  <section class="w3-margin w3-card w3-white w3-padding-24">
-    <h4 class="w3-border-bottom w3-padding-small">Types de cibles</h4>
-    <table class="w3-table" style="max-width:900px;margin:auto;">
-      <tr>
-        <td style="width:15%;">Horaire :</td>
-        <td style="width:35%;"><img id="imageHoraire" src="" alt="Cible horaire" class="w3-image" /></td>
-        <td style="width:15%;">Anti horaire :</td>
-        <td style="width:35%;"><img id="imageAntiHor" src="" alt="Cible anti horaire" class="w3-image" /></td>
-      </tr>
-    </table>
-  </section>
+          <div class="booster-row">
+            <label for="booster_tension">Tension (mV)</label>
+            <input id="booster_tension" type="text" readonly>
+          </div>
 
-  <!-- Servos / Aiguilles -->
-  <section class="w3-margin w3-card w3-white w3-padding-24">
-    <h4 class="w3-border-bottom w3-padding-small">Aiguilles / Servos</h4>
+          <div class="booster-row">
+            <label for="booster_etat">État</label>
+            <input id="booster_etat" type="text" readonly>
+          </div>
+          
+        </div>
 
-    <table class="w3-table w3-striped" style="max-width:1000px;margin:auto;">
-      <tr>
-        <th>Aiguille</th>
-        <th>État</th>
-        <th>Aig droite</th>
-        <th>Aig déviée</th>
-        <th>Vitesse</th>
-        <th>Test</th>
-      </tr>
+      </div>
 
-      <!-- Servo 0..5 -->
-      <tr>
-        <td>Servo 0 :</td>
-        <td><input id="s0" size="5" type="text" value="null" /></td>
-        <td><input id="s00" name="0" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s01" name="0" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s02" name="0" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" />
-        </td>
-        <td><button id="servoTest0" name="0" onclick="servoTest(this)"
-            class="w3-button w3-green w3-small w3-ripple">test</button></td>
-      </tr>
+      <div class="booster-button-row">
+        <button onclick="saveBooster()">Sauver seuils</button>
+        <button onclick="calibBooster()">Calibration auto</button>
+      </div>
+    </section>
 
-      <tr>
-        <td>Servo 1 :</td>
-        <td><input id="s1" size="5" type="text" value="null" /></td>
-        <td><input id="s10" name="1" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s11" name="1" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s12" name="1" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" />
-        </td>
-        <td><button id="servoTest1" name="1" onclick="servoTest(this)"
-            class="w3-button w3-green w3-small w3-ripple">test</button></td>
-      </tr>
+    <!-- Paramètres pilotage distribué -->
+    <section class="card">
+      <h4>Pilotage distribué</h4>
 
-      <tr>
-        <td>Servo 2 :</td>
-        <td><input id="s2" size="5" type="text" value="null" /></td>
-        <td><input id="s20" name="2" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s21" name="2" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s22" name="2" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" />
-        </td>
-        <td><button id="servoTest2" name="2" onclick="servoTest(this)"
-            class="w3-button w3-green w3-small w3-ripple">test</button></td>
-      </tr>
+      <div class="pilotage-grid">
+        <div class="pilotage-col">
 
-      <tr>
-        <td>Servo 3 :</td>
-        <td><input id="s3" size="5" type="text" value="null" /></td>
-        <td><input id="s30" name="3" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s31" name="3" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s32" name="3" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" />
-        </td>
-        <td><button id="servoTest3" name="3" onclick="servoTest(this)"
-            class="w3-button w3-green w3-small w3-ripple">test</button></td>
-      </tr>
+          <div class="pilotage-row">
+            <label for="longueur_canton_mm">Longueur canton (mm)</label>
+            <input id="longueur_canton_mm" type="number" value="3000">
+            <span class="ref">Réf : 3000</span>
+          </div>
 
-      <tr>
-        <td>Servo 4 :</td>
-        <td><input id="s4" size="5" type="text" value="null" /></td>
-        <td><input id="s40" name="4" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s41" name="4" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s42" name="4" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" />
-        </td>
-        <td><button id="servoTest4" name="4" onclick="servoTest(this)"
-            class="w3-button w3-green w3-small w3-ripple">test</button></td>
-      </tr>
+          <div class="pilotage-row">
+            <label for="zone_ralentissement_mm">Zone ralentissement (mm)</label>
+            <input id="zone_ralentissement_mm" type="number" value="600">
+            <span class="ref">Réf : 600</span>
+          </div>
 
-      <tr>
-        <td>Servo 5 :</td>
-        <td><input id="s5" size="5" type="text" value="null" /></td>
-        <td><input id="s50" name="5" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s51" name="5" size="6" type="number" value="1500" min="800" max="2100"
-            onchange="servoSettings(this)" /></td>
-        <td><input id="s52" name="5" size="4" type="number" value="5" min="1" max="10" onchange="servoSettings(this)" />
-        </td>
-        <td><button id="servoTest5" name="5" onclick="servoTest(this)"
-            class="w3-button w3-green w3-small w3-ripple">test</button></td>
-      </tr>
-    </table>
-  </section>
+          <div class="pilotage-row">
+            <label for="ecart_r30_n">Écart R30 N</label>
+            <input id="ecart_r30_n" type="number" value="7">
+            <span class="ref">Réf : 7</span>
+          </div>
 
-  <!-- Boutons système -->
-  <section class="w3-margin w3-card w3-white w3-padding-24 w3-center">
-    <button id="save" name="save" onclick="save(this)" class="w3-button w3-green w3-large w3-ripple w3-margin-right"
-      style="width:30%;">Save</button>
-    <button id="restartEsp" name="restartEsp" onclick="restartEsp(this)" class="w3-button w3-red w3-large w3-ripple"
-      style="width:30%;">Restart ESP</button>
-  </section>
+          <div class="pilotage-row">
+            <label for="ecart_r30_ho">Écart R30 HO</label>
+            <input id="ecart_r30_ho" type="number" value="15">
+            <span class="ref">Réf : 15</span>
+          </div>
 
-  <!-- Lien doc -->
-  <section class="w3-margin w3-center">
-    <a href="https://alkans.fr/locoduino/satellites_v2/document-pedagogique-signaux-regimes-exploitation-v1.pdf"
-      target="_blank">
-      Documentation signaux SNCF (PDF)
-    </a>
-  </section>
+          <div class="pilotage-row">
+            <label for="ecart_r60_n">Écart R60 N</label>
+            <input id="ecart_r60_n" type="number" value="6">
+            <span class="ref">Réf : 6</span>
+          </div>
 
-  <!-- Raw data -->
-  <section id="rawData" class="w3-margin w3-card w3-white w3-padding-24">
-    Raw data
-  </section>
+          <div class="pilotage-row">
+            <label for="ecart_r60_ho">Écart R60 HO</label>
+            <input id="ecart_r60_ho" type="number" value="12">
+            <span class="ref">Réf : 12</span>
+          </div>
+
+        </div>
+
+        <div class="pilotage-col">
+
+          <div class="pilotage-row">
+            <label for="ecart_avert_n">Écart avert N</label>
+            <input id="ecart_avert_n" type="number" value="5">
+            <span class="ref">Réf : 5</span>
+          </div>
+
+          <div class="pilotage-row">
+            <label for="ecart_avert_ho">Écart avert HO</label>
+            <input id="ecart_avert_ho" type="number" value="10">
+            <span class="ref">Réf : 10</span>
+          </div>
+
+          <div class="pilotage-row">
+            <label for="ecart_man_n">Écart manœuvre N</label>
+            <input id="ecart_man_n" type="number" value="4">
+            <span class="ref">Réf : 4</span>
+          </div>
+
+          <div class="pilotage-row">
+            <label for="ecart_man_ho">Écart manœuvre HO</label>
+            <input id="ecart_man_ho" type="number" value="8">
+            <span class="ref">Réf : 8</span>
+          </div>
+
+          <div class="pilotage-row">
+            <label for="ecart_carre_n">Écart carré N</label>
+            <input id="ecart_carre_n" type="number" value="3">
+            <span class="ref">Réf : 3</span>
+          </div>
+
+          <div class="pilotage-row">
+            <label for="ecart_carre_ho">Écart carré HO</label>
+            <input id="ecart_carre_ho" type="number" value="7">
+            <span class="ref">Réf : 7</span>
+          </div>
+
+          <div class="pilotage-row">
+            <label for="ecart_default_n">Écart défaut N</label>
+            <input id="ecart_default_n" type="number" value="5">
+            <span class="ref">Réf : 5</span>
+          </div>
+
+          <div class="pilotage-row">
+            <label for="ecart_default_ho">Écart défaut HO</label>
+            <input id="ecart_default_ho" type="number" value="10">
+            <span class="ref">Réf : 10</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="pilotage-button-row">
+        <button onclick="savePilotageDistribue()">Sauver</button>
+      </div>
+    </section>
+
+    <!-- ========================= COLONNE 2 ========================= -->
+
+    <!-- Topologie -->
+    <section class="card">
+      <h4>Topologie SP / SM</h4>
+
+      <div class="form-row">
+        <label>p00</label>
+        <input id="p00" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+
+      <div class="form-row">
+        <label>m00</label>
+        <input id="m00" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+
+      <div class="form-row">
+        <label>p01</label>
+        <input id="p01" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+
+      <div class="form-row">
+        <label>m01</label>
+        <input id="m01" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+
+      <div class="form-row">
+        <label>p10</label>
+        <input id="p10" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+
+      <div class="form-row">
+        <label>m10</label>
+        <input id="m10" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+
+      <div class="form-row">
+        <label>p11</label>
+        <input id="p11" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+
+      <div class="form-row">
+        <label>m11</label>
+        <input id="m11" type="text" readonly>
+        <span class="ref"></span>
+      </div>
+    </section>
+
+    <!-- Cibles -->
+    <section class="card">
+      <h4>Types de cibles</h4>
+
+      <div class="cible-grid">
+        <div class="cible-item">
+          <label>Horaire</label>
+          <img id="imageHoraire" src="" alt="Cible horaire">
+        </div>
+
+        <div class="cible-item">
+          <label>Anti horaire</label>
+          <img id="imageAntiHor" src="" alt="Cible anti horaire">
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= COLONNE 3 ========================= -->
+
+    <!-- Servos -->
+    <section class="card">
+      <h4>Aiguilles / Servos</h4>
+
+      <div class="servo-grid">
+
+        <!-- Ligne de titres -->
+        <div class="servo-row servo-header">
+          <span class="servo-title">Servo</span>
+          <span class="servo-col-title">État</span>
+          <span class="servo-col-title">Aig droite</span>
+          <span class="servo-col-title">Aig déviée</span>
+          <span class="servo-col-title">Vitesse</span>
+          <span class="servo-col-title"></span>
+        </div>
+
+        <!-- Servo 0 -->
+        <div class="servo-row">
+          <span class="servo-title">Servo 0</span>
+          <input id="s0" type="text" readonly>
+          <input id="s00" type="number">
+          <input id="s01" type="number">
+          <input id="s02" type="number">
+          <button onclick="servoTest(0)">Test</button>
+        </div>
+
+        <!-- Servo 1 -->
+        <div class="servo-row">
+          <span class="servo-title">Servo 1</span>
+          <input id="s1" type="text" readonly>
+          <input id="s10" type="number">
+          <input id="s11" type="number">
+          <input id="s12" type="number">
+          <button onclick="servoTest(1)">Test</button>
+        </div>
+
+        <!-- Servo 2 -->
+        <div class="servo-row">
+          <span class="servo-title">Servo 2</span>
+          <input id="s2" type="text" readonly>
+          <input id="s20" type="number">
+          <input id="s21" type="number">
+          <input id="s22" type="number">
+          <button onclick="servoTest(2)">Test</button>
+        </div>
+
+        <!-- Servo 3 -->
+        <div class="servo-row">
+          <span class="servo-title">Servo 3</span>
+          <input id="s3" type="text" readonly>
+          <input id="s30" type="number">
+          <input id="s31" type="number">
+          <input id="s32" type="number">
+          <button onclick="servoTest(3)">Test</button>
+        </div>
+
+        <!-- Servo 4 -->
+        <div class="servo-row">
+          <span class="servo-title">Servo 4</span>
+          <input id="s4" type="text" readonly>
+          <input id="s40" type="number">
+          <input id="s41" type="number">
+          <input id="s42" type="number">
+          <button onclick="servoTest(4)">Test</button>
+        </div>
+
+        <!-- Servo 5 -->
+        <div class="servo-row">
+          <span class="servo-title">Servo 5</span>
+          <input id="s5" type="text" readonly>
+          <input id="s50" type="number">
+          <input id="s51" type="number">
+          <input id="s52" type="number">
+          <button onclick="servoTest(5)">Test</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Boutons système -->
+    <section class="card">
+      <h4>Système</h4>
+
+      <div class="button-row">
+        <button onclick="save()">Save</button>
+        <button onclick="restartEsp()">Restart ESP</button>
+      </div>
+    </section>
+
+    <!-- Raw data -->
+    <section class="card">
+      <h4>Raw Data</h4>
+      <div id="rawData"></div>
+    </section>
+
+  </main>
 
 </body>
 

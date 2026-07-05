@@ -32,7 +32,7 @@
 // Modules spécialisés appelés dans loopTask()
 #include "Canton.h"
 #include "SensRoulage.h"       // Déduction du sens de circulation
-#include "TopologieSat.h"      // Mise à jour SP1 / SM1
+#include "TopologieCC.h"       // Mise à jour SP1 / SM1
 #include "SupervisionCAN.h"    // Diffusion état canton sur CAN
 #include "SupervisionCanton.h" // Déduction des aspects cantonaux
 #include "PilotageDistribue.h" // Pilotage loco selon aspect

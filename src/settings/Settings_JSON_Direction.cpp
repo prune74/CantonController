@@ -98,17 +98,18 @@ void Settings_JSON_loadDirection(Canton *canton, JsonDocument &doc)
  * ==========================================================================*/
 void Settings_JSON_saveDirection(Canton *canton, JsonDocument &doc)
 {
-    JsonObject dir = doc.createNestedObject("direction");
+    // Racine "direction"
+    JsonObject dir = doc["direction"].to<JsonObject>();
 
     // -----------------------------------------------------------------------
     // Direction H
     // -----------------------------------------------------------------------
     {
-        JsonObject h = dir.createNestedObject("H");
+        JsonObject h = dir["H"].to<JsonObject>();
         h["active"]    = canton->directionH().active;
         h["codeBarre"] = canton->directionH().codeBarre;
 
-        JsonObject map = h.createNestedObject("voieDuVoisin");
+        JsonObject map = h["voieDuVoisin"].to<JsonObject>();
         for (auto &kv : canton->directionH().voieDuVoisin)
             map[String(kv.first)] = kv.second;
     }
@@ -117,11 +118,11 @@ void Settings_JSON_saveDirection(Canton *canton, JsonDocument &doc)
     // Direction AH
     // -----------------------------------------------------------------------
     {
-        JsonObject ah = dir.createNestedObject("AH");
+        JsonObject ah = dir["AH"].to<JsonObject>();
         ah["active"]    = canton->directionAH().active;
         ah["codeBarre"] = canton->directionAH().codeBarre;
 
-        JsonObject map = ah.createNestedObject("voieDuVoisin");
+        JsonObject map = ah["voieDuVoisin"].to<JsonObject>();
         for (auto &kv : canton->directionAH().voieDuVoisin)
             map[String(kv.first)] = kv.second;
     }

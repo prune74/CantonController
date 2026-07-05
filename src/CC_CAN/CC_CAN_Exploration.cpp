@@ -17,7 +17,7 @@
 void handleExplorationCommand(uint8_t commande,
                               const CanMsg &msg,
                               Canton *canton,
-                              uint16_t idSatExpediteur)
+                              uint16_t idCCExpediteur)
 {
     // Conversion vers enum class dédié à l’exploration
     Cmd_Exploration_CC cmd = static_cast<Cmd_Exploration_CC>(commande);
@@ -28,7 +28,7 @@ void handleExplorationCommand(uint8_t commande,
      * ID_VOISIN — Réception de l’ID du CC voisin
      * ------------------------------------------------------------------ */
     case Cmd_Exploration_CC::ID_VOISIN:
-        Exploration::ID_satPeriph(idSatExpediteur);
+        Exploration::ID_CCPeriph(idCCExpediteur);
         break;
 
     /* --------------------------------------------------------------------
@@ -41,9 +41,9 @@ void handleExplorationCommand(uint8_t commande,
         for (uint8_t i = 0; i < cantonPsize; i++)
         {
             CantonPeriph *p = canton->getCantonP(i);
-            if (p && p->ID() == idSatExpediteur)
+            if (p && p->ID() == idCCExpediteur)
             {
-                p->masqueAig(masque);
+                p->masqueAigTopo(masque);
             }
         }
         break;

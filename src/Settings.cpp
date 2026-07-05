@@ -159,7 +159,6 @@ void Settings::loadFile(Canton *canton) // 🟢
     Settings_JSON_loadGeneraux(canton, doc);
     Settings_JSON_loadProfileVoie(canton, doc);
     Settings_JSON_loadModeManoeuvre(canton, doc);
-    Settings_JSON_loadTopologie(canton, doc);
     Settings_JSON_loadVoisins(canton, doc);
     Settings_JSON_loadAiguilles(canton, doc);
     Settings_JSON_loadSignaux(canton, doc);
@@ -185,7 +184,6 @@ void Settings::writeFile(Canton *canton) // 🟢
     Settings_JSON_saveGeneraux(canton, doc);
     Settings_JSON_saveProfileVoie(canton, doc);
     Settings_JSON_saveModeManoeuvre(canton, doc);
-    Settings_JSON_saveTopologie(canton, doc);
     Settings_JSON_saveVoisins(canton, doc);
     Settings_JSON_saveAiguilles(canton, doc);
     Settings_JSON_saveSignaux(canton, doc);

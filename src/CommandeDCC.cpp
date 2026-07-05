@@ -9,7 +9,7 @@
  *   - répéter l’envoi 5 fois pour fiabiliser la transmission
  *
  * Ce module ne contient aucune logique ferroviaire :
- *   → il transporte uniquement les commandes DCC++ vers la carte ERM.
+ *   → il transporte uniquement les commandes DCC++ vers la carte LaBox.
  */
 
 #include "CommandeDCC.h"
@@ -18,13 +18,14 @@
 
 #include "CanBus.h"
 #include "CanMsg.h"
+#include "protocol.h"        // ⭐ Ajout indispensable
 
 // ---------------------------------------------------------------------------
 // Variables internes
 // ---------------------------------------------------------------------------
 static uint16_t oldLocAddress = 0;
-static uint16_t oldLocSpeed = 0;
-static uint8_t comptCmdLoco = 0;
+static uint16_t oldLocSpeed   = 0;
+static uint8_t  comptCmdLoco  = 0;
 
 // ---------------------------------------------------------------------------
 // envoyerCommandeDCC()
@@ -32,13 +33,7 @@ static uint8_t comptCmdLoco = 0;
 void envoyerCommandeDCC(Canton *canton)
 {
     Loco *loco = canton->getLoco();
-    if (!loco)
-    {
-        CC_LOG_WARN("[CommandeDCC][CC] Aucun objet Loco associé au canton\n");
-        return;
-    }
-
-    if (loco->address() == 0)
+    if (!loco || loco->address() == 0)
         return;
 
     if (loco->speed() != oldLocSpeed)
@@ -46,24 +41,17 @@ void envoyerCommandeDCC(Canton *canton)
 
     if (comptCmdLoco < 5)
     {
-        CanMsg msg;
-
-        uint32_t id =
-            (0 << 26) |     // priorité
-            (0x04 << 18) |  // opcode DCC
-            (canton->ID()); // cantonID
-
-        msg.id = id;
-        msg.dlc = 6;
-
-        msg.data[0] = 0x00;
-        msg.data[1] = 0x00;
-        msg.data[2] = (loco->address() >> 8) & 0xFF;
-        msg.data[3] = loco->address() & 0xFF;
-        msg.data[4] = (loco->speed() >> 8) & 0xFF;
-        msg.data[5] = loco->speed();
-
-        CanBus::bus(0).send(msg);
+        CC_CAN::sendMsg(
+            0,                                           // priorité
+            static_cast<uint8_t>(Cmd_CAN_LaBox::LOCO_SPEED), // opcode Marklin
+            0,                                           // pas une réponse
+            canton->ID(),                                // expéditeur
+            0x00, 0x00,                                   // Marklin header
+            (loco->address() >> 8) & 0xFF,
+            loco->address() & 0xFF,
+            (loco->speed() >> 8) & 0xFF,
+            loco->speed() & 0xFF
+        );
 
         CC_LOG_INFO("[CommandeDCC][CC] Loco %u vitesse %u (envoi %u/5)\n",
                     loco->address(),
@@ -71,7 +59,7 @@ void envoyerCommandeDCC(Canton *canton)
                     comptCmdLoco + 1);
 
         oldLocAddress = loco->address();
-        oldLocSpeed = loco->speed();
+        oldLocSpeed   = loco->speed();
         comptCmdLoco++;
     }
 }

@@ -98,7 +98,6 @@ void WebHandler::loop()
         }
     }
 
-    // Construction du JSON — V7 : JsonDocument dynamique
     JsonDocument doc;
 
     doc["booster_tension"]      = Booster::tension();

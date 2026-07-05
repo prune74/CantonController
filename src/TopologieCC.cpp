@@ -1,7 +1,7 @@
 /*
- * TopologieSat.cpp — Gestion Canton 2026
+ * TopologieCC.cpp — Gestion Canton 2026
  * ------------------------------------------------------------
- * Mise à jour de la topologie des satellites voisins pour le
+ * Mise à jour de la topologie des CantonController voisins pour le
  * Canton Controller (CC).
  *
  * Rôle :
@@ -15,33 +15,33 @@
  *   - SP2 / SM2 sont gérés ailleurs (accès secondaires)
  */
 
-#include "TopologieSat.h"
+#include "TopologieCC.h"
 #include "debug_cc.h"
 #include "Canton.h"
 
 /*************************************************************************************
- * Mise à jour de la topologie des satellites voisins
+ * Mise à jour de la topologie des CantonController voisins
  *************************************************************************************/
 
 void mettreAJourTopologie(Canton *canton) // 🟢
 {
     /*
-     * rechercheSat(satPos)
-     * satPos = true  → côté horaire  (SP1)
-     * satPos = false → côté anti‑horaire (SM1)
+     * rechercheCC(CCPos)
+     * CCPos = true  → côté horaire  (SP1)
+     * CCPos = false → côté anti‑horaire (SM1)
      *
      * Le calcul repose sur l’état des aiguilles locales :
      * - Aiguille principale (idx 0 ou 3)
      * - Aiguilles secondaires (idx 1–2 ou 4–5)
      *
      * Le résultat est un index virtuel 0–3 représentant le
-     * satellite voisin dans la direction donnée.
+     * CantonController voisin dans la direction donnée.
      */
-    auto rechercheSat = [canton](bool satPos) -> uint8_t
+    auto rechercheCC = [canton](bool CCPos) -> uint8_t
     {
         // Index des aiguilles selon le côté
-        uint8_t idxA = satPos ? 3 : 0; // aiguille principale
-        uint8_t idxS = satPos ? 4 : 0; // base topologique
+        uint8_t idxA = CCPos ? 3 : 0; // aiguille principale
+        uint8_t idxS = CCPos ? 4 : 0; // base topologique
         uint8_t idx = idxS;
 
         Aig *a0 = canton->getAig(idxA);
@@ -53,7 +53,7 @@ void mettreAJourTopologie(Canton *canton) // 🟢
         {
             CC_LOG_WARN(
                 "[Topo][CC] Aucun aiguillage côté %s → idx=%u (topologie simple)\n",
-                satPos ? "Horaire" : "AntiHoraire",
+                CCPos ? "Horaire" : "AntiHoraire",
                 idxS);
             return idxS;
         }
@@ -79,8 +79,8 @@ void mettreAJourTopologie(Canton *canton) // 🟢
         }
 
         CC_LOG_TRACE(
-            "[Topo][CC] rechercheSat(%s) → idxA=%u idxS=%u → idx=%u\n",
-            satPos ? "Horaire" : "AntiHoraire",
+            "[Topo][CC] rechercheCC(%s) → idxA=%u idxS=%u → idx=%u\n",
+            CCPos ? "Horaire" : "AntiHoraire",
             idxA,
             idxS,
             idx);
@@ -91,8 +91,8 @@ void mettreAJourTopologie(Canton *canton) // 🟢
     // -----------------------------------------------------------------------
     // Calcul SP1 / SM1 pour le Canton Controller
     // -----------------------------------------------------------------------
-    uint8_t sp1 = rechercheSat(true);   // côté horaire
-    uint8_t sm1 = rechercheSat(false);  // côté anti‑horaire
+    uint8_t sp1 = rechercheCC(true);  // côté horaire
+    uint8_t sm1 = rechercheCC(false); // côté anti‑horaire
 
     canton->SP1_idx(sp1);
     canton->SM1_idx(sm1);

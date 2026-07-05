@@ -17,9 +17,9 @@
 #include "Protocol.h"
 
 // Handlers CAN modernes
-void handleSystemCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idSatExpediteur);
-void handleExplorationCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idSatExpediteur);
-void handleExploitCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idSatExpediteur);
+void handleSystemCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idCCExpediteur);
+void handleExplorationCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idCCExpediteur);
+void handleExploitCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idCCExpediteur);
 void handleSupervisionCommand(uint8_t commande, const CanMsg &msg, Canton *canton);
 
 // ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ void CC_CAN::canReceiveMsg(void *pvParameters)
 
     for (;;)
     {
-        // Bus 0 : réseau GC2026
+        // Bus 0 : CAN Service
         CanMsg msg0;
         if (CanBus::bus(0).receive(msg0))
             traiterMessageCAN(msg0, canton, 0);
