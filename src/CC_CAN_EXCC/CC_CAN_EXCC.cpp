@@ -238,8 +238,8 @@ void CC_CAN_EXCC::handleEXCCCommand(uint8_t commande,
         break;
 
     case Cmd_EXCC_to_CC::RAILCOM_ADRESSE:
-        if (frame.dlc >= 2)
-            Railcom::onRailcom(d[0], d[1]);
+        if (frame.dlc >= 3)
+            Railcom::onRailcom(d[1], d[2]);
         break;
 
     case Cmd_EXCC_to_CC::CALIB_BOOSTER_INFO:

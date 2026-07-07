@@ -269,6 +269,27 @@ public:
     // -----------------------------------------------------------------------
     void pilotageDistribue();
 
+    // -----------------------------------------------------------------------
+    // Mesure de distance / vitesse (implémentée dans Canton_MesureVitesseLoco.cpp)
+    // -----------------------------------------------------------------------
+    void armer(Canton *canton, uint16_t locoID);
+    void update(Canton *canton);
+    void onEntree(Canton *canton);
+    void onSortie(Canton *canton);
+
+    // -----------------------------------------------------------------------
+    // Résultat de mesure (vitesse + loco)
+    // -----------------------------------------------------------------------
+    bool mesureVitesseDisponible() const { return m_mesureVitesseDisponible; }
+    float vitesseMesuree() const { return m_vitesseMesuree; }
+    uint16_t locoMesuree() const { return m_locoMesuree; }
+    void clearMesureVitesse() { m_mesureVitesseDisponible = false; }
+
+    // -----------------------------------------------------------------------
+    // Vérification de la mesurabilité d'un canton
+    // -----------------------------------------------------------------------
+    static bool estMesurable(Canton *canton, uint8_t sens);
+
 private:
     uint16_t m_id;
 
@@ -317,4 +338,11 @@ private:
     // Masque d'aiguillages du canton
     // -----------------------------------------------------------------------
     uint8_t m_masqueAigInterne = 0;
+
+    // -----------------------------------------------------------------------
+    // Mesure de distance / vitesse
+    // -----------------------------------------------------------------------
+    bool m_mesureVitesseDisponible = false;
+    float m_vitesseMesuree = 0.0f;
+    uint16_t m_locoMesuree = 0;
 };

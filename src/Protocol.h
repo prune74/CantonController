@@ -93,6 +93,7 @@ enum class Cmd_CC_to_CC : uint16_t
     RAILCOM_VOISIN = 0xE5,
     ASPECT_VOISIN = 0xE7,
     AIGUILLAGE = 0xE9,
+    MESURE_PREPARE = 0xEB, // CC0 → CCx : préparer la mesure de vitesse
 };
 
 /* ============================================================================
@@ -127,6 +128,7 @@ enum class Cmd_CC_to_ERM : uint16_t
 {
     TEST_BUS = 0xB2,
     REQUEST_ID = 0xB4,
+    MESURE_VITESSE  = 0xB6,
 };
 
 /* ============================================================================
