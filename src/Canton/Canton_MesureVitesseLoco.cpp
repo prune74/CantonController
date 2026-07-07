@@ -17,13 +17,13 @@ static bool prevAH = false;
 // ---------------------------------------------------------------------------
 // Armement de la mesure
 // ---------------------------------------------------------------------------
-void Canton::armer(Canton *canton, uint16_t locoID)
+void Canton::armer(Canton *canton, uint16_t trainID)
 {
     mesureActive = true;
-    locoMesure = locoID;
+    locoMesure = trainID;
 
-    CC_LOG_INFO("[Mesure][Canton %u] Mesure armée pour loco %u\n",
-                canton->ID(), locoID);
+    CC_LOG_INFO("[Mesure][Canton %u] Mesure armée pour le train %u\n",
+                canton->ID(), trainID);
 }
 
 // ---------------------------------------------------------------------------
@@ -77,16 +77,20 @@ void Canton::onSortie(Canton *canton)
     uint16_t L = Settings::longueurCantonMM();
     float v = (float)L / (float)dt;
 
-    CC_LOG_INFO("[Mesure][Canton %u] vitesse mesurée = %.3f (loco %u)\n",
+    CC_LOG_INFO("[Mesure][Canton %u] vitesse mesurée = %.3f (train %u)\n",
                 canton->ID(), v, locoMesure);
 
+    // Stockage interne
     m_vitesseMesuree = v;
     m_locoMesuree = locoMesure;
     m_mesureVitesseDisponible = true;
 
     uint16_t v1000 = (uint16_t)(v * 1000.0f);
 
-    CC_LOG_INFO("[CAN][Mesure][CC] Envoi vitesse %.3f pour loco %u\n",
+    // ----------------------------------------------------------------------
+    // 1) Envoi MESURE_VITESSE → ERM
+    // ----------------------------------------------------------------------
+    CC_LOG_INFO("[CAN][Mesure][CC] Envoi vitesse %.3f pour train %u\n",
                 v, locoMesure);
 
     CC_CAN::sendMsg(
@@ -100,5 +104,26 @@ void Canton::onSortie(Canton *canton)
         v1000 & 0xFF
     );
 
+    // ----------------------------------------------------------------------
+    // 2) Envoi ESSIEUX → ERM
+    // ----------------------------------------------------------------------
+    uint8_t essieux = (uint8_t)m_compteurEssieux;
+
+    CC_LOG_INFO("[CAN][Mesure][CC] Envoi essieux=%u pour train %u\n",
+                essieux, locoMesure);
+
+    CC_CAN::sendMsg(
+        0,
+        (uint8_t)Cmd_CC_to_ERM::ESSIEUX_TRAIN,   // nouvelle commande
+        0,
+        canton->ID(),
+        locoMesure >> 8,
+        locoMesure & 0xFF,
+        essieux
+    );
+
+    // ----------------------------------------------------------------------
+    // Fin de mesure
+    // ----------------------------------------------------------------------
     mesureActive = false;
 }

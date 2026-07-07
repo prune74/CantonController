@@ -185,7 +185,7 @@ void CC_CAN_EXCC::sendConfigSignaux(Canton *canton,
 // ---------------------------------------------------------------------------
 void CC_CAN_EXCC::sendCantonID(Canton *canton)
 {
-    uint8_t payload[1] = { uint8_t(canton->ID() & 0xFF) };
+    uint8_t payload[1] = {uint8_t(canton->ID() & 0xFF)};
 
     sendEXCC(
         1,
@@ -245,6 +245,11 @@ void CC_CAN_EXCC::handleEXCCCommand(uint8_t commande,
     case Cmd_EXCC_to_CC::CALIB_BOOSTER_INFO:
         if (frame.dlc >= 4)
             Booster::onCalib(d[0], d[1], d[2], d[3]);
+        break;
+
+    case Cmd_EXCC_to_CC::ESSIEUX:
+        if (frame.dlc >= 1)
+            Canton::onEssieux(canton, d[0]);
         break;
 
     default:

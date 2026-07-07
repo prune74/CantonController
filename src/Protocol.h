@@ -59,6 +59,7 @@ enum class Cmd_EXCC_to_CC : uint16_t
     PONCTUEL_AH = 0xD9,
     RAILCOM_ADRESSE = 0xDA,
     CALIB_BOOSTER_INFO = 0xDB,
+    ESSIEUX = 0xDC,
 };
 
 /* ============================================================================
@@ -129,6 +130,7 @@ enum class Cmd_CC_to_ERM : uint16_t
     TEST_BUS = 0xB2,
     REQUEST_ID = 0xB4,
     MESURE_VITESSE  = 0xB6,
+    ESSIEUX_TRAIN = 0xB7,
 };
 
 /* ============================================================================

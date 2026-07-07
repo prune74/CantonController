@@ -290,6 +290,11 @@ public:
     // -----------------------------------------------------------------------
     static bool estMesurable(Canton *canton, uint8_t sens);
 
+    // -----------------------------------------------------------------------
+    // Gestion des essieux détectés par EXCC
+    // -----------------------------------------------------------------------
+    static void onEssieux(Canton *canton, uint8_t essieux);
+
 private:
     uint16_t m_id;
 

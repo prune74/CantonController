@@ -162,6 +162,7 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
     case Cmd_EXCC_to_CC::PONCTUEL_AH:
     case Cmd_EXCC_to_CC::RAILCOM_ADRESSE:
     case Cmd_EXCC_to_CC::CALIB_BOOSTER_INFO:
+    case Cmd_EXCC_to_CC::ESSIEUX:
         CC_CAN_EXCC::handleEXCCCommand(commande, msg, canton, idExpediteur);
         return;
 
