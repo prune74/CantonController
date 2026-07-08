@@ -300,7 +300,6 @@ public:
     // -----------------------------------------------------------------------
     // Gestion des commandes CLF (TRAIN_VALIDE / TRAIN_REARMER / DEMANDE_MESURE)
     // -----------------------------------------------------------------------
-    void onCommandeCLF(uint8_t commande, const CanMsg &msg);
     void activateSilenceEpoch(uint16_t trainID, uint32_t expirationEpoch);
 
     void deactivateSilence(uint16_t trainID);
