@@ -8,7 +8,7 @@
 #include "Canton.h"
 #include "debug_cc.h"
 #include "CanMsg.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 /* ============================================================================
  * handleSupervisionCommand()

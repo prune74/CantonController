@@ -1,7 +1,7 @@
 #pragma once
 #include "CanMsg.h"
 #include "Canton.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 namespace CC_CAN_CLF
 {

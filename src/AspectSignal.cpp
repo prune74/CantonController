@@ -8,7 +8,7 @@
 #include "FeuxDirection.h"
 #include "CC_CAN_EXCC.h"
 #include "CC_CAN.h"
-#include "Protocol.h"
+#include <Protocol.h>
 #include "DeductionAspect.h"
 #include "debug_cc.h"
 

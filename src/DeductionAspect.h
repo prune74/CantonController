@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "Protocol.h" // ExccAspect
+#include <Protocol.h> // ExccAspect
 
 /*
  * DeductionAspect.h — Gestion Canton 2026

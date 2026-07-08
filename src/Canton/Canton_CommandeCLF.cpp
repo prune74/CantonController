@@ -1,5 +1,5 @@
 #include "Canton.h"
-#include "Protocol.h"
+#include <Protocol.h>
 #include "CC_CAN.h"
 #include "CC_CAN_CLF.h"
 #include "debug_cc.h"

@@ -14,7 +14,7 @@
  */
 
 #include "Signal.h"
-#include "Protocol.h"
+#include <Protocol.h>
 #include "debug_cc.h"
 
 // ---------------------------------------------------------------------------

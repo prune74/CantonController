@@ -11,7 +11,7 @@
 #include "Exploration.h"
 #include "CanMsg.h"
 #include "Canton.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 /* ============================================================================
  * handleSystemCommand()

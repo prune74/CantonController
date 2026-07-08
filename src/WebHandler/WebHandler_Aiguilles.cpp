@@ -17,14 +17,14 @@
 #include "Aig.h"
 #include "Settings.h"
 #include "CC_CAN_EXCC.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 // ---------------------------------------------------------------------------
 // handleServoSettings()
 // ---------------------------------------------------------------------------
 void WebHandler::handleServoSettings(JsonDocument &doc)
 {
-    
+
     JsonVariant v = doc["servoSettings"];
     if (v.isNull())
     {
@@ -39,9 +39,9 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
         return;
     }
 
-    const char *servoId   = arr[0].as<const char*>();
-    uint16_t value        = arr[1] | 0;
-    uint8_t servoName     = arr[2] | 0;
+    const char *servoId = arr[0].as<const char *>();
+    uint16_t value = arr[1] | 0;
+    uint8_t servoName = arr[2] | 0;
 
     Aig *aig = canton->getAig(servoName);
     if (!aig)
@@ -54,30 +54,30 @@ void WebHandler::handleServoSettings(JsonDocument &doc)
 
     switch (servoId[2])
     {
-        case '0': // posDroit
-            aig->posDroit(value);
-            cfg.posDroit = value;
-            CC_LOG_INFO("[Aiguilles][CC] posDroit aiguille %u = %u\n", servoName, value);
-            break;
+    case '0': // posDroit
+        aig->posDroit(value);
+        cfg.posDroit = value;
+        CC_LOG_INFO("[Aiguilles][CC] posDroit aiguille %u = %u\n", servoName, value);
+        break;
 
-        case '1': // posDevie
-            aig->posDevie(value);
-            cfg.posDevie = value;
-            CC_LOG_INFO("[Aiguilles][CC] posDevie aiguille %u = %u\n", servoName, value);
-            break;
+    case '1': // posDevie
+        aig->posDevie(value);
+        cfg.posDevie = value;
+        CC_LOG_INFO("[Aiguilles][CC] posDevie aiguille %u = %u\n", servoName, value);
+        break;
 
-        case '2': // speed
-            cfg.speed = value;
-            CC_LOG_INFO("[Aiguilles][CC] speed slider aiguille %u = %u\n", servoName, value);
-            break;
+    case '2': // speed
+        cfg.speed = value;
+        CC_LOG_INFO("[Aiguilles][CC] speed slider aiguille %u = %u\n", servoName, value);
+        break;
 
-        default:
-            CC_LOG_WARN("[Aiguilles][CC] servoId inconnu : %c\n", servoId[2]);
-            break;
+    default:
+        CC_LOG_WARN("[Aiguilles][CC] servoId inconnu : %c\n", servoId[2]);
+        break;
     }
 
-    uint16_t posDroit    = aig->posDroit();
-    uint16_t posDevie    = aig->posDevie();
+    uint16_t posDroit = aig->posDroit();
+    uint16_t posDevie = aig->posDevie();
     uint16_t speedSlider = cfg.speed;
 
     uint16_t speed = 11000 - (speedSlider * 1000);

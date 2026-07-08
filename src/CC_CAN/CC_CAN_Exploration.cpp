@@ -9,7 +9,7 @@
 #include "Exploration.h"
 #include "CanMsg.h"
 #include "Canton.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 /* ============================================================================
  * Handler global Exploration (appelé depuis CC_CAN.cpp)

@@ -3,28 +3,27 @@
 #include "SupervisionCanton.h"
 #include "Railcom.h"
 #include "CC_CAN.h"
-#include "Protocol.h"
+#include <Protocol.h>
 #include "debug_cc.h"
-
 
 bool Canton::estMesurable(Canton *canton, uint8_t sens)
 {
     CantonPeriph *aval = nullptr;
-    CantonPeriph *s2   = nullptr;
-    uint8_t indexAval  = 0;
+    CantonPeriph *s2 = nullptr;
+    uint8_t indexAval = 0;
 
     // --- Détermination du voisin suivant ---
     switch (sens)
     {
     case 0: // sens horaire
         aval = canton->voisinSP1();
-        s2   = canton->voisinSP2();
+        s2 = canton->voisinSP2();
         indexAval = canton->SP1_idx();
         break;
 
     case 1: // sens anti-horaire
         aval = canton->voisinSM1();
-        s2   = canton->voisinSM2();
+        s2 = canton->voisinSM2();
         indexAval = canton->SM1_idx();
         break;
 
@@ -81,12 +80,12 @@ bool Canton::estMesurable(Canton *canton, uint8_t sens)
                 canton->ID(), idCible, trainID);
 
     CC_CAN::sendMsg(
-        0,                                      // prio
-        (uint8_t)Cmd_CC_to_CC::MESURE_PREPARE,  // commande 0xEB
-        idCible,                                // resp = CCx cible
-        canton->ID(),                           // ID CC source
-        trainID >> 8,                           // d0
-        trainID & 0xFF                          // d1
+        0,                                     // prio
+        (uint8_t)Cmd_CC_to_CC::MESURE_PREPARE, // commande 0xEB
+        idCible,                               // resp = CCx cible
+        canton->ID(),                          // ID CC source
+        trainID >> 8,                          // d0
+        trainID & 0xFF                         // d1
     );
 
     return true;

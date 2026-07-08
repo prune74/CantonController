@@ -26,7 +26,7 @@
 #include "GestionReseau.h"
 #include "GestionLoco.h"
 #include "FeuxDirection.h"
-#include "Protocol.h"
+#include <Protocol.h>
 #include "AspectSignal.h"
 #include "debug_cc.h"
 
@@ -35,8 +35,7 @@
 // ---------------------------------------------------------------------------
 ExccAspect GestionReseau::signalValue[2] = {
     ExccAspect::ASPECT_CARRE,
-    ExccAspect::ASPECT_CARRE
-};
+    ExccAspect::ASPECT_CARRE};
 
 // ---------------------------------------------------------------------------
 // Création de la tâche FreeRTOS

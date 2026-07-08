@@ -5,7 +5,7 @@
  */
 
 #include "SupervisionCanton.h"
-#include "Protocol.h"
+#include <Protocol.h>
 #include "Canton.h"
 #include "Aig.h"
 #include "Railcom.h"
@@ -36,7 +36,7 @@ static Aig *trouverAiguillePourSens(Canton *canton, uint8_t indexAval)
 ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i)
 {
     CantonPeriph *aval = nullptr;
-    CantonPeriph *s2   = nullptr;
+    CantonPeriph *s2 = nullptr;
 
     uint8_t indexAval = 0;
 
@@ -44,13 +44,13 @@ ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i)
     {
     case 0: // sens horaire
         aval = canton->voisinSP1();
-        s2   = canton->voisinSP2();
+        s2 = canton->voisinSP2();
         indexAval = canton->SP1_idx();
         break;
 
     case 1: // sens anti‑horaire
         aval = canton->voisinSM1();
-        s2   = canton->voisinSM2();
+        s2 = canton->voisinSM2();
         indexAval = canton->SM1_idx();
         break;
 
@@ -109,7 +109,7 @@ ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i)
      * CAS 2 : canton aval libre → vérifier SP2/SM2
      */
     bool s2access = (s2 && s2->acces());
-    bool s2busy   = (s2 && s2->busy());
+    bool s2busy = (s2 && s2->busy());
 
     if (!s2access)
     {

@@ -39,7 +39,7 @@
 #include "CommandeDCC.h"       // Envoi commandes DCC++
 #include "AspectSignal.h"      // Envoi aspects dynamiques aux signaux (UART → EXCC)
 #include "SensEnum.h"          // Enumération des sens (horaire / anti-horaire)
-#include "Protocol.h"          // ExccAspect (enum 1 octet)
+#include <Protocol.h>          // ExccAspect (enum 1 octet)
 
 class GestionReseau
 {

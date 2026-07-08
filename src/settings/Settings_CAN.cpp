@@ -12,7 +12,7 @@
 #include "Canton.h"
 #include "CC_CAN.h"
 #include "debug_cc.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 /* ============================================================================
  *  Callback : la carte ERM a envoyé TEST_BUS_REPLY
@@ -49,8 +49,7 @@ bool Settings::beginCAN()
             0,
             (uint16_t)Cmd_CC_to_ERM::TEST_BUS,
             0,
-            canton->ID()
-        );
+            canton->ID());
 
         vTaskDelay(pdMS_TO_TICKS(1000));
         Serial.print(".");
@@ -78,8 +77,7 @@ bool Settings::beginCAN()
                 0,
                 (uint16_t)Cmd_CC_to_ERM::REQUEST_ID,
                 0,
-                0
-            );
+                0);
 
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.print(".");

@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "Protocol.h" // Protocole commun CC ↔ EXCC
+#include <Protocol.h> // Protocole commun CC ↔ EXCC
 
 /*
  * ============================================================================

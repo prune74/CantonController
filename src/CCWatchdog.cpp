@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "CCWatchdog.h"
-#include "Protocol.h"
+#include <Protocol.h>
 #include "Settings.h"
 #include "Canton.h"
 #include "CanMsg.h"

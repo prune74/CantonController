@@ -6,7 +6,7 @@
 
 #include "DeductionAspect.h"
 #include "Config.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 // ---------------------------------------------------------------------------
 // Déduction d’aspect local depuis l’aspect aval

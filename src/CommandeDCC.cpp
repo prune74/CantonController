@@ -18,14 +18,14 @@
 
 #include "CanBus.h"
 #include "CanMsg.h"
-#include "protocol.h"        // ⭐ Ajout indispensable
+#include <Protocol.h> // ⭐ Ajout indispensable
 
 // ---------------------------------------------------------------------------
 // Variables internes
 // ---------------------------------------------------------------------------
 static uint16_t oldLocAddress = 0;
-static uint16_t oldLocSpeed   = 0;
-static uint8_t  comptCmdLoco  = 0;
+static uint16_t oldLocSpeed = 0;
+static uint8_t comptCmdLoco = 0;
 
 // ---------------------------------------------------------------------------
 // envoyerCommandeDCC()
@@ -42,16 +42,15 @@ void envoyerCommandeDCC(Canton *canton)
     if (comptCmdLoco < 5)
     {
         CC_CAN::sendMsg(
-            0,                                           // priorité
+            0,                                               // priorité
             static_cast<uint8_t>(Cmd_CAN_LaBox::LOCO_SPEED), // opcode Marklin
-            0,                                           // pas une réponse
-            canton->ID(),                                // expéditeur
-            0x00, 0x00,                                   // Marklin header
+            0,                                               // pas une réponse
+            canton->ID(),                                    // expéditeur
+            0x00, 0x00,                                      // Marklin header
             (loco->address() >> 8) & 0xFF,
             loco->address() & 0xFF,
             (loco->speed() >> 8) & 0xFF,
-            loco->speed() & 0xFF
-        );
+            loco->speed() & 0xFF);
 
         CC_LOG_INFO("[CommandeDCC][CC] Loco %u vitesse %u (envoi %u/5)\n",
                     loco->address(),
@@ -59,7 +58,7 @@ void envoyerCommandeDCC(Canton *canton)
                     comptCmdLoco + 1);
 
         oldLocAddress = loco->address();
-        oldLocSpeed   = loco->speed();
+        oldLocSpeed = loco->speed();
         comptCmdLoco++;
     }
 }

@@ -15,7 +15,7 @@
 
 #include "CanMsg.h"
 #include "CanBus.h"
-#include "Protocol.h"
+#include <Protocol.h>
 
 // Handlers CAN modernes
 void handleSystemCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idCCExpediteur);
