@@ -10,6 +10,7 @@
 #include "Aig.h"
 #include "Signal.h"
 #include "Loco.h"
+#include "CanMsg.h"
 
 /*
  * Canton.h — Architecture Canton 2026 (version neuve)
@@ -278,12 +279,13 @@ public:
     void onSortie(Canton *canton);
 
     // -----------------------------------------------------------------------
-    // Résultat de mesure (vitesse + loco)
+    // Résultat de mesure (vitesse + loco + essieux)
     // -----------------------------------------------------------------------
     bool mesureVitesseDisponible() const { return m_mesureVitesseDisponible; }
     float vitesseMesuree() const { return m_vitesseMesuree; }
     uint16_t locoMesuree() const { return m_locoMesuree; }
     void clearMesureVitesse() { m_mesureVitesseDisponible = false; }
+    uint8_t essieuxMesures() const { return (uint8_t)m_compteurEssieux; }
 
     // -----------------------------------------------------------------------
     // Vérification de la mesurabilité d'un canton
@@ -294,6 +296,15 @@ public:
     // Gestion des essieux détectés par EXCC
     // -----------------------------------------------------------------------
     static void onEssieux(Canton *canton, uint8_t essieux);
+
+    // -----------------------------------------------------------------------
+    // Gestion des commandes CLF (TRAIN_VALIDE / TRAIN_REARMER / DEMANDE_MESURE)
+    // -----------------------------------------------------------------------
+    void onCommandeCLF(uint8_t commande, const CanMsg &msg);
+
+    void activateSilence(uint16_t trainID, uint32_t dureeMs);
+    void deactivateSilence(uint16_t trainID);
+    bool isSilent(uint16_t trainID) const;
 
 private:
     uint16_t m_id;
@@ -350,4 +361,11 @@ private:
     bool m_mesureVitesseDisponible = false;
     float m_vitesseMesuree = 0.0f;
     uint16_t m_locoMesuree = 0;
+
+    // -----------------------------------------------------------------------
+    // Gestion du silence pour les commandes CLF
+    // -----------------------------------------------------------------------
+    bool m_silenceActive = false;
+    uint16_t m_silenceTrainID = 0;
+    uint32_t m_silenceExpireAt = 0;
 };

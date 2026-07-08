@@ -9,6 +9,7 @@
 #include "CC_CAN.h"
 #include "CC_CAN_Config.h"
 #include "CC_CAN_EXCC.h"
+#include "CC_CAN_CLF.h"
 
 #include "debug_cc.h"
 
@@ -171,7 +172,22 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
     }
 
     // ============================
-    // 5) Commande inconnue
+    // 5) COMMANDES CLF → CC
+    // ============================
+    switch ((Cmd_CLF_to_CC)commande)
+    {
+    case Cmd_CLF_to_CC::TRAIN_VALIDE:
+    case Cmd_CLF_to_CC::TRAIN_REARMER:
+    case Cmd_CLF_to_CC::DEMANDE_MESURE:
+        CC_CAN_CLF::handleCLFCommand(commande, msg, canton, idExpediteur);
+        return;
+
+    default:
+        break;
+    }
+
+    // ============================
+    // 6) Commande inconnue
     // ============================
     CC_LOG_WARN("[CC_CAN][CC] Cmd 0x%02X non gérée (bus %u)\n", commande, bus);
 }

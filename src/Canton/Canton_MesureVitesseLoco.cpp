@@ -88,39 +88,49 @@ void Canton::onSortie(Canton *canton)
     uint16_t v1000 = (uint16_t)(v * 1000.0f);
 
     // ----------------------------------------------------------------------
-    // 1) Envoi MESURE_VITESSE → ERM
+    // 🔍 Vérification du silence CLF → CC
     // ----------------------------------------------------------------------
-    CC_LOG_INFO("[CAN][Mesure][CC] Envoi vitesse %.3f pour train %u\n",
+    if (isSilent(locoMesure))
+    {
+        CC_LOG_INFO("[Mesure][Canton %u] Silence actif → aucune mesure envoyée pour train %u\n",
+                    canton->ID(), locoMesure);
+
+        mesureActive = false;
+        return;
+    }
+
+    // ----------------------------------------------------------------------
+    // 1) Envoi MESURE_VITESSE → CLF
+    // ----------------------------------------------------------------------
+    CC_LOG_INFO("[CAN][Mesure][CC] Envoi vitesse %.3f pour train %u → CLF\n",
                 v, locoMesure);
 
     CC_CAN::sendMsg(
         0,
-        (uint8_t)Cmd_CC_to_ERM::MESURE_VITESSE,
-        0,
+        (uint8_t)Cmd_CC_to_CLF::MESURE_VITESSE,
+        CLF_ID,
         canton->ID(),
         locoMesure >> 8,
         locoMesure & 0xFF,
         v1000 >> 8,
-        v1000 & 0xFF
-    );
+        v1000 & 0xFF);
 
     // ----------------------------------------------------------------------
-    // 2) Envoi ESSIEUX → ERM
+    // 2) Envoi ESSIEUX → CLF
     // ----------------------------------------------------------------------
     uint8_t essieux = (uint8_t)m_compteurEssieux;
 
-    CC_LOG_INFO("[CAN][Mesure][CC] Envoi essieux=%u pour train %u\n",
+    CC_LOG_INFO("[CAN][Mesure][CC] Envoi essieux=%u pour train %u → CLF\n",
                 essieux, locoMesure);
 
     CC_CAN::sendMsg(
         0,
-        (uint8_t)Cmd_CC_to_ERM::ESSIEUX_TRAIN,   // nouvelle commande
-        0,
+        (uint8_t)Cmd_CC_to_CLF::ESSIEUX_TRAIN,
+        CLF_ID,
         canton->ID(),
         locoMesure >> 8,
         locoMesure & 0xFF,
-        essieux
-    );
+        essieux);
 
     // ----------------------------------------------------------------------
     // Fin de mesure
