@@ -301,8 +301,8 @@ public:
     // Gestion des commandes CLF (TRAIN_VALIDE / TRAIN_REARMER / DEMANDE_MESURE)
     // -----------------------------------------------------------------------
     void onCommandeCLF(uint8_t commande, const CanMsg &msg);
+    void activateSilenceEpoch(uint16_t trainID, uint32_t expirationEpoch);
 
-    void activateSilence(uint16_t trainID, uint32_t dureeMs);
     void deactivateSilence(uint16_t trainID);
     bool isSilent(uint16_t trainID) const;
 
@@ -367,5 +367,5 @@ private:
     // -----------------------------------------------------------------------
     bool m_silenceActive = false;
     uint16_t m_silenceTrainID = 0;
-    uint32_t m_silenceExpireAt = 0;
+    uint32_t m_silenceExpireAtEpoch = 0;
 };

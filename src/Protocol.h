@@ -145,9 +145,10 @@ enum class Cmd_CC_to_CLF : uint16_t
  ============================================================================*/
 enum class Cmd_CLF_to_CC : uint16_t
 {
-    TRAIN_VALIDE = 0x90,
-    TRAIN_REARMER = 0x91,
-    DEMANDE_MESURE = 0x92,
+    TRAIN_VALIDE   = 0x90,  // train validé → silence epoch
+    TRAIN_REARMER  = 0x91,  // fin du silence
+    DEMANDE_MESURE = 0x92,  // demande vitesse + essieux
+    CLF_TIME       = 0x93,  // synchronisation de l'heure (epoch)
 };
 
 /* ============================================================================

@@ -4,6 +4,18 @@
 #include "Canton.h"
 #include "CC_CAN.h"
 
+static uint32_t g_CLF_timeEpoch = 0;
+
+void CC_CAN_CLF::updateCLFTime(uint32_t epoch)
+{
+    g_CLF_timeEpoch = epoch;
+}
+
+uint32_t CC_CAN_CLF::getCLFTime()
+{
+    return g_CLF_timeEpoch;
+}
+
 namespace CC_CAN_CLF
 {
 
@@ -13,16 +25,22 @@ namespace CC_CAN_CLF
         {
         case Cmd_CLF_to_CC::TRAIN_VALIDE:
         {
-            if (msg.dlc < 3)
+            if (msg.dlc < 5)
                 return;
 
             uint16_t trainID = msg.data[0];
-            uint16_t dureeMinutes = msg.data[1] | (msg.data[2] << 8);
 
-            canton->activateSilence(trainID, dureeMinutes);
+            // Reconstruction du timestamp epoch (4 octets)
+            uint32_t expirationEpoch =
+                ((uint32_t)msg.data[1] << 24) |
+                ((uint32_t)msg.data[2] << 16) |
+                ((uint32_t)msg.data[3] << 8) |
+                ((uint32_t)msg.data[4]);
 
-            CC_LOG_INFO("[CLF][CC] TRAIN_VALIDE : train=%u silence=%u minutes",
-                        trainID, dureeMinutes);
+            canton->activateSilenceEpoch(trainID, expirationEpoch);
+
+            CC_LOG_INFO("[CLF][CC] TRAIN_VALIDE : train=%u silence jusqu'à epoch=%u",
+                        trainID, expirationEpoch);
             return;
         }
 
@@ -98,6 +116,23 @@ namespace CC_CAN_CLF
                 trainID & 0xFF,
                 essieux);
 
+            return;
+        }
+
+        case Cmd_CLF_to_CC::CLF_TIME:
+        {
+            if (msg.dlc < 4)
+                return;
+
+            uint32_t epoch =
+                ((uint32_t)msg.data[0] << 24) |
+                ((uint32_t)msg.data[1] << 16) |
+                ((uint32_t)msg.data[2] << 8) |
+                ((uint32_t)msg.data[3]);
+
+            CC_CAN_CLF::updateCLFTime(epoch);
+
+            CC_LOG_INFO("[CLF][CC] CLF_TIME reçu : epoch=%u", epoch);
             return;
         }
 

@@ -1,6 +1,7 @@
 #include "Canton.h"
 #include "Protocol.h"
 #include "CC_CAN.h"
+#include "CC_CAN_CLF.h"
 #include "debug_cc.h"
 
 // ---------------------------------------------------------------------------
@@ -12,16 +13,21 @@ void Canton::onCommandeCLF(uint8_t commande, const CanMsg &msg)
     {
     case Cmd_CLF_to_CC::TRAIN_VALIDE:
     {
-        if (msg.dlc < 3)
+        if (msg.dlc < 5)
             return;
 
         uint16_t trainID = msg.data[0];
-        uint16_t duree   = msg.data[1] | (msg.data[2] << 8);
 
-        activateSilence(trainID, duree);
+        uint32_t expirationEpoch =
+            ((uint32_t)msg.data[1] << 24) |
+            ((uint32_t)msg.data[2] << 16) |
+            ((uint32_t)msg.data[3] << 8) |
+            ((uint32_t)msg.data[4]);
 
-        CC_LOG_INFO("[CLF][CC] TRAIN_VALIDE : train=%u silence=%u ms",
-                    trainID, duree);
+        activateSilenceEpoch(trainID, expirationEpoch);
+
+        CC_LOG_INFO("[CLF][CC] TRAIN_VALIDE : train=%u silence jusqu'à epoch=%u",
+                    trainID, expirationEpoch);
         break;
     }
 
@@ -75,8 +81,7 @@ void Canton::onCommandeCLF(uint8_t commande, const CanMsg &msg)
             trainID >> 8,
             trainID & 0xFF,
             v1000 >> 8,
-            v1000 & 0xFF
-        );
+            v1000 & 0xFF);
 
         // 4) Envoi essieux
         uint8_t essieux = essieuxMesures();
@@ -88,8 +93,7 @@ void Canton::onCommandeCLF(uint8_t commande, const CanMsg &msg)
             ID(),
             trainID >> 8,
             trainID & 0xFF,
-            essieux
-        );
+            essieux);
 
         break;
     }
@@ -102,14 +106,14 @@ void Canton::onCommandeCLF(uint8_t commande, const CanMsg &msg)
 // ---------------------------------------------------------------------------
 // Gestion du silence CC pour un train
 // ---------------------------------------------------------------------------
-void Canton::activateSilence(uint16_t trainID, uint32_t dureeMinutes)
+void Canton::activateSilenceEpoch(uint16_t trainID, uint32_t expirationEpoch)
 {
-    m_silenceTrainID  = trainID;
-    m_silenceExpireAt = millis() + (dureeMinutes * 60000UL);  // minutes → ms
-    m_silenceActive   = true;
+    m_silenceTrainID = trainID;
+    m_silenceExpireAtEpoch = expirationEpoch;
+    m_silenceActive = true;
 
-    CC_LOG_INFO("[CLF][CC] Silence activé pour train %u (%u minutes)",
-                trainID, dureeMinutes);
+    CC_LOG_INFO("[CC] Silence activé pour train %u jusqu'à epoch=%u",
+                trainID, expirationEpoch);
 }
 
 void Canton::deactivateSilence(uint16_t trainID)
@@ -129,8 +133,7 @@ bool Canton::isSilent(uint16_t trainID) const
     if (m_silenceTrainID != trainID)
         return false;
 
-    if (millis() >= m_silenceExpireAt)
-        return false;
+    uint32_t now = CC_CAN_CLF::getCLFTime();
 
-    return true;
+    return now < m_silenceExpireAtEpoch;
 }
