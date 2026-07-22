@@ -16,11 +16,13 @@
  */
 
 #pragma once
-
 #include "Canton.h"
 
-// Envoie les trames UPDATE_VOISINS (état ferroviaire) et RESERVATION_LOCO (réservation)
-void envoyerEtatCAN(Canton *canton);
+namespace SupervisionCAN
+{
+    void envoyerEtatCAN(Canton *canton);
+    void updateTopoLed();
 
-// Met à jour la LED topologie (OK / erreur)
-void updateTopoLed();
+    // Ajout de l'index de wagon
+    void envoyerRechercheWagon(Canton *canton, uint16_t destId, uint16_t locoId, uint8_t index);
+}

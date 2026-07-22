@@ -166,5 +166,5 @@ void Canton::checkTopoValidity(uint16_t offlineId)
                 topoValide ? "true" : "false",
                 offlineId);
 
-    updateTopoLed();
+    SupervisionCAN::updateTopoLed();
 }

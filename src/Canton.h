@@ -305,6 +305,48 @@ public:
     void deactivateSilence(uint16_t trainID);
     bool isSilent(uint16_t trainID) const;
 
+    // -----------------------------------------------------------------------
+    // Recherche directionnelle des wagons fugueurs (RailCom)
+    // -----------------------------------------------------------------------
+    /*
+     * Déclenche la recherche directionnelle :
+     *   - activation RailCom des wagons de la rame (F27)
+     *   - propagation vers SP1/SM1
+     * Appelé par SupervisionCanton lors d'une incohérence.
+     */
+    void declencherRechercheDirectionnelle();
+
+    /*
+     * Traite une recherche reçue via CAN :
+     *   - activation RailCom des wagons de la rame (F27)
+     *   - propagation vers le voisin suivant
+     * Appelé par SupervisionCAN.
+     */
+    void traiterRechercheDirectionnelleRecue(uint16_t locoId, uint8_t index);
+
+    /*
+     * Envoi DCC détourné (F27/F28) pour activer/désactiver RailCom d'un wagon.
+     * Wrapper propre pour CommandeDCC.cpp.
+     */
+    void envoyerCommande_DCC_WAGON_RAILCOM(uint16_t wagonAddr, bool enable);
+
+    /*
+     * Validation locale d’un wagon dans CC0.
+     * Appelé lorsque :
+     *   - aucun voisin n’a détecté le wagon
+     *   - donc physiquement le wagon est dans le canton local (CC0)
+     *   - on valide ce wagon et on passe au suivant
+     */
+    void validerWagonDansCC0(uint16_t locoId, uint8_t index);
+
+    /*
+     * Lecture RailCom locale d’un wagon.
+     * Retourne :
+     *   - true  si le wagon est détecté dans ce canton
+     *   - false sinon
+     */
+    bool railcomDetecte(uint16_t wagonAddr);
+
 private:
     uint16_t m_id;
 

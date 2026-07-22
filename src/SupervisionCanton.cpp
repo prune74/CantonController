@@ -89,12 +89,20 @@ ExccAspect mettreAJourAspectCanton(Canton *canton, uint8_t i)
         if (adr == 0)
         {
             CC_LOG_INFO("[Canton][CC] Aucune loco connue → Avertissement\n");
+
+            // 🚨 Déclenche la recherche directionnelle des wagons fugueurs
+            canton->declencherRechercheDirectionnelle();
+
             return ExccAspect::ASPECT_AVERTISSEMENT;
         }
 
         if (adr != aval->reserved())
         {
             CC_LOG_INFO("[Canton][CC] Loco différente → Sémaphore\n");
+
+            // 🚨 Déclenche la recherche directionnelle des wagons fugueurs
+            canton->declencherRechercheDirectionnelle();
+
             return ExccAspect::ASPECT_SEMAPHORE;
         }
 

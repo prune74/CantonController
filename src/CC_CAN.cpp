@@ -143,6 +143,7 @@ void CC_CAN::traiterMessageCAN(const CanMsg &msg, Canton *canton, uint8_t bus)
     case Cmd_CC_to_CC::ASPECT_VOISIN:
     case Cmd_CC_to_CC::AIGUILLAGE:
     case Cmd_CC_to_CC::MESURE_PREPARE:
+    case Cmd_CC_to_CC::RECHERCHE_WAGON:
         handleExploitCommand(commande, msg, canton, idExpediteur);
         return;
 

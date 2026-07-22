@@ -3,9 +3,17 @@
 #include "debug_cc.h"
 #include "Canton.h"
 #include "CC_CAN.h"
+#include <map>
+#include <vector>
 
 static uint32_t g_CLF_timeEpoch = 0;
 
+// ⭐ Stockage interne des compositions
+static std::map<uint16_t, std::vector<uint16_t>> g_compositions;
+
+// ---------------------------------------------------------------------------
+// API publique : temps CLF
+// ---------------------------------------------------------------------------
 void CC_CAN_CLF::updateCLFTime(uint32_t epoch)
 {
     g_CLF_timeEpoch = epoch;
@@ -16,9 +24,26 @@ uint32_t CC_CAN_CLF::getCLFTime()
     return g_CLF_timeEpoch;
 }
 
+// ---------------------------------------------------------------------------
+// API publique : composition des trains
+// ---------------------------------------------------------------------------
+void CC_CAN_CLF::setComposition(uint16_t trainID, const std::vector<uint16_t> &wagons)
+{
+    g_compositions[trainID] = wagons;
+}
+
+const std::vector<uint16_t> &CC_CAN_CLF::getComposition(uint16_t trainID)
+{
+    static const std::vector<uint16_t> empty;
+    auto it = g_compositions.find(trainID);
+    return (it != g_compositions.end()) ? it->second : empty;
+}
+
+// ---------------------------------------------------------------------------
+// Réception des commandes CLF
+// ---------------------------------------------------------------------------
 namespace CC_CAN_CLF
 {
-
     void handleCLFCommand(uint8_t commande, const CanMsg &msg, Canton *canton, uint16_t idExpediteur)
     {
         switch ((Cmd_CLF_to_CC)commande)
@@ -102,9 +127,6 @@ namespace CC_CAN_CLF
                 v1000 >> 8,
                 v1000 & 0xFF);
 
-            // ---------------------------------------------------------------
-            // 4) Renvoi du nombre d'essieux
-            // ---------------------------------------------------------------
             uint8_t essieux = canton->essieuxMesures();
 
             CC_CAN::sendMsg(
@@ -136,9 +158,33 @@ namespace CC_CAN_CLF
             return;
         }
 
+        // Composition du train
+        case Cmd_CLF_to_CC::TRAIN_COMPOSITION:
+        {
+            if (msg.dlc < 2)
+                return;
+
+            uint16_t trainID = msg.data[0];
+            uint8_t nb = msg.data[1];
+
+            if (msg.dlc < 2 + nb)
+                return;
+
+            std::vector<uint16_t> wagons;
+            wagons.reserve(nb);
+
+            for (uint8_t i = 0; i < nb; i++)
+                wagons.push_back(msg.data[2 + i]);
+
+            CC_CAN_CLF::setComposition(trainID, wagons);
+
+            CC_LOG_INFO("[CLF][CC] TRAIN_COMPOSITION : train=%u wagons=%u",
+                        trainID, nb);
+            return;
+        }
+
         default:
             return;
         }
     }
-
 }

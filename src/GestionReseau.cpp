@@ -89,7 +89,7 @@ void IRAM_ATTR GestionReseau::loopTask(void *pvParameters) // 🟢
         // -------------------------------------------------------------------
         // 5) Diffusion de l’état sur le bus CAN
         // -------------------------------------------------------------------
-        envoyerEtatCAN(canton);
+        SupervisionCAN::envoyerEtatCAN(canton);
 
         // -------------------------------------------------------------------
         // 6) Supervision cantonale → calcul des aspects locaux
@@ -107,7 +107,7 @@ void IRAM_ATTR GestionReseau::loopTask(void *pvParameters) // 🟢
         // -------------------------------------------------------------------
         // 8) Envoi des commandes DCC++ (trame 0x04)
         // -------------------------------------------------------------------
-        envoyerCommandeDCC(canton);
+        envoyerCommande_DCC_LOCO_SPEED(canton);
 
         // -------------------------------------------------------------------
         // 9) Déduction + envoi des aspects dynamiques aux signaux EXCC

@@ -18,7 +18,7 @@
 
 #include "CanBus.h"
 #include "CanMsg.h"
-#include <Protocol.h> // ⭐ Ajout indispensable
+#include <Protocol.h>
 
 // ---------------------------------------------------------------------------
 // Variables internes
@@ -26,11 +26,12 @@
 static uint16_t oldLocAddress = 0;
 static uint16_t oldLocSpeed = 0;
 static uint8_t comptCmdLoco = 0;
+static uint8_t comptCmdWagon = 0;
 
 // ---------------------------------------------------------------------------
-// envoyerCommandeDCC()
+// envoyerCommande_DCC_LOCO_SPEED()
 // ---------------------------------------------------------------------------
-void envoyerCommandeDCC(Canton *canton)
+void envoyerCommande_DCC_LOCO_SPEED(Canton *canton)
 {
     Loco *loco = canton->getLoco();
     if (!loco || loco->address() == 0)
@@ -60,5 +61,50 @@ void envoyerCommandeDCC(Canton *canton)
         oldLocAddress = loco->address();
         oldLocSpeed = loco->speed();
         comptCmdLoco++;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// envoyerCommande_DCC_WAGON_RAILCOM()
+// ---------------------------------------------------------------------------
+void envoyerCommande_DCC_WAGON_RAILCOM(uint16_t wagonAddr, bool enable)
+{
+    // Sécurité : adresse invalide → aucun envoi
+    if (wagonAddr == 0)
+        return;
+
+    // Choix de la fonction détournée :
+    // F27 = RailCom ON
+    // F28 = RailCom OFF
+    uint8_t fn = enable ? 27 : 28;
+
+    // Si on change de wagon → reset du compteur
+    static uint16_t oldWagonAddr = 0;
+    if (wagonAddr != oldWagonAddr)
+        comptCmdWagon = 0;
+
+    // Répétition 5 fois pour fiabiliser l’envoi
+    if (comptCmdWagon < 5)
+    {
+        CC_CAN::sendMsg(
+            0,                                               // priorité
+            static_cast<uint8_t>(Cmd_CAN_LaBox::LOCO_FUNCTION), // opcode Marklin
+            0,                                               // pas une réponse
+            0,                                               // expéditeur = CC local
+            0x00, 0x00,                                      // Marklin header
+            (wagonAddr >> 8) & 0xFF,                         // adresse DCC high byte
+            wagonAddr & 0xFF,                                // adresse DCC low byte
+            fn,                                              // numéro de fonction (F27/F28)
+            1                                                // état ON
+        );
+
+        CC_LOG_INFO("[CommandeDCC][CC] Wagon %u RailCom %s via F%d (envoi %u/5)\n",
+                    wagonAddr,
+                    enable ? "ON" : "OFF",
+                    fn,
+                    comptCmdWagon + 1);
+
+        oldWagonAddr = wagonAddr;
+        comptCmdWagon++;
     }
 }
